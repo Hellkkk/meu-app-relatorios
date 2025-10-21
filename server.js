@@ -1,22 +1,50 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const cors = require('cors');
 require('dotenv').config();
 
+// Import database connection
+const connectDB = require('./config/database');
+
+// Import routes
+const authRoutes = require('./routes/auth');
+
+// Import middleware
+const authMiddleware = require('./middleware/auth');
+
+// Initialize Express app
 const app = express();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const mongoDBPassword = process.env.MONGO_DB_PASSWORD;
-const mongoDBUri = `mongodb+srv://<username>:` + mongoDBPassword + `@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority`;
+// Connect to MongoDB
+connectDB();
 
-mongoose.connect(mongoDBUri, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected!'))
-    .catch(err => console.error(err));
+// Routes
+app.use('/api/auth', authRoutes);
 
-// Your user model and routes will go here
+// Protected route example (can be used for testing)
+app.get('/api/protected', authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Access to protected route granted',
+    user: req.user
+  });
+});
 
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
