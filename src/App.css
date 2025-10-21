@@ -1,0 +1,12 @@
+.App {
+  text-align: center;
+  margin-top: 20px;
+}
+
+h1 {
+  color: #4CAF50; /* Green color */
+}
+
+p {
+  font-size: 18px;
+}
