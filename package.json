@@ -12,6 +12,7 @@
     "install:frontend": "npm install",
     "build:frontend": "npm run client:build",
     "deploy": "chmod +x deploy.sh && ./deploy.sh",
+    "deploy:amazon": "chmod +x deploy-amazon-linux.sh && ./deploy-amazon-linux.sh",
     "pm2:start": "pm2 start server.js --name backend && pm2 serve dist 3000 --name frontend --spa",
     "pm2:stop": "pm2 delete all",
     "pm2:restart": "pm2 restart all",
