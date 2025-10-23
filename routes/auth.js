@@ -83,12 +83,12 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
+    // Check if user exists and is active
+    const user = await User.findOne({ email }).populate('companies', 'name cnpj');
+    if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid credentials or inactive account'
       });
     }
 
@@ -108,15 +108,15 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-      }
+      user: user.getPublicData()
     });
   } catch (error) {
     console.error('Login error:', error);
