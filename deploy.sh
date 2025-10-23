@@ -49,7 +49,7 @@ pm2 startup
 
 echo "✅ Deploy concluído!"
 echo "🌐 Frontend: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):3000"
-echo "🔧 Backend: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):5000"
+echo "🔧 Backend: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):5001"
 echo ""
 echo "📊 Status dos serviços:"
 pm2 status

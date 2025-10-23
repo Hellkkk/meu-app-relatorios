@@ -6,7 +6,7 @@
 
 const http = require('http');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const HOST = 'localhost';
 
 // Helper function to make HTTP requests
