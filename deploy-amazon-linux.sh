@@ -35,13 +35,9 @@ node seed.js
 echo "⏹️ Parando processos existentes..."
 pm2 delete all 2>/dev/null || true
 
-# Iniciar backend com PM2
-echo "🚀 Iniciando backend na porta 5001..."
-pm2 start server.js --name "relatorios-backend"
-
-# Servir frontend com PM2 usando servidor proxy
-echo "🌐 Iniciando frontend com proxy na porta 3001..."
-pm2 start frontend-server.js --name "relatorios-frontend"
+# Iniciar serviços com PM2 usando arquivo de configuração
+echo "🚀 Iniciando serviços com PM2..."
+pm2 start ecosystem.config.js
 
 # Salvar configuração do PM2
 pm2 save
