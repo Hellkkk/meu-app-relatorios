@@ -49,8 +49,8 @@ MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/relatorios
 JWT_SECRET=sua_chave_jwt_super_secreta_com_pelo_menos_32_caracteres
 
 # URLs (substitua SEU_IP_EC2 pelo IP público da sua instância)
-CLIENT_URL=http://SEU_IP_EC2:3000
-CORS_ORIGIN=http://SEU_IP_EC2:3000
+CLIENT_URL=http://SEU_IP_EC2:3001
+CORS_ORIGIN=http://SEU_IP_EC2:3001
 ```
 
 ### 3. Deploy da Aplicação
@@ -123,8 +123,8 @@ Configure estas regras no Security Group da EC2:
 | SSH | 22 | Seu IP | Acesso SSH |
 | HTTP | 80 | 0.0.0.0/0 | HTTP público |
 | HTTPS | 443 | 0.0.0.0/0 | HTTPS público |
-| Custom TCP | 3000 | 0.0.0.0/0 | Frontend React |
-| Custom TCP | 5000 | 0.0.0.0/0 | Backend API |
+| Custom TCP | 3001 | 0.0.0.0/0 | Frontend React |
+| Custom TCP | 5001 | 0.0.0.0/0 | Backend API |
 
 ## 📊 Gerenciar Aplicação
 
@@ -151,8 +151,8 @@ npm run deploy:amazon
 
 Após o deploy, acesse:
 
-- **Frontend:** `http://SEU_IP_EC2:3000`
-- **Backend API:** `http://SEU_IP_EC2:5000/api`
+- **Frontend:** `http://SEU_IP_EC2:3001`
+- **Backend API:** `http://SEU_IP_EC2:5001/api`
 
 ## 🔐 Contas de Teste
 
