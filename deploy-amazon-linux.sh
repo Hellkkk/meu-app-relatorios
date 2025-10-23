@@ -39,9 +39,9 @@ pm2 delete all 2>/dev/null || true
 echo "🚀 Iniciando backend na porta 5001..."
 pm2 start server.js --name "relatorios-backend"
 
-# Servir frontend com PM2
-echo "🌐 Iniciando frontend na porta 3001..."
-pm2 serve dist 3001 --name "relatorios-frontend" --spa
+# Servir frontend com PM2 usando servidor proxy
+echo "🌐 Iniciando frontend com proxy na porta 3001..."
+pm2 start frontend-server.js --name "relatorios-frontend"
 
 # Salvar configuração do PM2
 pm2 save

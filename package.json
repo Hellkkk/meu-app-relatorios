@@ -13,7 +13,7 @@
     "build:frontend": "npm run client:build",
     "deploy": "chmod +x deploy.sh && ./deploy.sh",
     "deploy:amazon": "chmod +x deploy-amazon-linux.sh && ./deploy-amazon-linux.sh",
-    "pm2:start": "pm2 start server.js --name relatorios-backend && pm2 serve dist 3001 --name relatorios-frontend --spa",
+    "pm2:start": "pm2 start server.js --name relatorios-backend && pm2 start frontend-server.js --name relatorios-frontend",
     "pm2:stop": "pm2 delete all",
     "pm2:restart": "pm2 restart all",
     "pm2:status": "pm2 status"
@@ -32,6 +32,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
     "react": "^19.2.0",
