@@ -10,12 +10,12 @@ echo "📦 Atualizando sistema..."
 sudo yum update -y
 
 # Instalar Node.js (Amazon Linux 2)
-echo "📦 Instalando Node.js..."
+echo "📦 Instalando Node.js 20..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 source ~/.bashrc
-nvm install 18
-nvm use 18
-nvm alias default 18
+nvm install 20
+nvm use 20
+nvm alias default 20
 
 # Instalar PM2
 echo "📦 Instalando PM2..."

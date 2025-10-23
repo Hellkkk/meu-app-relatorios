@@ -10,8 +10,8 @@ echo "📦 Atualizando sistema..."
 sudo apt update && sudo apt upgrade -y
 
 # Instalar Node.js
-echo "📦 Instalando Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+echo "📦 Instalando Node.js 20..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # Instalar PM2
