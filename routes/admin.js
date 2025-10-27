@@ -442,4 +442,142 @@ router.get('/stats/users', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/admin/users/:userId/companies/:companyId
+// @desc    Remover usuário de uma empresa específica
+// @access  Private/Admin
+router.delete('/users/:userId/companies/:companyId', authenticate, requireAdmin, logActivity('REMOVE_USER_FROM_COMPANY'), async (req, res) => {
+  try {
+    const { userId, companyId } = req.params;
+
+    const user = await User.findById(userId);
+    const company = await Company.findById(companyId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Administradores têm acesso a todas as empresas automaticamente'
+      });
+    }
+
+    // Remover empresa do usuário
+    user.companies = user.companies.filter(compId => compId.toString() !== companyId);
+    await user.save();
+
+    // Remover usuário da empresa
+    company.employees = company.employees.filter(empId => empId.toString() !== userId);
+    
+    // Se o usuário era responsável, remover responsabilidade
+    if (company.responsibleUser && company.responsibleUser.toString() === userId) {
+      company.responsibleUser = null;
+    }
+    
+    await company.save();
+
+    // Retornar usuário atualizado
+    const updatedUser = await User.findById(userId)
+      .populate('companies', 'name cnpj')
+      .select('-password');
+
+    res.json({
+      success: true,
+      message: 'Usuário removido da empresa com sucesso',
+      data: updatedUser.getPublicData()
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao remover usuário da empresa',
+      error: error.message
+    });
+  }
+});
+
+// @route   POST /api/admin/users/:userId/companies/:companyId
+// @desc    Adicionar usuário a uma empresa específica
+// @access  Private/Admin
+router.post('/users/:userId/companies/:companyId', authenticate, requireAdmin, logActivity('ADD_USER_TO_COMPANY'), async (req, res) => {
+  try {
+    const { userId, companyId } = req.params;
+
+    const user = await User.findById(userId);
+    const company = await Company.findById(companyId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (!company.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível adicionar usuário a uma empresa inativa'
+      });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Administradores têm acesso a todas as empresas automaticamente'
+      });
+    }
+
+    // Verificar se já está vinculado
+    const alreadyLinked = user.companies.some(compId => compId.toString() === companyId);
+    if (alreadyLinked) {
+      return res.status(400).json({
+        success: false,
+        message: 'Usuário já está vinculado a esta empresa'
+      });
+    }
+
+    // Adicionar empresa ao usuário
+    user.companies.push(companyId);
+    await user.save();
+
+    // Adicionar usuário à empresa
+    company.employees.push(userId);
+    await company.save();
+
+    // Retornar usuário atualizado
+    const updatedUser = await User.findById(userId)
+      .populate('companies', 'name cnpj')
+      .select('-password');
+
+    res.json({
+      success: true,
+      message: 'Usuário adicionado à empresa com sucesso',
+      data: updatedUser.getPublicData()
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao adicionar usuário à empresa',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

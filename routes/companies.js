@@ -378,4 +378,310 @@ router.get('/stats/overview', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/companies/:companyId/employees/:userId
+// @desc    Remover funcionário de uma empresa
+// @access  Private/Admin or Manager
+router.delete('/:companyId/employees/:userId', authenticate, async (req, res) => {
+  try {
+    const { companyId, userId } = req.params;
+
+    const company = await Company.findById(companyId);
+    const user = await User.findById(userId);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    // Verificar permissões: admin ou responsável pela empresa
+    const isAdmin = req.user.isAdmin();
+    const isResponsible = company.responsibleUser && company.responsibleUser.toString() === req.user._id.toString();
+    
+    if (!isAdmin && !isResponsible) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acesso negado. Apenas administradores ou responsáveis podem remover funcionários.'
+      });
+    }
+
+    // Verificar se o usuário está realmente vinculado à empresa
+    const isEmployee = company.employees.some(empId => empId.toString() === userId);
+    if (!isEmployee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Usuário não está vinculado a esta empresa'
+      });
+    }
+
+    // Não permitir remover o responsável da empresa desta forma
+    if (company.responsibleUser && company.responsibleUser.toString() === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Para remover o responsável, primeiro defina outro responsável ou remova a responsabilidade'
+      });
+    }
+
+    // Remover usuário da empresa
+    company.employees = company.employees.filter(empId => empId.toString() !== userId);
+    await company.save();
+
+    // Remover empresa do usuário
+    user.companies = user.companies.filter(compId => compId.toString() !== companyId);
+    await user.save();
+
+    // Retornar empresa atualizada
+    const updatedCompany = await Company.findById(companyId)
+      .populate('responsibleUser', 'username email role')
+      .populate('employees', 'username email isActive');
+
+    res.json({
+      success: true,
+      message: 'Funcionário removido da empresa com sucesso',
+      data: updatedCompany
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao remover funcionário da empresa',
+      error: error.message
+    });
+  }
+});
+
+// @route   POST /api/companies/:companyId/employees/:userId
+// @desc    Adicionar funcionário a uma empresa
+// @access  Private/Admin or Manager
+router.post('/:companyId/employees/:userId', authenticate, async (req, res) => {
+  try {
+    const { companyId, userId } = req.params;
+
+    const company = await Company.findById(companyId);
+    const user = await User.findById(userId);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    if (!company.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível adicionar funcionário a uma empresa inativa'
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível adicionar usuário inativo'
+      });
+    }
+
+    // Verificar permissões: admin ou responsável pela empresa
+    const isAdmin = req.user.isAdmin();
+    const isResponsible = company.responsibleUser && company.responsibleUser.toString() === req.user._id.toString();
+    
+    if (!isAdmin && !isResponsible) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acesso negado. Apenas administradores ou responsáveis podem adicionar funcionários.'
+      });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Administradores têm acesso a todas as empresas automaticamente'
+      });
+    }
+
+    // Verificar se já está vinculado
+    const alreadyEmployee = company.employees.some(empId => empId.toString() === userId);
+    if (alreadyEmployee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Usuário já é funcionário desta empresa'
+      });
+    }
+
+    // Adicionar usuário à empresa
+    company.employees.push(userId);
+    await company.save();
+
+    // Adicionar empresa ao usuário
+    user.companies.push(companyId);
+    await user.save();
+
+    // Retornar empresa atualizada
+    const updatedCompany = await Company.findById(companyId)
+      .populate('responsibleUser', 'username email role')
+      .populate('employees', 'username email isActive');
+
+    res.json({
+      success: true,
+      message: 'Funcionário adicionado à empresa com sucesso',
+      data: updatedCompany
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao adicionar funcionário à empresa',
+      error: error.message
+    });
+  }
+});
+
+// @route   PUT /api/companies/:companyId/responsible/:userId
+// @desc    Definir responsável por uma empresa
+// @access  Private/Admin
+router.put('/:companyId/responsible/:userId', authenticate, requireAdmin, logActivity('SET_COMPANY_RESPONSIBLE'), async (req, res) => {
+  try {
+    const { companyId, userId } = req.params;
+
+    const company = await Company.findById(companyId);
+    const user = await User.findById(userId);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado'
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Não é possível definir usuário inativo como responsável'
+      });
+    }
+
+    if (user.role === 'user') {
+      return res.status(400).json({
+        success: false,
+        message: 'Apenas gerentes ou administradores podem ser responsáveis por empresas'
+      });
+    }
+
+    // Remover responsabilidade do usuário anterior (se houver)
+    if (company.responsibleUser) {
+      const oldResponsible = await User.findById(company.responsibleUser);
+      if (oldResponsible) {
+        oldResponsible.companies = oldResponsible.companies.filter(compId => compId.toString() !== companyId);
+        await oldResponsible.save();
+      }
+    }
+
+    // Definir novo responsável
+    company.responsibleUser = userId;
+    await company.save();
+
+    // Adicionar empresa ao usuário se não estiver já
+    if (!user.companies.some(compId => compId.toString() === companyId)) {
+      user.companies.push(companyId);
+      await user.save();
+    }
+
+    // Adicionar usuário como funcionário se não estiver já
+    if (!company.employees.some(empId => empId.toString() === userId)) {
+      company.employees.push(userId);
+      await company.save();
+    }
+
+    // Retornar empresa atualizada
+    const updatedCompany = await Company.findById(companyId)
+      .populate('responsibleUser', 'username email role')
+      .populate('employees', 'username email isActive');
+
+    res.json({
+      success: true,
+      message: 'Responsável definido com sucesso',
+      data: updatedCompany
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao definir responsável',
+      error: error.message
+    });
+  }
+});
+
+// @route   DELETE /api/companies/:companyId/responsible
+// @desc    Remover responsável de uma empresa
+// @access  Private/Admin
+router.delete('/:companyId/responsible', authenticate, requireAdmin, logActivity('REMOVE_COMPANY_RESPONSIBLE'), async (req, res) => {
+  try {
+    const { companyId } = req.params;
+
+    const company = await Company.findById(companyId);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: 'Empresa não encontrada'
+      });
+    }
+
+    if (!company.responsibleUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Esta empresa não possui responsável definido'
+      });
+    }
+
+    // Remover empresa do usuário responsável
+    const responsible = await User.findById(company.responsibleUser);
+    if (responsible) {
+      responsible.companies = responsible.companies.filter(compId => compId.toString() !== companyId);
+      await responsible.save();
+    }
+
+    // Remover responsável da empresa
+    company.responsibleUser = null;
+    await company.save();
+
+    // Retornar empresa atualizada
+    const updatedCompany = await Company.findById(companyId)
+      .populate('responsibleUser', 'username email role')
+      .populate('employees', 'username email isActive');
+
+    res.json({
+      success: true,
+      message: 'Responsável removido com sucesso',
+      data: updatedCompany
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Erro ao remover responsável',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
