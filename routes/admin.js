@@ -580,4 +580,66 @@ router.post('/users/:userId/companies/:companyId', authenticate, requireAdmin, l
   }
 });
 
+// Endpoint para estatísticas de vínculos usuário-empresa
+router.get('/user-company-stats', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    // Buscar todos os usuários e empresas
+    const users = await User.find({ role: { $ne: 'admin' } }).populate('companies');
+    const companies = await Company.find({ isActive: true }).populate('employees');
+
+    // Calcular estatísticas
+    const stats = {
+      totalUsers: users.length,
+      totalCompanies: companies.length,
+      usersWithCompanies: users.filter(user => user.companies && user.companies.length > 0).length,
+      usersWithoutCompanies: users.filter(user => !user.companies || user.companies.length === 0).length,
+      companiesWithEmployees: companies.filter(company => company.employees && company.employees.length > 0).length,
+      companiesWithoutEmployees: companies.filter(company => !company.employees || company.employees.length === 0).length,
+      totalLinks: users.reduce((total, user) => total + (user.companies ? user.companies.length : 0), 0),
+      avgLinksPerUser: 0,
+      avgEmployeesPerCompany: 0,
+      inconsistencies: 0
+    };
+
+    // Calcular médias
+    if (stats.totalUsers > 0) {
+      stats.avgLinksPerUser = parseFloat((stats.totalLinks / stats.totalUsers).toFixed(2));
+    }
+
+    if (stats.totalCompanies > 0) {
+      stats.avgEmployeesPerCompany = parseFloat((companies.reduce((total, company) => 
+        total + (company.employees ? company.employees.length : 0), 0) / stats.totalCompanies).toFixed(2));
+    }
+
+    // Detectar inconsistências (usuários vinculados mas não na lista de funcionários)
+    let inconsistencyCount = 0;
+    for (const user of users) {
+      if (user.companies) {
+        for (const userCompany of user.companies) {
+          const company = companies.find(c => c._id.toString() === userCompany._id.toString());
+          if (company) {
+            const isEmployee = company.employees?.some(emp => emp._id.toString() === user._id.toString());
+            const isResponsible = company.responsibleUser && company.responsibleUser.toString() === user._id.toString();
+            if (!isEmployee && !isResponsible) {
+              inconsistencyCount++;
+            }
+          }
+        }
+      }
+    }
+    stats.inconsistencies = inconsistencyCount;
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao calcular estatísticas',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

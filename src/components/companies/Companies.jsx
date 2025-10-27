@@ -261,6 +261,91 @@ const Companies = () => {
     }
   };
 
+  // Remover funcionário de empresa
+  const removeEmployeeFromCompany = async (companyId, userId, userName) => {
+    if (!window.confirm(`Tem certeza que deseja remover "${userName}" desta empresa?`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/companies/${companyId}/employees/${userId}`);
+      if (response.data.success) {
+        setSuccess('Funcionário removido da empresa com sucesso!');
+        // Atualizar a empresa na lista local
+        setCompanies(prev => prev.map(comp => 
+          comp._id === companyId 
+            ? { ...comp, employees: comp.employees.filter(emp => (emp._id || emp) !== userId) }
+            : comp
+        ));
+        // Atualizar selectedCompany se estiver aberto
+        if (selectedCompany && selectedCompany._id === companyId) {
+          setSelectedCompany(prev => ({
+            ...prev,
+            employees: prev.employees.filter(emp => (emp._id || emp) !== userId)
+          }));
+        }
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao remover funcionário da empresa');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Adicionar funcionário à empresa
+  const addEmployeeToCompany = async (companyId, userId) => {
+    try {
+      const response = await axios.post(`/api/companies/${companyId}/employees/${userId}`);
+      if (response.data.success) {
+        setSuccess('Funcionário adicionado à empresa com sucesso!');
+        fetchCompanies(pagination.current);
+        // Recarregar dados da empresa se o modal estiver aberto
+        if (selectedCompany && selectedCompany._id === companyId) {
+          const updatedCompany = await axios.get(`/api/companies/${companyId}`);
+          setSelectedCompany(updatedCompany.data.data);
+        }
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao adicionar funcionário à empresa');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Definir responsável pela empresa
+  const setCompanyResponsible = async (companyId, userId) => {
+    try {
+      const response = await axios.put(`/api/companies/${companyId}/responsible/${userId}`);
+      if (response.data.success) {
+        setSuccess('Responsável definido com sucesso!');
+        fetchCompanies(pagination.current);
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao definir responsável');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Remover responsável da empresa
+  const removeCompanyResponsible = async (companyId) => {
+    if (!window.confirm('Tem certeza que deseja remover o responsável desta empresa?')) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/companies/${companyId}/responsible`);
+      if (response.data.success) {
+        setSuccess('Responsável removido com sucesso!');
+        fetchCompanies(pagination.current);
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao remover responsável');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   // Handle filter change
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -402,20 +487,70 @@ const Companies = () => {
                     <td>{company.sector || '-'}</td>
                     <td>
                       {company.responsibleUser ? (
-                        <div>
-                          <div style={{ fontSize: '14px' }}>
-                            {company.responsibleUser.username || company.responsibleUser}
-                          </div>
-                          {company.responsibleUser.email && (
-                            <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                              {company.responsibleUser.email}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize: '14px' }}>
+                              {company.responsibleUser.username || company.responsibleUser}
                             </div>
+                            {company.responsibleUser.email && (
+                              <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                                {company.responsibleUser.email}
+                              </div>
+                            )}
+                          </div>
+                          {isAdmin() && (
+                            <button
+                              onClick={() => removeCompanyResponsible(company._id)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#dc3545',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                padding: '2px 4px',
+                                marginLeft: '5px'
+                              }}
+                              title="Remover responsável"
+                            >
+                              ×
+                            </button>
                           )}
                         </div>
                       ) : (
-                        <span style={{ color: '#6c757d', fontSize: '12px' }}>
-                          Não definido
-                        </span>
+                        <div>
+                          <span style={{ color: '#6c757d', fontSize: '12px' }}>
+                            Não definido
+                          </span>
+                          {isAdmin() && (
+                            <div style={{ marginTop: '5px' }}>
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    setCompanyResponsible(company._id, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '2px 4px',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '3px',
+                                  width: '100%'
+                                }}
+                              >
+                                <option value="">+ Definir responsável</option>
+                                {users
+                                  .filter(user => user.role === 'manager' || user.role === 'admin')
+                                  .map(user => (
+                                    <option key={user._id} value={user._id}>
+                                      {user.username} ({user.role === 'admin' ? 'Admin' : 'Gerente'})
+                                    </option>
+                                  ))
+                                }
+                              </select>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td>
@@ -810,13 +945,47 @@ const Companies = () => {
 
             {selectedCompany.employees && selectedCompany.employees.length > 0 ? (
               <div>
-                <h4>Lista de Funcionários:</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <h4 style={{ margin: 0 }}>Lista de Funcionários:</h4>
+                  {(isAdmin() || canEditCompany(selectedCompany)) && (
+                    <div>
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            addEmployeeToCompany(selectedCompany._id, e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                        style={{
+                          fontSize: '12px',
+                          padding: '4px 8px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        <option value="">+ Adicionar funcionário</option>
+                        {users
+                          .filter(user => 
+                            user.role === 'user' && 
+                            !selectedCompany.employees.some(emp => (emp._id || emp) === user._id)
+                          )
+                          .map(user => (
+                            <option key={user._id} value={user._id}>
+                              {user.username} - {user.email}
+                            </option>
+                          ))
+                        }
+                      </select>
+                    </div>
+                  )}
+                </div>
                 <table className="table">
                   <thead>
                     <tr>
                       <th>Nome</th>
                       <th>Email</th>
                       <th>Status</th>
+                      {(isAdmin() || canEditCompany(selectedCompany)) && <th>Ações</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -835,6 +1004,21 @@ const Companies = () => {
                             {employee.isActive !== false ? 'Ativo' : 'Inativo'}
                           </span>
                         </td>
+                        {(isAdmin() || canEditCompany(selectedCompany)) && (
+                          <td>
+                            <button
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '12px' }}
+                              onClick={() => removeEmployeeFromCompany(
+                                selectedCompany._id, 
+                                employee._id || employee, 
+                                employee.username || employee
+                              )}
+                            >
+                              Remover
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -843,6 +1027,34 @@ const Companies = () => {
             ) : (
               <div className="alert">
                 <p>Nenhum funcionário cadastrado nesta empresa.</p>
+                {(isAdmin() || canEditCompany(selectedCompany)) && users.some(user => user.role === 'user') && (
+                  <div style={{ marginTop: '15px' }}>
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          addEmployeeToCompany(selectedCompany._id, e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px'
+                      }}
+                    >
+                      <option value="">+ Adicionar primeiro funcionário</option>
+                      {users
+                        .filter(user => user.role === 'user')
+                        .map(user => (
+                          <option key={user._id} value={user._id}>
+                            {user.username} - {user.email}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                )}
               </div>
             )}
 

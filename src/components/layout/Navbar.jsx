@@ -63,9 +63,14 @@ const Navbar = () => {
             </Link>
             
             {isAdmin() && (
-              <Link to="/admin/users" className="nav-link">
-                Usuários
-              </Link>
+              <>
+                <Link to="/admin/users" className="nav-link">
+                  Usuários
+                </Link>
+                <Link to="/admin/user-company-links" className="nav-link">
+                  Vínculos
+                </Link>
+              </>
             )}
             
             <div style={{ 

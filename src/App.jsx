@@ -7,6 +7,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import Companies from './components/companies/Companies';
 import Reports from './components/reports/Reports';
 import AdminUsers from './components/admin/AdminUsers';
+import UserCompanyLinks from './components/admin/UserCompanyLinks';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 import ManagerRoute from './components/auth/ManagerRoute';
@@ -45,6 +46,12 @@ function App() {
               <Route path="/admin/users" element={
                 <AdminRoute>
                   <AdminUsers />
+                </AdminRoute>
+              } />
+              
+              <Route path="/admin/user-company-links" element={
+                <AdminRoute>
+                  <UserCompanyLinks />
                 </AdminRoute>
               } />
               

@@ -204,6 +204,40 @@ const AdminUsers = () => {
     }
   };
 
+  // Remover usuário de empresa específica
+  const removeUserFromCompany = async (userId, companyId, companyName) => {
+    if (!window.confirm(`Tem certeza que deseja remover este usuário da empresa "${companyName}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/admin/users/${userId}/companies/${companyId}`);
+      if (response.data.success) {
+        setSuccess('Usuário removido da empresa com sucesso!');
+        fetchUsers(pagination.current);
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao remover usuário da empresa');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  // Adicionar usuário a empresa específica
+  const addUserToCompany = async (userId, companyId) => {
+    try {
+      const response = await axios.post(`/api/admin/users/${userId}/companies/${companyId}`);
+      if (response.data.success) {
+        setSuccess('Usuário adicionado à empresa com sucesso!');
+        fetchUsers(pagination.current);
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erro ao adicionar usuário à empresa');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   // Handle filter change
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -339,8 +373,34 @@ const AdminUsers = () => {
                       {user.companies?.length > 0 ? (
                         <div>
                           {user.companies.slice(0, 2).map(company => (
-                            <div key={company._id || company} style={{ fontSize: '12px' }}>
-                              {company.name || company}
+                            <div key={company._id || company} style={{ 
+                              fontSize: '12px', 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '2px',
+                              padding: '2px 4px',
+                              backgroundColor: '#f8f9fa',
+                              borderRadius: '3px'
+                            }}>
+                              <span>{company.name || company}</span>
+                              {user.role !== 'admin' && (
+                                <button
+                                  onClick={() => removeUserFromCompany(user._id, company._id || company, company.name || company)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#dc3545',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    padding: '0 2px',
+                                    marginLeft: '5px'
+                                  }}
+                                  title="Remover da empresa"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </div>
                           ))}
                           {user.companies.length > 2 && (
@@ -348,11 +408,70 @@ const AdminUsers = () => {
                               +{user.companies.length - 2} outras
                             </div>
                           )}
+                          {user.role !== 'admin' && (
+                            <div style={{ marginTop: '5px' }}>
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    addUserToCompany(user._id, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '2px 4px',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '3px',
+                                  width: '100%'
+                                }}
+                              >
+                                <option value="">+ Adicionar empresa</option>
+                                {companies
+                                  .filter(company => !user.companies.some(userComp => 
+                                    (userComp._id || userComp) === company._id
+                                  ))
+                                  .map(company => (
+                                    <option key={company._id} value={company._id}>
+                                      {company.name}
+                                    </option>
+                                  ))
+                                }
+                              </select>
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <span style={{ color: '#6c757d', fontSize: '12px' }}>
-                          {user.role === 'admin' ? 'Todas' : 'Nenhuma'}
-                        </span>
+                        <div>
+                          <span style={{ color: '#6c757d', fontSize: '12px' }}>
+                            {user.role === 'admin' ? 'Todas' : 'Nenhuma'}
+                          </span>
+                          {user.role !== 'admin' && companies.length > 0 && (
+                            <div style={{ marginTop: '5px' }}>
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    addUserToCompany(user._id, e.target.value);
+                                    e.target.value = '';
+                                  }
+                                }}
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '2px 4px',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '3px',
+                                  width: '100%'
+                                }}
+                              >
+                                <option value="">+ Adicionar empresa</option>
+                                {companies.map(company => (
+                                  <option key={company._id} value={company._id}>
+                                    {company.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td>
