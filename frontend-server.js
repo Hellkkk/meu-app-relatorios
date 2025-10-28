@@ -6,58 +6,68 @@ const app = express();
 
 // Log middleware para debug
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Query: ${JSON.stringify(req.query)}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
 
-// IMPORTANTE: Proxy DEVE vir ANTES do express.static
-// Configuração mais robusta do proxy para API
+// Health check do frontend
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Frontend proxy server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Proxy para API com configuração mais robusta
 const apiProxy = createProxyMiddleware({
   target: 'http://127.0.0.1:5001',
   changeOrigin: true,
   timeout: 10000,
-  proxyTimeout: 10000,
-  secure: false,
-  headers: {
-    'Connection': 'keep-alive'
-  },
+  logLevel: 'debug',
   onError: (err, req, res) => {
-    console.error('❌ Proxy error:', err.message);
-    console.error('❌ Request URL:', req.url);
+    console.error('❌ Proxy Error:', err.message);
+    console.error('URL:', req.url);
     res.status(500).json({ 
       error: 'Proxy Error', 
       message: err.message,
-      target: 'http://127.0.0.1:5001',
-      url: req.url
+      url: req.url 
     });
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 PROXY: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
+    console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
   },
   onProxyRes: (proxyRes, req, res) => {
-    console.log(`✅ PROXY RESPONSE: ${proxyRes.statusCode} for ${req.url}`);
+    console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
   }
 });
 
-// Aplicar proxy para todas as rotas /api (ANTES de express.static)
-app.use(apiProxy);
+app.use('/api', apiProxy);
 
-// Servir arquivos estáticos do build (DEPOIS do proxy)
-app.use(express.static(path.join(__dirname, 'dist'), {
-  index: false // Não servir index.html automaticamente
+// Servir arquivos estáticos do build
+const distPath = path.join(__dirname, 'dist');
+console.log('📁 Serving static files from:', distPath);
+
+app.use(express.static(distPath, {
+  maxAge: '1d',
+  etag: false
 }));
 
 // SPA fallback - todas as rotas não-API retornam index.html
 app.get('*', (req, res) => {
-  // Garantir que rotas /api não chegem aqui
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found', path: req.path });
-  }
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  const indexPath = path.join(distPath, 'index.html');
+  console.log(`📄 Serving SPA: ${req.url} -> ${indexPath}`);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('❌ Error serving index.html:', err);
+      res.status(500).send('Error loading application');
+    }
+  });
 });
 
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Frontend server running on port ${PORT}`);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Frontend server running on port ${PORT}`);
   console.log(`🔄 Proxying /api requests to http://127.0.0.1:5001`);
+  console.log(`📁 Serving static files from ${distPath}`);
 });
