@@ -20,29 +20,32 @@ app.get('/health', (req, res) => {
 });
 
 // Proxy para API com configuração mais robusta
-const apiProxy = createProxyMiddleware({
+const apiProxy = createProxyMiddleware('/api', {
   target: 'http://127.0.0.1:5001',
   changeOrigin: true,
-  timeout: 10000,
-  logLevel: 'debug',
+  pathRewrite: {
+    '^/api': ''
+  },
   onError: (err, req, res) => {
     console.error('❌ Proxy Error:', err.message);
     console.error('URL:', req.url);
-    res.status(500).json({ 
-      error: 'Proxy Error', 
-      message: err.message,
-      url: req.url 
-    });
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Proxy Error', 
+        message: err.message,
+        url: req.url 
+      });
+    }
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
+    console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url.replace('/api', '')}`);
   },
   onProxyRes: (proxyRes, req, res) => {
     console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
   }
 });
 
-app.use('/api', apiProxy);
+app.use(apiProxy);
 
 // Servir arquivos estáticos do build
 const distPath = path.join(__dirname, 'dist');
