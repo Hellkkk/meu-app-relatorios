@@ -643,3 +643,5 @@ router.get('/user-company-stats', authenticateToken, requireRole('admin'), async
 });
 
 module.exports = router;
+
+module.exports = router;
