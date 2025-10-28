@@ -581,7 +581,7 @@ router.post('/users/:userId/companies/:companyId', authenticate, requireAdmin, l
 });
 
 // Endpoint para estatísticas de vínculos usuário-empresa
-router.get('/user-company-stats', authenticateToken, requireRole('admin'), async (req, res) => {
+router.get('/user-company-stats', authenticate, requireAdmin, async (req, res) => {
   try {
     // Buscar todos os usuários e empresas
     const users = await User.find({ role: { $ne: 'admin' } }).populate('companies');
