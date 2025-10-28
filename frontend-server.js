@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 
 // IMPORTANTE: Proxy DEVE vir ANTES do express.static
 // Configuração mais robusta do proxy para API
-const apiProxy = createProxyMiddleware('/api', {
+const apiProxy = createProxyMiddleware({
   target: 'http://127.0.0.1:5001',
   changeOrigin: true,
   timeout: 10000,
