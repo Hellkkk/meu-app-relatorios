@@ -10,22 +10,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// Proxy para API
-app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:5001',
+// Configuração mais robusta do proxy para API
+const apiProxy = createProxyMiddleware({
+  target: 'http://127.0.0.1:5001',
   changeOrigin: true,
-  logLevel: 'debug',
+  timeout: 10000,
+  proxyTimeout: 10000,
+  headers: {
+    'Connection': 'keep-alive'
+  },
   onError: (err, req, res) => {
-    console.error('Proxy Error:', err.message);
-    res.status(500).json({ error: 'Proxy Error', message: err.message });
+    console.error('❌ Proxy error:', err.message);
+    res.status(500).json({ 
+      error: 'Proxy Error', 
+      message: err.message,
+      target: 'http://127.0.0.1:5001'
+    });
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log('Proxy Request:', req.method, req.path, '-> http://localhost:5001' + req.path);
+    console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
   },
   onProxyRes: (proxyRes, req, res) => {
-    console.log('Proxy Response:', proxyRes.statusCode, req.path);
+    console.log(`✅ Proxy response: ${proxyRes.statusCode} for ${req.url}`);
   }
-}));
+});
+
+// Aplicar proxy para todas as rotas /api
+app.use('/api', apiProxy);
 
 // Servir arquivos estáticos do build
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -38,5 +49,5 @@ app.get('*', (req, res) => {
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Frontend server running on port ${PORT}`);
-  console.log(`Proxying /api requests to http://localhost:5001`);
+  console.log(`🔄 Proxying /api requests to http://127.0.0.1:5001`);
 });
