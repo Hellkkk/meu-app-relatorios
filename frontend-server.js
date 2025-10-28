@@ -24,12 +24,13 @@ app.get('/health', (req, res) => {
 
 // Proxy manual para API
 app.use('/api', (req, res) => {
-  console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
+  const fullPath = `/api${req.url}`;
+  console.log(`🔄 Proxying: ${req.method} ${fullPath} -> http://127.0.0.1:5001${fullPath}`);
   
   const options = {
     hostname: '127.0.0.1',
     port: 5001,
-    path: req.url,
+    path: fullPath,
     method: req.method,
     headers: {
       ...req.headers,
@@ -38,7 +39,7 @@ app.use('/api', (req, res) => {
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
-    console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
+    console.log(`✅ Response: ${proxyRes.statusCode} for ${fullPath}`);
     
     // Copiar headers da resposta
     res.status(proxyRes.statusCode);
@@ -56,7 +57,7 @@ app.use('/api', (req, res) => {
       res.status(500).json({ 
         error: 'Proxy Error', 
         message: err.message,
-        url: req.url 
+        url: fullPath 
       });
     }
   });
