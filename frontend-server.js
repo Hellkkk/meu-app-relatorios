@@ -1,5 +1,5 @@
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const http = require('http');
 const path = require('path');
 
 const app = express();
@@ -10,6 +10,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Parse JSON para requisições
+app.use(express.json());
+
 // Health check do frontend
 app.get('/health', (req, res) => {
   res.json({
@@ -19,16 +22,36 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Proxy para API com configuração mais robusta
-const apiProxy = createProxyMiddleware('/api', {
-  target: 'http://127.0.0.1:5001',
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api': ''
-  },
-  onError: (err, req, res) => {
+// Proxy manual para API
+app.use('/api', (req, res) => {
+  console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url}`);
+  
+  const options = {
+    hostname: '127.0.0.1',
+    port: 5001,
+    path: req.url,
+    method: req.method,
+    headers: {
+      ...req.headers,
+      host: '127.0.0.1:5001'
+    }
+  };
+
+  const proxyReq = http.request(options, (proxyRes) => {
+    console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
+    
+    // Copiar headers da resposta
+    res.status(proxyRes.statusCode);
+    Object.keys(proxyRes.headers).forEach(key => {
+      res.setHeader(key, proxyRes.headers[key]);
+    });
+
+    // Pipe da resposta
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on('error', (err) => {
     console.error('❌ Proxy Error:', err.message);
-    console.error('URL:', req.url);
     if (!res.headersSent) {
       res.status(500).json({ 
         error: 'Proxy Error', 
@@ -36,16 +59,16 @@ const apiProxy = createProxyMiddleware('/api', {
         url: req.url 
       });
     }
-  },
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`🔄 Proxying: ${req.method} ${req.url} -> http://127.0.0.1:5001${req.url.replace('/api', '')}`);
-  },
-  onProxyRes: (proxyRes, req, res) => {
-    console.log(`✅ Response: ${proxyRes.statusCode} for ${req.url}`);
-  }
-});
+  });
 
-app.use(apiProxy);
+  // Se há body na requisição, enviar para o proxy
+  if (req.body && Object.keys(req.body).length > 0) {
+    proxyReq.write(JSON.stringify(req.body));
+  }
+  
+  // Finalizar requisição
+  proxyReq.end();
+});
 
 // Servir arquivos estáticos do build
 const distPath = path.join(__dirname, 'dist');
