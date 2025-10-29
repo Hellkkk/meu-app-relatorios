@@ -4,6 +4,8 @@
   min-height: 64px;
   padding-top: 10px;
   padding-bottom: 10px;
+  padding-left: 12px; /* nudge content (brand) slightly to the left */
+  padding-right: 16px;
   box-sizing: border-box;
 }
 
