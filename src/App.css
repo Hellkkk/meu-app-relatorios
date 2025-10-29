@@ -1,3 +1,51 @@
+/* UI polish: improve navbar brand visibility and add space below titles */
+/* Ensure the fixed navbar has enough vertical room and doesn't clip text */
+.navbar {
+  min-height: 64px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+
+/* Make common brand/title elements inside navbar render fully */
+.navbar .brand,
+.navbar .navbar-brand,
+.navbar .title,
+.navbar h1,
+.navbar h2 {
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+}
+
+/* Give the main content a bit more clearance from the fixed navbar */
+.container {
+  margin-top: 120px !important; /* was ~100px; add a bit more breathing room */
+}
+
+/* Consistent spacing between page titles and top action buttons */
+.container h1,
+.container .page-title {
+  margin-bottom: 12px;
+}
+
+/* If action buttons sit directly after a title, nudge them down slightly */
+.container h1 + .btn,
+.container h2 + .btn,
+.container h3 + .btn,
+.container h1 + div .btn,
+.container h2 + div .btn,
+.container h3 + div .btn {
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin-top: 128px !important; /* slightly more on very small screens */
+  }
+}
+
 /* Modern Tesla-inspired Design System */
 :root {
   /* Unified color palette (uniform & organized) */
