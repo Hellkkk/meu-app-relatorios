@@ -79,10 +79,9 @@ body {
 /* Container */
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 100px auto 0 auto; /* push content below fixed navbar */
   padding: 0 var(--spacing-md);
   flex: 1;
-  padding-top: 100px; /* Account for fixed navbar */
   overflow: visible;
   width: 100%;
 }
