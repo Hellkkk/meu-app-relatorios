@@ -127,9 +127,15 @@ const AdminUsers = () => {
   }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1>Gerenciamento de Usuários</h1>
+    <div className="animate-fade-in-up">
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Usuários</h1>
+        <p style={{ color: 'var(--medium-gray)' }}>Gerencie todos os usuários e seus vínculos com empresas</p>
+      </div>
+
+      {/* Action Button */}
+      <div style={{ marginBottom: '2rem' }}>
         <button 
           onClick={() => setShowUserForm(true)} 
           className="btn btn-primary"

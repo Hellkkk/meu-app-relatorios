@@ -92,9 +92,15 @@ const Companies = () => {
   }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1>Gerenciamento de Empresas</h1>
+    <div className="animate-fade-in-up">
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Empresas</h1>
+        <p style={{ color: 'var(--medium-gray)' }}>Gerencie todas as empresas e seus vínculos com usuários</p>
+      </div>
+
+      {/* Action Button */}
+      <div style={{ marginBottom: '2rem' }}>
         <button 
           onClick={() => setShowCompanyForm(true)} 
           className="btn btn-primary"
