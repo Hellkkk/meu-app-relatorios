@@ -26,11 +26,17 @@ const Companies = () => {
       setLoading(true);
       const response = await axios.get('/api/companies');
       if (response.data.success) {
-        setCompanies(response.data.companies);
+        const companiesData = Array.isArray(response.data.companies) 
+          ? response.data.companies 
+          : [];
+        setCompanies(companiesData);
+      } else {
+        setCompanies([]);
       }
     } catch (error) {
       console.error('Erro ao buscar empresas:', error);
       setError('Erro ao carregar empresas');
+      setCompanies([]);
     } finally {
       setLoading(false);
     }

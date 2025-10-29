@@ -29,11 +29,17 @@ const AdminUsers = () => {
       setLoading(true);
       const response = await axios.get('/api/admin/users');
       if (response.data.success) {
-        setUsers(response.data.users);
+        const usersData = Array.isArray(response.data.users) 
+          ? response.data.users 
+          : [];
+        setUsers(usersData);
+      } else {
+        setUsers([]);
       }
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setError('Erro ao carregar usuários');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
