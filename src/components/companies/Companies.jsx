@@ -100,7 +100,7 @@ const Companies = () => {
       </div>
 
       {/* Action Button */}
-      <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible' }}>
+  <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
         <button 
           onClick={() => setShowCompanyForm(true)} 
           className="btn btn-primary"
@@ -112,7 +112,7 @@ const Companies = () => {
             fontWeight: '500',
             whiteSpace: 'nowrap',
             position: 'relative',
-            zIndex: 1
+            zIndex: 2001
           }}
         >
           + Nova Empresa
