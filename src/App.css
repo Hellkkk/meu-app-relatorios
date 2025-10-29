@@ -82,7 +82,7 @@ body {
   margin: 0 auto;
   padding: 0 var(--spacing-md);
   flex: 1;
-  padding-top: 60px; /* Account for fixed navbar */
+  padding-top: 100px; /* Account for fixed navbar */
   overflow: visible;
   width: 100%;
 }
