@@ -27,10 +27,10 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/users?limit=1000');
+      const response = await axios.get('/api/admin/users');
       if (response.data.success) {
-        const usersData = Array.isArray(response.data.data?.users) 
-          ? response.data.data.users 
+        const usersData = Array.isArray(response.data.users) 
+          ? response.data.users 
           : [];
         setUsers(usersData);
       } else {

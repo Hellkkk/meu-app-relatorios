@@ -24,10 +24,10 @@ const Companies = () => {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/companies?limit=1000');
+      const response = await axios.get('/api/companies');
       if (response.data.success) {
-        const companiesData = Array.isArray(response.data.data?.companies) 
-          ? response.data.data.companies 
+        const companiesData = Array.isArray(response.data.companies) 
+          ? response.data.companies 
           : [];
         setCompanies(companiesData);
       } else {

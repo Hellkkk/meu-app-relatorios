@@ -27,11 +27,12 @@ const UserCompanyManager = ({
   const fetchAvailableCompanies = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/companies');
+      const response = await axios.get('/api/companies?limit=1000');
       if (response.data.success) {
         // Filtrar empresas que o usuário já não está vinculado
         const userCompanyIds = user?.companies?.map(c => c._id) || [];
-        const available = response.data.companies.filter(
+        const companiesList = response.data.data?.companies || [];
+        const available = companiesList.filter(
           company => !userCompanyIds.includes(company._id)
         );
         setAvailableCompanies(available);
@@ -46,11 +47,12 @@ const UserCompanyManager = ({
   const fetchAvailableUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/admin/users');
+      const response = await axios.get('/api/admin/users?limit=1000');
       if (response.data.success) {
         // Filtrar usuários que já não estão na empresa
         const companyUserIds = company?.employees?.map(u => u._id) || [];
-        const available = response.data.users.filter(
+        const usersList = response.data.data?.users || [];
+        const available = usersList.filter(
           user => user.isActive && !companyUserIds.includes(user._id)
         );
         setAvailableUsers(available);
