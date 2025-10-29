@@ -76,8 +76,13 @@ const distPath = path.join(__dirname, 'dist');
 console.log('📁 Serving static files from:', distPath);
 
 app.use(express.static(distPath, {
-  maxAge: '1d',
-  etag: false
+  maxAge: 0,
+  etag: false,
+  setHeaders: (res, path) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
 }));
 
 // SPA fallback - todas as rotas não-API retornam index.html
