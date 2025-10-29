@@ -123,20 +123,19 @@ const UserCompanyManager = ({
 
   if (!isOpen) return null;
 
-  const currentItems = type === 'user' 
-    ? (user?.companies || [])
-    : (company?.employees || []);
+  // Garantir que sempre temos arrays válidos
+  const currentItems = type === 'user'
+    ? (Array.isArray(user?.companies) ? user.companies : [])
+    : (Array.isArray(company?.employees) ? company.employees : []);
 
-  const availableItems = type === 'user' 
-    ? availableCompanies 
-    : availableUsers;
+  const availableItems = type === 'user'
+    ? (Array.isArray(availableCompanies) ? availableCompanies : [])
+    : (Array.isArray(availableUsers) ? availableUsers : []);
 
   const itemLabel = type === 'user' ? 'Empresas' : 'Usuários';
-  const entityName = type === 'user' 
-    ? user?.name || user?.username 
-    : company?.name;
-
-  return (
+  const entityName = type === 'user'
+    ? user?.name || user?.username || 'Usuário'
+    : company?.name || 'Empresa';  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">

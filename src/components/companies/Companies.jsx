@@ -222,7 +222,7 @@ const Companies = () => {
 
       {/* Lista de empresas */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {companies.map((company) => (
+        {Array.isArray(companies) && companies.map((company) => (
           <div key={company._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-xl font-semibold text-gray-800 line-clamp-2">
