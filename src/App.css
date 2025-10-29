@@ -4,7 +4,7 @@
   min-height: 64px;
   padding-top: 10px;
   padding-bottom: 10px;
-  padding-left: 12px; /* nudge content (brand) slightly to the left */
+  padding-left: 4px; /* move brand further left */
   padding-right: 16px;
   box-sizing: border-box;
 }
@@ -19,6 +19,13 @@
   line-height: 1.2;
   display: flex;
   align-items: center;
+}
+
+/* Ensure no extra left offset inside brand element */
+.navbar .brand,
+.navbar .navbar-brand {
+  padding-left: 0;
+  margin-left: 0;
 }
 
 /* Give the main content a bit more clearance from the fixed navbar */
