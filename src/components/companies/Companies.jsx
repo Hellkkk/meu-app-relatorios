@@ -92,7 +92,7 @@ const Companies = () => {
   }
 
   return (
-    <div className="animate-fade-in-up" style={{ paddingTop: '80px' }}>
+    <div className="animate-fade-in-up" style={{ paddingTop: '100px' }}>
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Empresas</h1>
