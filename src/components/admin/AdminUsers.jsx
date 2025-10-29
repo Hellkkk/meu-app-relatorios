@@ -129,7 +129,7 @@ const AdminUsers = () => {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>👥 Gerenciamento de Usuários</h1>
+        <h1>Gerenciamento de Usuários</h1>
         <button onClick={() => setShowUserForm(true)} className="btn btn-primary">
           + Novo Usuário
         </button>
@@ -296,7 +296,7 @@ const AdminUsers = () => {
                       className="btn btn-danger"
                       style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
                     >
-                      🗑️ Excluir
+                      Excluir
                     </button>
                   )}
                 </td>

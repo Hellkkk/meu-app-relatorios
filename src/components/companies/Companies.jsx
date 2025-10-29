@@ -94,7 +94,7 @@ const Companies = () => {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>📊 Gerenciamento de Empresas</h1>
+        <h1>Gerenciamento de Empresas</h1>
         <button onClick={() => setShowCompanyForm(true)} className="btn btn-primary">
           + Nova Empresa
         </button>
@@ -227,20 +227,20 @@ const Companies = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button 
-                onClick={() => openUserManager(company)} 
+              <button
+                onClick={() => openUserManager(company)}
                 className="btn btn-info"
                 style={{ flex: 1 }}
                 title="Gerenciar Usuários"
               >
-                👥 Gerenciar Usuários
+                Gerenciar Usuários
               </button>
-              <button 
-                onClick={() => handleDeleteCompany(company._id)} 
+              <button
+                onClick={() => handleDeleteCompany(company._id)}
                 className="btn btn-danger"
                 title="Excluir Empresa"
               >
-                🗑️
+                Excluir
               </button>
             </div>
           </div>
