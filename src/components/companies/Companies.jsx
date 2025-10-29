@@ -100,10 +100,20 @@ const Companies = () => {
       </div>
 
       {/* Action Button */}
-      <div style={{ marginBottom: '2rem' }}>
+      <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible' }}>
         <button 
           onClick={() => setShowCompanyForm(true)} 
           className="btn btn-primary"
+          style={{
+            display: 'inline-block',
+            padding: '1rem 2rem',
+            minHeight: '48px',
+            fontSize: '1rem',
+            fontWeight: '500',
+            whiteSpace: 'nowrap',
+            position: 'relative',
+            zIndex: 1
+          }}
         >
           + Nova Empresa
         </button>
