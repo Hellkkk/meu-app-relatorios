@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// Build version: 2024-10-29-v2
 export default defineConfig({
   server: {
     port: 5173,
