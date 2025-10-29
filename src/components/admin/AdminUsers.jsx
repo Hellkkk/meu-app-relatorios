@@ -118,7 +118,7 @@ const AdminUsers = () => {
     }
   };
 
-  if (loading && users.length === 0) {
+  if (loading && (!users || users.length === 0)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">Carregando usuários...</div>

@@ -108,7 +108,7 @@ const Companies = () => {
     return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   };
 
-  if (loading && companies.length === 0) {
+  if (loading && (!companies || companies.length === 0)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">Carregando empresas...</div>
