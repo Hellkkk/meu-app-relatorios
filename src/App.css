@@ -140,6 +140,9 @@ p {
   z-index: 1000;
   padding: calc(var(--spacing-sm) * 0.5) 0;
   transition: var(--transition-normal);
+  /* Prevent any pseudo-element or underline from overflowing
+     and covering page content below the navbar */
+  overflow: hidden;
 }
 
 .navbar-brand {
