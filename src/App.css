@@ -83,6 +83,8 @@ body {
   padding: 0 var(--spacing-md);
   flex: 1;
   padding-top: 60px; /* Account for fixed navbar */
+  overflow: visible;
+  width: 100%;
 }
 
 /* Typography */
@@ -598,16 +600,22 @@ p {
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 2rem;
+  width: 100%;
+  overflow: visible;
 }
 
 .page-header h1 {
   margin: 0;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .page-header .btn {
   flex: 0 0 auto;
-  min-width: fit-content;
+  min-width: 140px;
   height: auto;
   white-space: nowrap;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
