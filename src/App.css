@@ -589,3 +589,25 @@ p {
     font-variation-settings: 'COLR' 1;
   }
 }
+
+/* Page header improvements */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.page-header .btn {
+  flex: 0 0 auto;
+  min-width: fit-content;
+  height: auto;
+  white-space: nowrap;
+}

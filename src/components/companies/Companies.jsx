@@ -93,9 +93,12 @@ const Companies = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="page-header">
         <h1>Gerenciamento de Empresas</h1>
-        <button onClick={() => setShowCompanyForm(true)} className="btn btn-primary">
+        <button 
+          onClick={() => setShowCompanyForm(true)} 
+          className="btn btn-primary"
+        >
           + Nova Empresa
         </button>
       </div>

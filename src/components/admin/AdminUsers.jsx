@@ -128,9 +128,12 @@ const AdminUsers = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="page-header">
         <h1>Gerenciamento de Usuários</h1>
-        <button onClick={() => setShowUserForm(true)} className="btn btn-primary">
+        <button 
+          onClick={() => setShowUserForm(true)} 
+          className="btn btn-primary"
+        >
           + Novo Usuário
         </button>
       </div>
