@@ -65,6 +65,12 @@ div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
   justify-content: center !important;
   z-index: 5000 !important;
   padding: 16px !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
 
 /* Ensure the dialog inside the overlay is centered and sized nicely */
@@ -92,6 +98,12 @@ body:has(div[style*="position: fixed"][style*="background"]) .container .btn.btn
 /* Prevent background from scrolling while modal is open */
 body:has(div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"]) {
   overflow: hidden;
+}
+
+/* Remove transforms that can create a new containing block for fixed elements */
+body:has(div[style*="position: fixed"][style*="height: 100vh"]) .animate-fade-in-up,
+body:has(div[style*="position: fixed"][style*="height: 100vh"]) .container {
+  transform: none !important;
 }
 
 /* Modern Tesla-inspired Design System */
