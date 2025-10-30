@@ -149,7 +149,7 @@ const UserCompanyManager = ({
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        paddingTop: '30vh',
+  paddingTop: '40vh',
         zIndex: 6000,
         width: '100vw',
         height: '100vh'
