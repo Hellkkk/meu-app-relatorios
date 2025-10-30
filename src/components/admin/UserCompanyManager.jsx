@@ -159,7 +159,9 @@ const UserCompanyManager = ({
         className="card"
         style={{
           maxWidth: '800px',
-          width: '90%',
+          width: '100%',
+          margin: '0 auto',
+          boxSizing: 'border-box',
           maxHeight: '80vh',
           overflowY: 'auto',
           position: 'relative'
