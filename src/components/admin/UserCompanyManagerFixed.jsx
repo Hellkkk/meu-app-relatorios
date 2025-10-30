@@ -125,8 +125,8 @@ const UserCompanyManager = ({
       ? availableUsers
       : [];
 
-  const itemLabel = type === 'user' ? 'Empresas' : 'Usuários';
-  const entityName = type === 'user' ? user?.name || user?.username || 'Usuário' : company?.name || 'Empresa';
+  const itemLabel = type === 'user' ? 'Empresas' : 'Usu\u00e1rios';
+  const entityName = type === 'user' ? user?.name || user?.username || 'Usu\u00e1rio' : company?.name || 'Empresa';
 
   return createPortal(
     <div
@@ -154,7 +154,7 @@ const UserCompanyManager = ({
           overflowY: 'auto',
           position: 'fixed',
           left: '50%',
-          top: '50%', // exact vertical center
+          top: '44%', // raise a bit more as requested
           transform: 'translate(-50%, -50%)',
           zIndex: 6001,
           padding: '1.25rem',
@@ -167,7 +167,7 @@ const UserCompanyManager = ({
           </button>
         </div>
 
-        {/* Lista atual de vínculos */}
+  {/* Lista atual de v\u00ednculos */}
         <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>
             {itemLabel} Vinculadas ({currentItems.length})
@@ -208,13 +208,13 @@ const UserCompanyManager = ({
               ))}
             </div>
           ) : (
-            <p style={{ color: '#6b7280' }}>Nenhum vínculo encontrado</p>
+            <p style={{ color: '#6b7280' }}>Nenhum v\u00ednculo encontrado</p>
           )}
         </div>
 
-        {/* Adicionar novo vínculo */}
+  {/* Adicionar novo v\u00ednculo */}
         <div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>Adicionar Novo Vínculo</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>Adicionar Novo V\u00ednculo</h3>
           {availableItems.length > 0 ? (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <select
@@ -224,7 +224,7 @@ const UserCompanyManager = ({
                 style={{ flex: 1 }}
                 disabled={loading}
               >
-                <option value="">Selecione {type === 'user' ? 'uma empresa' : 'um usuário'}</option>
+                <option value="">Selecione {type === 'user' ? 'uma empresa' : 'um usu\u00e1rio'}</option>
                 {availableItems.map((item) => (
                   <option key={item._id} value={item._id}>
                     {type === 'user'
@@ -239,7 +239,7 @@ const UserCompanyManager = ({
             </div>
           ) : (
             <p style={{ color: '#6b7280' }}>
-              {loading ? 'Carregando...' : `Todas as ${type === 'user' ? 'empresas' : 'usuários'} já estão vinculadas`}
+              {loading ? 'Carregando...' : `Todas as ${type === 'user' ? 'empresas' : 'usu\u00e1rios'} j\u00e1 est\u00e3o vinculadas`}
             </p>
           )}
         </div>
