@@ -61,10 +61,11 @@
 div[style*="position: fixed"][style*="height: 100vh"],
 div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important; /* anchor to top, then push down */
   justify-content: center !important;
   z-index: 5000 !important;
   padding: 16px !important;
+  padding-top: 18vh !important; /* push modal well below the top */
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
