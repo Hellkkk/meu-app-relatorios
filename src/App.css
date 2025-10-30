@@ -55,6 +55,28 @@
   }
 }
 
+/* Modal UX improvements (generic heuristic selectors for our custom modal) */
+/* Center any full-screen dark overlay and ensure it stays above page buttons */
+div[style*="position: fixed"][style*="100vh"][style*="rgba(0, 0, 0"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 5000 !important;
+  padding: 16px !important;
+}
+
+/* Elevate the dialog box within the overlay and keep it usable */
+div[style*="box-shadow"][style*="border-radius"][style*="padding"] {
+  z-index: 5001 !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+}
+
+/* When a modal overlay is present, hide top-level primary action like "+ Nova Empresa" */
+body:has(div[style*="position: fixed"][style*="background"]) .container .btn.btn-primary {
+  visibility: hidden !important;
+}
+
 /* Modern Tesla-inspired Design System */
 :root {
   /* Unified color palette (uniform & organized) */
