@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import UserCompanyManager from '../admin/UserCompanyManager';
+import UserCompanyManager from '../admin/UserCompanyManagerFixed';
 
 const Companies = () => {
   const [companies, setCompanies] = useState([]);

@@ -4,9 +4,9 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
-import Companies from './components/companies/Companies';
+import CompaniesClean from './components/companies/CompaniesClean';
 import Reports from './components/reports/Reports';
-import AdminUsers from './components/admin/AdminUsers';
+import AdminUsersClean from './components/admin/AdminUsersClean';
 import UserCompanyLinks from './components/admin/UserCompanyLinks';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
@@ -32,7 +32,7 @@ function App() {
               
               <Route path="/companies" element={
                 <ManagerRoute>
-                  <Companies />
+                  <CompaniesClean />
                 </ManagerRoute>
               } />
               
@@ -42,10 +42,9 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Rotas apenas para admin */}
               <Route path="/admin/users" element={
                 <AdminRoute>
-                  <AdminUsers />
+                  <AdminUsersClean />
                 </AdminRoute>
               } />
               
@@ -55,7 +54,6 @@ function App() {
                 </AdminRoute>
               } />
               
-              {/* Redirect padrão */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
