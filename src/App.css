@@ -57,6 +57,8 @@
 
 /* Modal UX improvements (generic heuristic selectors for our custom modal) */
 /* Center any full-screen overlay and ensure it stays above page buttons */
+/* Center overlays that cover the viewport (robust matching) */
+div[style*="position: fixed"][style*="height: 100vh"],
 div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
   display: flex !important;
   align-items: center !important;
@@ -65,11 +67,14 @@ div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
   padding: 16px !important;
 }
 
-/* Ensure the dialog inside the overlay is sized nicely and above */
+/* Ensure the dialog inside the overlay is centered and sized nicely */
+div[style*="position: fixed"][style*="height: 100vh"] > div,
 div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] > div {
   z-index: 5001 !important;
   max-height: 80vh !important;
   overflow-y: auto !important;
+  margin: auto !important;
+  align-self: center !important;
 }
 
 /* Fallback: identify dialog by common visual styles as well */
