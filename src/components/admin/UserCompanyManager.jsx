@@ -138,7 +138,7 @@ const UserCompanyManager = ({
   const entityName = type === 'user'
     ? user?.name || user?.username || 'Usuário'
     : company?.name || 'Empresa';  return (
-    <div 
+    <div
       style={{
         position: 'fixed',
         top: 0,
@@ -147,9 +147,12 @@ const UserCompanyManager = ({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        zIndex: 1000
+        paddingTop: '30vh',
+        zIndex: 6000,
+        width: '100vw',
+        height: '100vh'
       }}
     >
       <div 
