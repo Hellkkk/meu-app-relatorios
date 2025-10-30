@@ -158,13 +158,15 @@ const UserCompanyManager = ({
       <div 
         className="card"
         style={{
-          maxWidth: '800px',
-          width: '100%',
-          margin: '0 auto',
+          width: 'min(800px, 92vw)',
           boxSizing: 'border-box',
           maxHeight: '80vh',
           overflowY: 'auto',
-          position: 'relative'
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: 0,
+          zIndex: 6001
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
