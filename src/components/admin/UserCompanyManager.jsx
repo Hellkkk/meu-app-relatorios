@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { createPortal } from 'react-dom';
 
 const UserCompanyManager = ({ 
   isOpen, 
@@ -134,10 +135,12 @@ const UserCompanyManager = ({
     ? (Array.isArray(availableCompanies) ? availableCompanies : [])
     : (Array.isArray(availableUsers) ? availableUsers : []);
 
-  const itemLabel = type === 'user' ? 'Empresas' : 'Usuários';
+  const itemLabel = type === 'user' ? 'Empresas' : 'UsuÃ¡rios';
   const entityName = type === 'user'
     ? user?.name || user?.username || 'Usuário'
-    : company?.name || 'Empresa';  return (
+    : company?.name || 'Empresa';
+
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -145,7 +148,7 @@ const UserCompanyManager = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -283,6 +286,7 @@ const UserCompanyManager = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };export default UserCompanyManager;
