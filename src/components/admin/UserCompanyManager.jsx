@@ -147,9 +147,8 @@ const UserCompanyManager = ({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'center',
-  paddingTop: '40vh',
         zIndex: 6000,
         width: '100vw',
         height: '100vh'
@@ -162,10 +161,10 @@ const UserCompanyManager = ({
           boxSizing: 'border-box',
           maxHeight: '80vh',
           overflowY: 'auto',
-          position: 'absolute',
+          position: 'fixed',
           left: '50%',
-          transform: 'translateX(-50%)',
-          top: 0,
+          top: '62%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 6001
         }}
       >
