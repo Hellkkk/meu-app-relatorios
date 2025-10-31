@@ -119,9 +119,47 @@ router.post('/', authenticate, requireAdmin, logActivity('CREATE_COMPANY'), asyn
     // Verificar se já existe empresa com este documento (CPF/CNPJ)
     const existingCompany = await Company.findOne({ cnpj });
     if (existingCompany) {
-      return res.status(400).json({
-        success: false,
-        message: 'Já existe uma empresa cadastrada com este documento'
+      if (existingCompany.isActive) {
+        return res.status(400).json({
+          success: false,
+          message: 'Já existe uma empresa ativa cadastrada com este documento'
+        });
+      }
+
+      // Se existe, mas está inativa (soft-deleted), reativar e atualizar os dados
+      existingCompany.name = name ?? existingCompany.name;
+      existingCompany.description = description ?? existingCompany.description;
+      existingCompany.sector = sector ?? existingCompany.sector;
+      if (responsibleUser !== undefined) existingCompany.responsibleUser = responsibleUser || null;
+      if (employees !== undefined) existingCompany.employees = employees || [];
+      if (address !== undefined) existingCompany.address = address;
+      if (contact !== undefined) existingCompany.contact = contact;
+      existingCompany.isActive = true;
+
+      await existingCompany.save();
+
+      // Atualizar vínculos em usuários, se fornecidos
+      if (employees && employees.length > 0) {
+        await User.updateMany(
+          { _id: { $in: employees } },
+          { $addToSet: { companies: existingCompany._id } }
+        );
+      }
+
+      if (responsibleUser) {
+        await User.findByIdAndUpdate(
+          responsibleUser,
+          { $addToSet: { companies: existingCompany._id } }
+        );
+      }
+
+      await existingCompany.populate('responsibleUser', 'username email role');
+      await existingCompany.populate('employees', 'username email isActive');
+
+      return res.json({
+        success: true,
+        message: 'Empresa reativada com sucesso',
+        data: existingCompany
       });
     }
 
