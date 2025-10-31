@@ -147,7 +147,8 @@ const CompaniesFixed = () => {
   const fetchCompanies = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/companies?limit=1000');
+      // Buscar apenas empresas ativas
+      const response = await axios.get('/api/companies?limit=1000&isActive=true');
       if (response.data.success) {
         const companiesData = Array.isArray(response.data.data?.companies) ? response.data.data.companies : [];
         setCompanies(companiesData);
@@ -221,11 +222,22 @@ const CompaniesFixed = () => {
     if (!window.confirm('Tem certeza que deseja excluir esta empresa?')) return;
 
     try {
-      await axios.delete(`/api/companies/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/companies/${id}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       fetchCompanies();
     } catch (error) {
-      console.error('Erro ao deletar empresa:', error);
-      setError('Erro ao deletar empresa');
+      const apiMsg = error.response?.data?.message;
+      const detail = error.response?.data?.error;
+      console.error('Erro ao deletar empresa (detalhes):', error.response?.data || error);
+      if (error.response?.status === 403) {
+        setError(apiMsg || 'Acesso negado. Apenas administradores podem excluir empresas.');
+      } else {
+        setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao deletar empresa');
+      }
     }
   };
 
