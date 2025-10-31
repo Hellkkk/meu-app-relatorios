@@ -189,8 +189,14 @@ const CompaniesFixed = () => {
     } catch (error) {
       const apiMsg = error.response?.data?.message;
       const detail = error.response?.data?.error;
+      const fullMsg = apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : '';
       console.error('Erro ao criar empresa (detalhes):', error.response?.data || error);
-      setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao criar empresa');
+      // Ajuda adicional quando o backend ainda exige CNPJ
+      if (detail?.includes('CNPJ deve estar no formato') || apiMsg?.includes('CNPJ deve estar no formato')) {
+        setError('O servidor ainda está na versão antiga que exige CNPJ. Publique o backend atualizado para aceitar CPF ou use um CNPJ válido temporariamente.');
+      } else {
+        setError(fullMsg || 'Erro ao criar empresa');
+      }
     } finally {
       setLoading(false);
     }
