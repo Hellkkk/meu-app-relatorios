@@ -116,6 +116,21 @@ function formatCPF(value) {
   return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
 }
 
+// Formata objeto de endereço em string amigável
+function formatAddress(addr) {
+  if (!addr || typeof addr !== 'object') return '';
+  const { street, number, complement, neighborhood, city, state, zipCode } = addr;
+  const parts = [];
+  if (street) parts.push(street);
+  if (number) parts.push(number);
+  if (complement) parts.push(complement);
+  if (neighborhood) parts.push(neighborhood);
+  const cityState = [city, state].filter(Boolean).join(' - ');
+  if (cityState) parts.push(cityState);
+  if (zipCode) parts.push(zipCode);
+  return parts.join(', ');
+}
+
 const CompaniesFixed = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -275,25 +290,25 @@ const CompaniesFixed = () => {
 
               {company.cnpj && (
                 <p>
-                  <strong>CNPJ:</strong> {company.cnpj}
+                  <strong>Documento:</strong> {company.cnpj}
                 </p>
               )}
 
-              {company.address && (
+              {company.address && typeof company.address === 'object' && (
                 <p>
-                  <strong>Endereço:</strong> {company.address}
+                  <strong>Endereço:</strong> {formatAddress(company.address)}
                 </p>
               )}
 
-              {company.phone && (
+              {(company.contact?.phone || company.phone) && (
                 <p>
-                  <strong>Telefone:</strong> {company.phone}
+                  <strong>Telefone:</strong> {company.contact?.phone || company.phone}
                 </p>
               )}
 
-              {company.email && (
+              {(company.contact?.email || company.email) && (
                 <p>
-                  <strong>Email:</strong> {company.email}
+                  <strong>Email:</strong> {company.contact?.email || company.email}
                 </p>
               )}
 
