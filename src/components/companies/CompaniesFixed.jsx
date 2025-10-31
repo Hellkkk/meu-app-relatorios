@@ -109,11 +109,11 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
   );
 };
 
-// Utilitário: formata CNPJ para XX.XXX.XXX/XXXX-XX
-function formatCNPJ(value) {
+// Utilitário: formata documento para CPF (11 dígitos) como XXX.XXX.XXX-XX
+function formatCPF(value) {
   const digits = (value || '').replace(/\D/g, '');
-  if (digits.length !== 14) return value || '';
-  return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  if (digits.length !== 11) return value || '';
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
 }
 
 const CompaniesFixed = () => {
@@ -152,16 +152,16 @@ const CompaniesFixed = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      // Validação básica do CNPJ
-      const cnpjDigits = (formData.cnpj || '').replace(/\D/g, '');
-      if (cnpjDigits.length !== 14) {
-        setError('CNPJ inválido. Informe 14 dígitos.');
+      // Validação básica do documento (agora 11 dígitos)
+      const docDigits = (formData.cnpj || '').replace(/\D/g, '');
+      if (docDigits.length !== 11) {
+        setError('Documento inválido. Informe 11 dígitos.');
         setLoading(false);
         return;
       }
 
       // Monta payload conforme o backend espera
-      const cnpjFormatted = formatCNPJ(formData.cnpj);
+      const cnpjFormatted = formatCPF(formData.cnpj);
       const addressObj = formData.address ? { street: formData.address } : undefined;
       const contactObj = {};
       if (formData.phone) contactObj.phone = formData.phone;

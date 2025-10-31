@@ -9,10 +9,11 @@ const companySchema = new mongoose.Schema({
   },
   cnpj: {
     type: String,
-    required: [true, 'CNPJ é obrigatório'],
+     required: [true, 'Documento é obrigatório'],
     unique: true,
     trim: true,
-    match: [/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ deve estar no formato XX.XXX.XXX/XXXX-XX']
+    // Aceita CNPJ (14 dígitos formatados) OU CPF (11 dígitos formatados)
+    match: [/^(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}|\d{3}\.\d{3}\.\d{3}-\d{2})$/, 'Documento deve estar no formato CNPJ (XX.XXX.XXX/XXXX-XX) ou CPF (XXX.XXX.XXX-XX)']
   },
   description: {
     type: String,
@@ -72,10 +73,12 @@ companySchema.index({ isActive: 1 });
 // Middleware para formatar CNPJ antes de salvar
 companySchema.pre('save', function(next) {
   if (this.cnpj) {
-    // Remove formatação e reaplica
+    // Remove formatação e reaplica (CNPJ ou CPF)
     this.cnpj = this.cnpj.replace(/\D/g, '');
     if (this.cnpj.length === 14) {
       this.cnpj = this.cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    } else if (this.cnpj.length === 11) {
+      this.cnpj = this.cnpj.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
     }
   }
   next();
