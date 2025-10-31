@@ -152,6 +152,14 @@ const CompaniesFixed = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      // Validação básica do CNPJ
+      const cnpjDigits = (formData.cnpj || '').replace(/\D/g, '');
+      if (cnpjDigits.length !== 14) {
+        setError('CNPJ inválido. Informe 14 dígitos.');
+        setLoading(false);
+        return;
+      }
+
       // Monta payload conforme o backend espera
       const cnpjFormatted = formatCNPJ(formData.cnpj);
       const addressObj = formData.address ? { street: formData.address } : undefined;
