@@ -58,7 +58,7 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
           </div>
 
           <div className="form-group">
-            <label className="form-label">CNPJ</label>
+            <label className="form-label">Documento (CPF)</label>
             <input
               type="text"
               className="form-control"
@@ -187,8 +187,10 @@ const CompaniesFixed = () => {
         fetchCompanies();
       }
     } catch (error) {
-      console.error('Erro ao criar empresa:', error);
-      setError('Erro ao criar empresa');
+      const apiMsg = error.response?.data?.message;
+      const detail = error.response?.data?.error;
+      console.error('Erro ao criar empresa (detalhes):', error.response?.data || error);
+      setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao criar empresa');
     } finally {
       setLoading(false);
     }
