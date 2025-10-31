@@ -126,7 +126,9 @@ const UserCompanyManager = ({
       : [];
 
   const itemLabel = type === 'user' ? 'Empresas' : 'Usu\u00e1rios';
-  const entityName = type === 'user' ? user?.name || user?.username || 'Usu\u00e1rio' : company?.name || 'Empresa';
+  const entityName = type === 'user' ? (user?.name || user?.username || 'Usu\u00e1rio') : (company?.name || 'Empresa');
+  const titleText = (type === 'user' ? 'Gerenciar Empresas' : 'Gerenciar Usu\u00e1rios');
+  const linkedHeader = (type === 'user' ? 'Empresas vinculadas' : 'Usu\u00e1rios vinculados');
 
   return createPortal(
     <div
@@ -161,7 +163,7 @@ const UserCompanyManager = ({
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2>Gerenciar {itemLabel} - {entityName}</h2>
+          <h2>{titleText} - {entityName}</h2>
           <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
             Fechar
           </button>
@@ -170,7 +172,7 @@ const UserCompanyManager = ({
   {/* Lista atual de v\u00ednculos */}
         <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>
-            {itemLabel} Vinculadas ({currentItems.length})
+            {linkedHeader} ({currentItems.length})
           </h3>
           {currentItems.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -208,13 +210,13 @@ const UserCompanyManager = ({
               ))}
             </div>
           ) : (
-            <p style={{ color: '#6b7280' }}>Nenhum v\u00ednculo encontrado</p>
+            <p style={{ color: '#6b7280' }}>Nenhum vínculo encontrado</p>
           )}
         </div>
 
   {/* Adicionar novo v\u00ednculo */}
         <div>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>Adicionar Novo V\u00ednculo</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 500, marginBottom: '1rem' }}>Adicionar Novo Vínculo</h3>
           {availableItems.length > 0 ? (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <select
