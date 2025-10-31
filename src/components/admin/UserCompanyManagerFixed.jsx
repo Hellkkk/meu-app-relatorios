@@ -246,10 +246,7 @@ const UserCompanyManager = ({
           )}
         </div>
 
-        {/* Botão fechar */}
-        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} className="btn btn-secondary">Fechar</button>
-        </div>
+        {/* Botão fechar inferior removido: mantemos apenas o botão Fechar no cabeçalho */}
       </div>
     </div>,
     document.body
