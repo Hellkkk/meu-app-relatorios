@@ -174,7 +174,13 @@ const CompaniesFixed = () => {
         ...(Object.keys(contactObj).length ? { contact: contactObj } : {}),
       };
 
-      const response = await axios.post('/api/companies', payload);
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/companies', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       if (response.data.success) {
         setShowCompanyForm(false);
         setFormData({ name: '', cnpj: '', address: '', phone: '', email: '' });
