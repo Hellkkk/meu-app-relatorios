@@ -116,12 +116,12 @@ router.post('/', authenticate, requireAdmin, logActivity('CREATE_COMPANY'), asyn
       contact
     } = req.body;
 
-    // Verificar se já existe empresa com este CNPJ
+    // Verificar se já existe empresa com este documento (CPF/CNPJ)
     const existingCompany = await Company.findOne({ cnpj });
     if (existingCompany) {
       return res.status(400).json({
         success: false,
-        message: 'Já existe uma empresa cadastrada com este CNPJ'
+        message: 'Já existe uma empresa cadastrada com este documento'
       });
     }
 
@@ -210,13 +210,13 @@ router.put('/:id', authenticate, async (req, res) => {
       contact
     } = req.body;
 
-    // Se estiver alterando CNPJ, verificar se não existe outro com o mesmo
+    // Se estiver alterando documento (CPF/CNPJ), verificar se não existe outro com o mesmo
     if (cnpj && cnpj !== company.cnpj) {
       const existingCompany = await Company.findOne({ cnpj, _id: { $ne: company._id } });
       if (existingCompany) {
         return res.status(400).json({
           success: false,
-          message: 'Já existe uma empresa cadastrada com este CNPJ'
+          message: 'Já existe uma empresa cadastrada com este documento'
         });
       }
     }
