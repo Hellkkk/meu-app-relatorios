@@ -68,7 +68,7 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
           </div>
 
           <div className="form-group">
-            <label className="form-label">Endere\u00e7o</label>
+            <label className="form-label">Endereço</label>
             <input
               type="text"
               className="form-control"
@@ -109,6 +109,13 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
   );
 };
 
+// Utilitário: formata CNPJ para XX.XXX.XXX/XXXX-XX
+function formatCNPJ(value) {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length !== 14) return value || '';
+  return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+}
+
 const CompaniesFixed = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +152,21 @@ const CompaniesFixed = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post('/api/companies', formData);
+      // Monta payload conforme o backend espera
+      const cnpjFormatted = formatCNPJ(formData.cnpj);
+      const addressObj = formData.address ? { street: formData.address } : undefined;
+      const contactObj = {};
+      if (formData.phone) contactObj.phone = formData.phone;
+      if (formData.email) contactObj.email = formData.email;
+
+      const payload = {
+        name: (formData.name || '').trim(),
+        cnpj: cnpjFormatted,
+        ...(addressObj ? { address: addressObj } : {}),
+        ...(Object.keys(contactObj).length ? { contact: contactObj } : {}),
+      };
+
+      const response = await axios.post('/api/companies', payload);
       if (response.data.success) {
         setShowCompanyForm(false);
         setFormData({ name: '', cnpj: '', address: '', phone: '', email: '' });
@@ -196,7 +217,7 @@ const CompaniesFixed = () => {
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Empresas</h1>
         <p style={{ color: 'var(--medium-gray)' }}>
-          Gerencie todas as empresas e seus v\u00ednculos com usu\u00e1rios
+          Gerencie todas as empresas e seus vínculos com usuários
         </p>
       </div>
 
@@ -213,7 +234,7 @@ const CompaniesFixed = () => {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Modal de Cria\u00e7\u00e3o de Empresa */}
+  {/* Modal de Criação de Empresa */}
       <AddCompanyModal
         isOpen={showCompanyForm}
         onClose={() => setShowCompanyForm(false)}
@@ -238,7 +259,7 @@ const CompaniesFixed = () => {
 
               {company.address && (
                 <p>
-                  <strong>Endere\u00e7o:</strong> {company.address}
+                  <strong>Endereço:</strong> {company.address}
                 </p>
               )}
 
