@@ -4,7 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
-import CompaniesClean from './components/companies/CompaniesClean';
+import CompaniesFixed from './components/companies/CompaniesFixed';
 import Reports from './components/reports/Reports';
 import AdminUsersClean from './components/admin/AdminUsersClean';
 import UserCompanyLinks from './components/admin/UserCompanyLinks';
@@ -32,7 +32,7 @@ function App() {
               
               <Route path="/companies" element={
                 <ManagerRoute>
-                  <CompaniesClean />
+                  <CompaniesFixed />
                 </ManagerRoute>
               } />
               
