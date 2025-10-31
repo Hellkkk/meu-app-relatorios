@@ -256,7 +256,7 @@ const CompaniesFixed = () => {
 
               <div style={{ marginTop: '1rem', padding: '0.5rem', background: '#f3f4f6', borderRadius: '8px' }}>
                 <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                  <strong>Funcion\u00e1rios:</strong> {company.employees?.length || 0}
+                  <strong>Funcionários:</strong> {company.employees?.length || 0}
                 </p>
               </div>
 
@@ -265,9 +265,9 @@ const CompaniesFixed = () => {
                   onClick={() => openUserManager(company)}
                   className="btn btn-info"
                   style={{ flex: 1 }}
-                  title="Gerenciar Usu\u00e1rios"
+                  title="Gerenciar Usuários"
                 >
-                  Gerenciar Usu\u00e1rios
+                  Gerenciar Usuários
                 </button>
                 <button onClick={() => handleDeleteCompany(company._id)} className="btn btn-danger" title="Excluir Empresa">
                   Excluir
