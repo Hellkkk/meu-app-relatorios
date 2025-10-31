@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const requestInterceptorRef = useRef(null);
 
   // Configure axios default headers
   useEffect(() => {
@@ -23,6 +24,19 @@ export const AuthProvider = ({ children }) => {
     } else {
       delete axios.defaults.headers.common['Authorization'];
     }
+
+    // Garante cabeçalho Authorization em toda requisição (fallback)
+    if (requestInterceptorRef.current !== null) {
+      axios.interceptors.request.eject(requestInterceptorRef.current);
+      requestInterceptorRef.current = null;
+    }
+    requestInterceptorRef.current = axios.interceptors.request.use((config) => {
+      const stored = localStorage.getItem('token');
+      if (stored && (!config.headers || !config.headers['Authorization'])) {
+        config.headers = { ...(config.headers || {}), Authorization: `Bearer ${stored}` };
+      }
+      return config;
+    });
   }, [token]);
 
   // Check if user is authenticated on app load
