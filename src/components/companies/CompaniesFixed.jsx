@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { createPortal } from 'react-dom';
 import UserCompanyManager from '../admin/UserCompanyManagerFixed';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
   if (!isOpen) return null;
@@ -109,6 +110,112 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
   );
 };
 
+const EditCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 6000,
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
+      <div
+        className="card"
+        style={{
+          width: 'min(800px, 92vw)',
+          boxSizing: 'border-box',
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          position: 'fixed',
+          left: '50%',
+          top: '44%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 6001,
+          padding: '1.25rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Editar Empresa</h2>
+          <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+            Fechar
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
+            <label className="form-label">Nome da Empresa</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Documento (CPF)</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.cnpj}
+              onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Endereço</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Telefone</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button type="submit" className="btn btn-success" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 // Utilitário: formata documento para CPF (11 dígitos) como XXX.XXX.XXX-XX
 function formatCPF(value) {
   const digits = (value || '').replace(/\D/g, '');
@@ -132,12 +239,14 @@ function formatAddress(addr) {
 }
 
 const CompaniesFixed = () => {
+  const { user, isAdmin, isManager } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [showUserManager, setShowUserManager] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', cnpj: '', address: '', phone: '', email: '' });
 
   useEffect(() => {
@@ -218,6 +327,68 @@ const CompaniesFixed = () => {
     }
   };
 
+  const openEditForCompany = (company) => {
+    setSelectedCompany(company);
+    setFormData({
+      name: company.name || '',
+      cnpj: company.cnpj || '',
+      address: typeof company.address === 'object' ? formatAddress(company.address) : (company.address || ''),
+      phone: company.contact?.phone || company.phone || '',
+      email: company.contact?.email || company.email || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const closeEdit = () => {
+    setShowEditModal(false);
+    setSelectedCompany(null);
+  };
+
+  const handleUpdateCompany = async (e) => {
+    e.preventDefault();
+    if (!selectedCompany?._id) return;
+    try {
+      setLoading(true);
+      // Monta payload conforme o backend espera
+      const cnpjFormatted = formatCPF(formData.cnpj);
+      const addressObj = formData.address ? { street: formData.address } : undefined;
+      const contactObj = {};
+      if (formData.phone) contactObj.phone = formData.phone;
+      if (formData.email) contactObj.email = formData.email;
+
+      const payload = {
+        name: (formData.name || '').trim(),
+        ...(cnpjFormatted ? { cnpj: cnpjFormatted } : {}),
+        ...(addressObj ? { address: addressObj } : {}),
+        ...(Object.keys(contactObj).length ? { contact: contactObj } : {}),
+      };
+
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`/api/companies/${selectedCompany._id}`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.data?.success) {
+        await fetchCompanies();
+        closeEdit();
+        setError('');
+      }
+    } catch (err) {
+      const apiMsg = err.response?.data?.message;
+      const detail = err.response?.data?.error;
+      console.error('Erro ao atualizar empresa (detalhes):', err.response?.data || err);
+      if (err.response?.status === 403) {
+        setError(apiMsg || 'Acesso negado. Apenas administradores ou responsáveis podem editar esta empresa.');
+      } else {
+        setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao atualizar empresa');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteCompany = async (id) => {
     if (!window.confirm('Tem certeza que deseja excluir esta empresa?')) return;
 
@@ -252,6 +423,15 @@ const CompaniesFixed = () => {
     fetchCompanies(); // Recarrega para atualizar os v\u00ednculos
   };
 
+  const canManageUsersForCompany = (company) => {
+    if (isAdmin && isAdmin()) return true;
+    if (isManager && isManager()) {
+      const responsibleId = company?.responsibleUser?._id || company?.responsibleUser;
+      return responsibleId && user?._id && responsibleId.toString() === user._id.toString();
+    }
+    return false;
+  };
+
   if (loading && (!companies || companies.length === 0)) {
     return (
       <div className="container">
@@ -261,7 +441,7 @@ const CompaniesFixed = () => {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <div className="container animate-fade-in-up">
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Empresas</h1>
@@ -270,28 +450,32 @@ const CompaniesFixed = () => {
         </p>
       </div>
 
-      {/* Action Button */}
-      <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
-        <button
-          onClick={() => setShowCompanyForm(true)}
-          className="btn btn-primary"
-          style={{ display: 'inline-block', padding: '1rem 2rem', minHeight: '48px', fontSize: '1rem', fontWeight: '500', whiteSpace: 'nowrap', position: 'relative', zIndex: 2001 }}
-        >
-          + Nova Empresa
-        </button>
-      </div>
+      {/* Action Button: somente Admin pode criar */}
+      {isAdmin && isAdmin() && (
+        <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
+          <button
+            onClick={() => setShowCompanyForm(true)}
+            className="btn btn-primary"
+            style={{ display: 'inline-block', padding: '1rem 2rem', minHeight: '48px', fontSize: '1rem', fontWeight: '500', whiteSpace: 'nowrap', position: 'relative', zIndex: 2001 }}
+          >
+            + Nova Empresa
+          </button>
+        </div>
+      )}
 
       {error && <div className="alert alert-error">{error}</div>}
 
-  {/* Modal de Criação de Empresa */}
-      <AddCompanyModal
-        isOpen={showCompanyForm}
-        onClose={() => setShowCompanyForm(false)}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleCreateCompany}
-        loading={loading}
-      />
+      {/* Modal de Criação de Empresa (somente Admin) */}
+      {isAdmin && isAdmin() && (
+        <AddCompanyModal
+          isOpen={showCompanyForm}
+          onClose={() => setShowCompanyForm(false)}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreateCompany}
+          loading={loading}
+        />
+      )}
 
       {/* Lista de Empresas */}
       <div className="grid-3">
@@ -330,18 +514,34 @@ const CompaniesFixed = () => {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                <button
-                  onClick={() => openUserManager(company)}
-                  className="btn btn-info"
-                  style={{ flex: 1 }}
-                  title="Gerenciar Usuários"
-                >
-                  Gerenciar Usuários
-                </button>
-                <button onClick={() => handleDeleteCompany(company._id)} className="btn btn-danger" title="Excluir Empresa">
-                  Excluir
-                </button>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {(isAdmin && isAdmin()) || (isManager && isManager()) ? (
+                  <button
+                    onClick={() => openEditForCompany(company)}
+                    className="btn btn-secondary"
+                    style={{ flex: 1, minWidth: '120px' }}
+                    title="Editar Empresa"
+                  >
+                    Editar
+                  </button>
+                ) : null}
+
+                {canManageUsersForCompany(company) && (
+                  <button
+                    onClick={() => openUserManager(company)}
+                    className="btn btn-info"
+                    style={{ flex: 1, minWidth: '120px' }}
+                    title="Gerenciar Usuários"
+                  >
+                    Gerenciar Usuários
+                  </button>
+                )}
+
+                {isAdmin && isAdmin() && (
+                  <button onClick={() => handleDeleteCompany(company._id)} className="btn btn-danger" title="Excluir Empresa">
+                    Excluir
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -350,15 +550,25 @@ const CompaniesFixed = () => {
       {companies.length === 0 && !loading && (
         <div className="card">
           <p style={{ textAlign: 'center', color: '#6b7280' }}>
-            Nenhuma empresa encontrada. Clique em "+ Nova Empresa" para come\u00e7ar.
+            {isAdmin && isAdmin() ? 'Nenhuma empresa encontrada. Clique em "+ Nova Empresa" para começar.' : 'Nenhuma empresa encontrada.'}
           </p>
         </div>
       )}
 
-      {/* Modal de Gerenciamento de Usu\u00e1rios */}
+      {/* Modal de Gerenciamento de Usuários */}
       {showUserManager && selectedCompany && (
         <UserCompanyManager isOpen={showUserManager} onClose={closeUserManager} company={selectedCompany} type="company" onUpdate={fetchCompanies} />
       )}
+
+      {/* Modal de Edição de Empresa (admin ou gerente responsável) */}
+      <EditCompanyModal
+        isOpen={showEditModal}
+        onClose={closeEdit}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleUpdateCompany}
+        loading={loading}
+      />
     </div>
   );
 };
