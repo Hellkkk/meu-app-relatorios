@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UserCompanyManager from '../admin/UserCompanyManagerFixed';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Companies = () => {
+  const { user, isAdmin, isManager } = useAuth();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -83,6 +85,15 @@ const Companies = () => {
     fetchCompanies(); // Recarrega para atualizar os vínculos
   };
 
+  const canManageUsersForCompany = (company) => {
+    if (isAdmin && isAdmin()) return true;
+    if (isManager && isManager()) {
+      const responsibleId = company?.responsibleUser?._id || company?.responsibleUser;
+      return responsibleId && user?._id && responsibleId.toString() === user._id.toString();
+    }
+    return false;
+  };
+
   if (loading && (!companies || companies.length === 0)) {
     return (
       <div className="container">
@@ -92,14 +103,15 @@ const Companies = () => {
   }
 
   return (
-    <div className="animate-fade-in-up">
+    <div className="container animate-fade-in-up">
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Empresas</h1>
         <p style={{ color: 'var(--medium-gray)' }}>Gerencie todas as empresas e seus vínculos com usuários</p>
       </div>
 
-      {/* Action Button */}
+    {/* Action Button (somente Admin) */}
+    {isAdmin && isAdmin() && (
   <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
         <button 
           onClick={() => setShowCompanyForm(true)} 
@@ -117,14 +129,15 @@ const Companies = () => {
         >
           + Nova Empresa
         </button>
-      </div>
+  </div>
+  )}
 
       {error && (
         <div className="alert alert-error">{error}</div>
       )}
 
       {/* Modal de Criação de Empresa */}
-      {showCompanyForm && (
+  {isAdmin && isAdmin() && showCompanyForm && (
         <div 
           style={{
             position: 'fixed',
@@ -246,21 +259,25 @@ const Companies = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button
-                onClick={() => openUserManager(company)}
-                className="btn btn-info"
-                style={{ flex: 1 }}
-                title="Gerenciar Usuários"
-              >
-                Gerenciar Usuários
-              </button>
-              <button
-                onClick={() => handleDeleteCompany(company._id)}
-                className="btn btn-danger"
-                title="Excluir Empresa"
-              >
-                Excluir
-              </button>
+              {canManageUsersForCompany(company) && (
+                <button
+                  onClick={() => openUserManager(company)}
+                  className="btn btn-info"
+                  style={{ flex: 1 }}
+                  title="Gerenciar Usuários"
+                >
+                  Gerenciar Usuários
+                </button>
+              )}
+              {isAdmin && isAdmin() && (
+                <button
+                  onClick={() => handleDeleteCompany(company._id)}
+                  className="btn btn-danger"
+                  title="Excluir Empresa"
+                >
+                  Excluir
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -269,7 +286,7 @@ const Companies = () => {
       {companies.length === 0 && !loading && (
         <div className="card">
           <p style={{ textAlign: 'center', color: '#6b7280' }}>
-            Nenhuma empresa encontrada. Clique em "+ Nova Empresa" para começar.
+            {isAdmin && isAdmin() ? 'Nenhuma empresa encontrada. Clique em "+ Nova Empresa" para começar.' : 'Nenhuma empresa encontrada.'}
           </p>
         </div>
       )}

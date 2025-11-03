@@ -2,7 +2,7 @@ import React from 'react';
 
 const Reports = () => {
   return (
-    <div>
+    <div className="container">
       <h1>Relatórios</h1>
       <p>Página de gerenciamento de relatórios em desenvolvimento...</p>
       <div className="card">
