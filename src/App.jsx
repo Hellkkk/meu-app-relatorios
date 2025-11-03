@@ -6,7 +6,7 @@ import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import CompaniesFixed from './components/companies/CompaniesFixed';
 import Reports from './components/reports/Reports';
-import AdminUsersClean from './components/admin/AdminUsersClean';
+import AdminUsersPortal from './components/admin/AdminUsersPortal';
 import UserCompanyLinks from './components/admin/UserCompanyLinks';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
@@ -44,7 +44,7 @@ function App() {
               
               <Route path="/admin/users" element={
                 <AdminRoute>
-                  <AdminUsersClean />
+                  <AdminUsersPortal />
                 </AdminRoute>
               } />
               

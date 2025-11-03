@@ -1,7 +1,235 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import UserCompanyManager from './UserCompanyManagerFixed';
+
+const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        import { createPortal } from 'react-dom';
+        left: 0,
+        right: 0,
+        bottom: 0,
+        const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
+          if (!isOpen) return null;
+
+          return createPortal(
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 6000,
+                width: '100vw',
+                height: '100vh',
+              }}
+            >
+              <div
+                className="card"
+                style={{
+                  width: 'min(800px, 92vw)',
+                  boxSizing: 'border-box',
+                  maxHeight: '80vh',
+                  overflowY: 'auto',
+                  position: 'fixed',
+                  left: '50%',
+                  top: '44%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 6001,
+                  padding: '1.25rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h2>Criar Novo Usuário</h2>
+                  <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                    Fechar
+                  </button>
+                </div>
+
+                <form onSubmit={onSubmit}>
+                  <div className="form-group">
+                    <label className="form-label">Nome</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Username</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Senha</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Função</label>
+                    <select
+                      className="form-control"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      required
+                    >
+                      <option value="user">Usuário</option>
+                      <option value="manager">Gerente</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button type="submit" className="btn btn-success" disabled={loading}>
+                      {loading ? 'Criando...' : 'Criar Usuário'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>,
+            document.body
+          );
+        };
+
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 6000,
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
+      <div
+        className="card"
+        style={{
+          width: 'min(800px, 92vw)',
+          boxSizing: 'border-box',
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          position: 'fixed',
+          left: '50%',
+          top: '44%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 6001,
+          padding: '1.25rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Criar Novo Usuário</h2>
+          <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+            Fechar
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
+            <label className="form-label">Nome</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Senha</label>
+            <input
+              type="password"
+              className="form-control"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Função</label>
+            <select
+              className="form-control"
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              required
+            >
+              <option value="user">Usuário</option>
+              <option value="manager">Gerente</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button type="submit" className="btn btn-success" disabled={loading}>
+              {loading ? 'Criando...' : 'Criar Usuário'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -22,56 +250,15 @@ const AdminUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/api/admin/users?limit=1000');
-      if (response.data.success) {
-        const usersData = Array.isArray(response.data.data?.users) ? response.data.data.users : [];
-        setUsers(usersData);
-      } else {
-        setUsers([]);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-      setError('Erro ao carregar usuários');
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      const response = await axios.post('/api/admin/users', formData);
-      if (response.data.success) {
-        await fetchUsers();
-        setShowUserForm(false);
-        setFormData({ username: '', email: '', password: '', name: '', role: 'user' });
-      }
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      setError(error.response?.data?.message || 'Erro ao criar usuário');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleActive = async (userId) => {
-    try {
-      await axios.patch(`/api/admin/users/${userId}/toggle-active`);
-      fetchUsers();
-    } catch (error) {
-      console.error('Erro ao alterar status:', error);
-      setError('Erro ao alterar status do usuário');
-    }
-  };
-
-  const handleDeleteUser = async (userId) => {
+      {/* Modal de Criação (portal) para ficar idêntico ao de Nova Empresa */}
+      <AddUserModal
+        isOpen={showUserForm}
+        onClose={() => setShowUserForm(false)}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleCreateUser}
+        loading={loading}
+      />
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) return;
     try {
       await axios.delete(`/api/admin/users/${userId}`);

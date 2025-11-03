@@ -1,29 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
-import UserCompanyManager from './UserCompanyManagerFixed';
-
-const AdminUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [showCompanyManager, setShowCompanyManager] = useState(false);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    name: '',
-    role: 'user',
-  });
-
-  const { user: currentUser } = useAuth();
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -274,7 +249,6 @@ const AdminUsers = () => {
 
   return (
     <div className="animate-fade-in-up">
-      {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Usuários</h1>
         <p style={{ color: 'var(--medium-gray)' }}>
@@ -282,7 +256,6 @@ const AdminUsers = () => {
         </p>
       </div>
 
-      {/* Action Button */}
       <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
         <button
           onClick={() => setShowUserForm(true)}
@@ -295,7 +268,6 @@ const AdminUsers = () => {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Modal de Criação de Usuário (portal, igual ao de empresa) */}
       <AddUserModal
         isOpen={showUserForm}
         onClose={() => setShowUserForm(false)}
@@ -305,7 +277,6 @@ const AdminUsers = () => {
         loading={loading}
       />
 
-      {/* Tabela de Usuários */}
       <div className="card">
         <table className="table">
           <thead>
@@ -380,7 +351,6 @@ const AdminUsers = () => {
         )}
       </div>
 
-      {/* Modal de Gerenciamento de Empresas */}
       {showCompanyManager && selectedUser && (
         <UserCompanyManager
           isOpen={showCompanyManager}
@@ -395,4 +365,3 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
-  const fetchUsers = async () => {
