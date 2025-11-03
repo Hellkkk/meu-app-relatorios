@@ -117,6 +117,124 @@ const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loadin
   );
 };
 
+const EditUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading, onOpenLinks }) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 6000,
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
+      <div
+        className="card"
+        style={{
+          width: 'min(800px, 92vw)',
+          boxSizing: 'border-box',
+          maxHeight: '80vh',
+          overflowY: 'auto',
+          position: 'fixed',
+          left: '50%',
+          top: '44%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 6001,
+          padding: '1.25rem',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Editar Usuário</h2>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={onOpenLinks} className="btn btn-info" style={{ padding: '0.5rem 1rem' }}>
+              Gerenciar Vínculos
+            </button>
+            <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+              Fechar
+            </button>
+          </div>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
+            <label className="form-label">Nome</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input
+              type="text"
+              className="form-control"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Senha (deixe em branco para manter)</label>
+            <input
+              type="password"
+              className="form-control"
+              value={formData.password || ''}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder=""
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Função</label>
+            <select
+              className="form-control"
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              required
+            >
+              <option value="user">Usuário</option>
+              <option value="manager">Gerente</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button type="submit" className="btn btn-success" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -124,6 +242,7 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showCompanyManager, setShowCompanyManager] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({ username: '', email: '', password: '', name: '', role: 'user' });
 
   const { user: currentUser } = useAuth();
@@ -180,6 +299,53 @@ const AdminUsers = () => {
       const apiMsg = err.response?.data?.message;
       const detail = err.response?.data?.error;
       setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao criar usuário');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEdit = (user) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
+
+  const closeEdit = () => {
+    setShowEditModal(false);
+    setSelectedUser(null);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!selectedUser?._id) return;
+    try {
+      setLoading(true);
+      const payload = {
+        name: (formData.name || '').trim(),
+        username: (formData.username || '').trim(),
+        email: (formData.email || '').trim(),
+        role: formData.role || 'user',
+      };
+      if (formData.password && formData.password.trim().length > 0) {
+        payload.password = formData.password;
+      }
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`/api/admin/users/${selectedUser._id}`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (res.data?.success) {
+        await fetchUsers();
+        closeEdit();
+        setFormData({ username: '', email: '', password: '', name: '', role: 'user' });
+        setError('');
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar usuário (detalhes):', err?.response?.data || err);
+      const apiMsg = err.response?.data?.message;
+      const detail = err.response?.data?.error;
+      setError(apiMsg ? `${apiMsg}${detail ? `: ${detail}` : ''}` : 'Erro ao atualizar usuário');
     } finally {
       setLoading(false);
     }
@@ -310,13 +476,29 @@ const AdminUsers = () => {
                   <td>
                     <div>
                       <div>{user.companies?.length || 0} empresa(s)</div>
-                      <button
-                        onClick={() => openCompanyManager(user)}
-                        className="btn btn-info"
-                        style={{ marginTop: '0.5rem', padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                      >
-                        Gerenciar
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <button
+                          onClick={() => openEdit(user) || setFormData({
+                            name: user.name || '',
+                            username: user.username || '',
+                            email: user.email || '',
+                            password: '',
+                            role: user.role || 'user',
+                          })}
+                          className="btn btn-primary"
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                        >
+                          Gerenciar
+                        </button>
+                        <button
+                          onClick={() => openCompanyManager(user)}
+                          className="btn btn-info"
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                          title="Gerenciar Vínculos"
+                        >
+                          Vínculos
+                        </button>
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -360,6 +542,22 @@ const AdminUsers = () => {
           onUpdate={fetchUsers}
         />
       )}
+
+      {/* Modal de edição de usuário */}
+      <EditUserModal
+        isOpen={showEditModal}
+        onClose={closeEdit}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleUpdateUser}
+        loading={loading}
+        onOpenLinks={() => {
+          if (selectedUser) {
+            setShowEditModal(false);
+            setShowCompanyManager(true);
+          }
+        }}
+      />
     </div>
   );
 };
