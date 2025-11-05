@@ -789,3 +789,9 @@ p {
 .table th {
   background: var(--light-gray);
 }
+
+/* Navbar brand: bring the label further left without affecting page container */
+.navbar .container {
+  padding-left: 8px !important;
+  padding-right: 16px !important;
+}
