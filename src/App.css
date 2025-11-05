@@ -805,5 +805,12 @@ p {
 
 /* Brand offset: move label well to the right */
 .navbar .navbar-brand {
-  margin-left: 48px !important;
+  /* Responsive offset so the label sits more centered in the available space */
+  margin-left: clamp(48px, 10vw, 200px) !important;
+}
+
+@media (max-width: 768px) {
+  .navbar .navbar-brand {
+    margin-left: 16px !important; /* keep it practical on small screens */
+  }
 }
