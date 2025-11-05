@@ -791,7 +791,14 @@ p {
 }
 
 /* Navbar brand: bring the label further left without affecting page container */
+.navbar {
+  padding-left: 0 !important; /* remove extra left padding from the bar */
+}
+
 .navbar .container {
-  padding-left: 8px !important;
+  max-width: 100% !important; /* allow full width so brand can hug the edge */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important; /* push brand further left */
   padding-right: 16px !important;
 }
