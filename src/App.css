@@ -792,13 +792,18 @@ p {
 
 /* Navbar brand: bring the label further left without affecting page container */
 .navbar {
-  padding-left: 12px !important; /* nudge brand a bit to the right */
+  padding-left: 0 !important; /* reset to let brand control spacing */
 }
 
 .navbar .container {
-  max-width: 100% !important; /* allow full width so brand can approach edge */
+  max-width: 100% !important; /* full width for precise positioning */
   margin-left: 0 !important;
   margin-right: 0 !important;
-  padding-left: 12px !important; /* slight inset from the very edge */
+  padding-left: 0 !important; /* no container inset */
   padding-right: 16px !important;
+}
+
+/* Brand offset: move label well to the right */
+.navbar .navbar-brand {
+  margin-left: 48px !important;
 }
