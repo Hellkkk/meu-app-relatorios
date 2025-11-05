@@ -183,11 +183,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* Richer, moodier background with subtle accent glows */
+  /* Balanced, light background with very subtle accent glows */
   background:
-    radial-gradient(circle at 15% 0%, rgba(30, 144, 255, 0.08), transparent 40%),
-    radial-gradient(circle at 85% 20%, rgba(0, 184, 148, 0.06), transparent 40%),
-    linear-gradient(180deg, #0b1220 0%, #111827 100%);
+    radial-gradient(circle at 15% -10%, rgba(30, 144, 255, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(0, 184, 148, 0.04), transparent 40%),
+    linear-gradient(180deg, #edf2f7 0%, #f7fafc 100%);
 }
 
 /* Container */
@@ -248,10 +248,10 @@ p {
   top: 0;
   left: 0;
   right: 0;
-  /* Dark translucent navbar for better contrast against the new background */
-  background: rgba(17, 24, 39, 0.72);
+  /* Light translucent navbar to match lighter background */
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(2, 6, 23, 0.08);
   z-index: 1000;
   padding: calc(var(--spacing-sm) * 0.5) 0;
   transition: var(--transition-normal);
@@ -263,7 +263,7 @@ p {
 .navbar-brand {
   font-size: 1.9rem;
   font-weight: var(--font-weight-bold);
-  color: var(--white);
+  color: var(--primary-color);
   text-decoration: none;
   transition: var(--transition-fast);
 }
@@ -280,7 +280,7 @@ p {
 }
 
 .nav-link {
-  color: var(--white);
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
   font-size: 1.1rem;
@@ -291,8 +291,8 @@ p {
 }
 
 .nav-link:hover {
-  color: var(--white);
-  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--accent-color);
+  background-color: rgba(56, 103, 214, 0.08);
 }
 
 .nav-link::after {
@@ -313,12 +313,12 @@ p {
 
 /* Cards */
 .card {
-  /* Softer surface to reduce glare on dark background */
-  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+  /* Softer off-white surface to reduce glare while keeping readability */
+  background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
-  border: 1px solid rgba(17, 24, 39, 0.06);
+  border: 1px solid rgba(2, 6, 23, 0.06);
   transition: var(--transition-normal);
   margin-bottom: var(--spacing-lg);
 }
@@ -433,14 +433,14 @@ p {
   width: 100%;
   border-collapse: collapse;
   margin-top: var(--spacing-md);
-  background: var(--white);
+  background: #fbfdff;
   border-radius: var(--border-radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
 
 .table th {
-  background: var(--light-gray);
+  background: #eef2f7;
   padding: var(--spacing-md);
   text-align: left;
   font-weight: var(--font-weight-medium);
@@ -736,4 +736,9 @@ p {
   display: inline-flex !important;
   visibility: visible !important;
   opacity: 1 !important;
+}
+
+/* Theme balance overrides (final cascade) */
+.form-control {
+  background: #fbfdff;
 }
