@@ -173,6 +173,7 @@ body {
   font-weight: var(--font-weight-normal);
   line-height: 1.6;
   color: var(--primary-color);
+  /* keep base body minimal; page background handled by .App for stronger personality */
   background-color: var(--white);
   overflow-x: hidden;
 }
@@ -182,7 +183,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  /* Richer, moodier background with subtle accent glows */
+  background:
+    radial-gradient(circle at 15% 0%, rgba(30, 144, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(0, 184, 148, 0.06), transparent 40%),
+    linear-gradient(180deg, #0b1220 0%, #111827 100%);
 }
 
 /* Container */
@@ -243,9 +248,10 @@ p {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
+  /* Dark translucent navbar for better contrast against the new background */
+  background: rgba(17, 24, 39, 0.72);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-gray);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 1000;
   padding: calc(var(--spacing-sm) * 0.5) 0;
   transition: var(--transition-normal);
@@ -257,7 +263,7 @@ p {
 .navbar-brand {
   font-size: 1.9rem;
   font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
+  color: var(--white);
   text-decoration: none;
   transition: var(--transition-fast);
 }
@@ -274,7 +280,7 @@ p {
 }
 
 .nav-link {
-  color: var(--primary-color);
+  color: var(--white);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
   font-size: 1.1rem;
@@ -285,8 +291,8 @@ p {
 }
 
 .nav-link:hover {
-  color: var(--accent-color);
-  background-color: rgba(56, 103, 214, 0.1);
+  color: var(--white);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .nav-link::after {
@@ -307,11 +313,12 @@ p {
 
 /* Cards */
 .card {
-  background: var(--white);
+  /* Softer surface to reduce glare on dark background */
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-gray);
+  border: 1px solid rgba(17, 24, 39, 0.06);
   transition: var(--transition-normal);
   margin-bottom: var(--spacing-lg);
 }
