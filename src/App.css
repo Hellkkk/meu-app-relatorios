@@ -742,3 +742,50 @@ p {
 .form-control {
   background: #fbfdff;
 }
+
+/* Tesla palette overrides (final cascade) */
+:root {
+  --primary-color: #171a20;
+  --surface-color: #171a20;
+  --secondary-color: #393c41;
+  --accent-color: #3e6ae1;
+  --accent-hover: #3458c7;
+  --light-gray: #f5f5f5;
+  --border-gray: #e5e7eb;
+}
+
+/* Layout background refinement */
+.App {
+  background:
+    radial-gradient(circle at 15% -10%, rgba(62, 106, 225, 0.05), transparent 40%),
+    linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%);
+}
+
+/* Primary = Tesla black, Secondary = outline */
+.btn-primary {
+  background: #171a20;
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--border-gray);
+}
+
+.btn-secondary:hover {
+  background: var(--light-gray);
+  transform: translateY(-2px);
+}
+
+/* Table header surface */
+.table th {
+  background: var(--light-gray);
+}
