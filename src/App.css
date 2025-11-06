@@ -30,7 +30,7 @@
 
 /* Give the main content a bit more clearance from the fixed navbar */
 .container {
-  margin-top: 80px !important; /* reduced from 120px for more compact navbar */
+  margin-top: 75px !important; /* reduced from 80px for more compact navbar */
 }
 
 /* Consistent spacing between page titles and top action buttons */
@@ -51,7 +51,11 @@
 
 @media (max-width: 480px) {
   .container {
-    margin-top: 75px !important; /* reduced for more compact navbar */
+    margin-top: 60px !important;
+  }
+  
+  .navbar {
+    min-height: 34px;
   }
 }
 
@@ -193,7 +197,7 @@ body {
 /* Container */
 .container {
   max-width: 1200px;
-  margin: 80px auto 0 auto; /* reduced from 100px for more compact navbar */
+  margin: 75px auto 0 auto; /* reduced from 80px for more compact navbar */
   padding: 0 var(--spacing-md);
   flex: 1;
   overflow: visible;
@@ -256,14 +260,14 @@ p {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  padding: 6px 0; /* Reduced from 8px to 6px for more compact navbar */
-  min-height: 44px; /* Reduced from 52px to 44px for more compact navbar */
+  padding: 4px 0; /* Reduced from 6px to 4px for even more compact navbar */
+  min-height: 38px; /* Reduced from 44px to 38px for even more compact navbar */
   transition: var(--transition-normal);
   overflow: hidden;
 }
 
 .navbar-brand {
-  font-size: 1.3rem; /* Reduced from 1.5rem to 1.3rem for more compact navbar */
+  font-size: 1.2rem; /* Reduced from 1.3rem to 1.2rem for more compact navbar */
   font-weight: var(--font-weight-bold);
   /* Gradient text for logo (blue to purple) */
   background: linear-gradient(135deg, #7dd3fc 0%, #c4b5fd 100%);
@@ -282,15 +286,15 @@ p {
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: 0.8rem; /* Reduced from 1.2rem to 0.8rem for more compact navbar */
+  gap: 1rem; /* Increased from 0.8rem to 1rem to accommodate larger font */
 }
 
 .nav-link {
   color: #ffffff; /* White text color */
   text-decoration: none;
-  font-weight: var(--font-weight-medium);
-  font-size: 0.85rem; /* Reduced from 0.95rem to 0.85rem for more compact navbar */
-  padding: 4px 10px; /* Reduced from 6px 12px for more compact navbar */
+  font-weight: 500; /* Medium weight for better legibility */
+  font-size: 1rem; /* INCREASED from 0.85rem to 1rem for better readability */
+  padding: 3px 12px; /* Reduced vertical padding, normal horizontal padding */
   border-radius: var(--border-radius-sm);
   transition: var(--transition-fast);
   position: relative;
@@ -315,6 +319,13 @@ p {
 
 .nav-link:hover::after {
   width: 100%;
+}
+
+/* Navbar Button Styles - More legible and proportional */
+.navbar .btn {
+  font-size: 0.9rem;
+  padding: 4px 14px;
+  min-height: 32px; /* button proportional to navbar */
 }
 
 /* Cards */
@@ -583,25 +594,26 @@ p {
 @media (max-width: 768px) {
   .container {
     padding: 0 var(--spacing-sm);
-    margin-top: 70px !important; /* reduced for more compact navbar on mobile */
+    margin-top: 65px !important; /* reduced for more compact navbar on mobile */
   }
   
   .navbar {
-    padding: 4px 0; /* reduced from 8px to 4px for more compact navbar */
-    min-height: 40px; /* reduced from 52px to 40px for more compact navbar */
+    padding: 3px 0; /* reduced from 4px for more compact navbar */
+    min-height: 36px; /* reduced from 40px for more compact navbar */
   }
   
   .navbar-brand {
-    font-size: 1.1rem; /* reduced from 1.5rem to 1.1rem for more compact navbar */
+    font-size: 1.1rem; /* slightly smaller for mobile */
   }
   
   .navbar-nav {
-    gap: 0.6rem; /* reduced from 0.8rem to 0.6rem for more compact navbar */
+    gap: 0.7rem; /* slightly smaller gap for mobile */
   }
   
   .nav-link {
-    padding: 3px 8px; /* reduced from 4px 10px for more compact navbar */
-    font-size: 0.8rem; /* reduced from 0.95rem to 0.8rem for more compact navbar */
+    padding: 2px 8px; /* reduced padding for mobile */
+    font-size: 0.95rem; /* maintain good readability on mobile */
+    font-weight: 500; /* maintain medium weight for legibility */
   }
   
   .card {
