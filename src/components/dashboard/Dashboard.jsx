@@ -112,32 +112,42 @@ const Dashboard = () => {
           background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(192, 57, 43, 0.05))',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              borderRadius: '50%', 
-              background: `linear-gradient(135deg, ${getRoleColor(user.role)} 0%, ${getRoleColor(user.role)}dd 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '2rem',
-              fontWeight: 'bold',
-              marginRight: '1.5rem',
-              boxShadow: `0 8px 24px ${getRoleColor(user.role)}40`
-            }}>
-              {(user.profile?.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
-            </div>
+            {(() => {
+              const roleColor = getRoleColor(user.role);
+              return (
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  borderRadius: '50%', 
+                  background: `linear-gradient(135deg, ${roleColor} 0%, ${roleColor}dd 100%)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '2rem',
+                  fontWeight: 'bold',
+                  marginRight: '1.5rem',
+                  boxShadow: `0 8px 24px ${roleColor}40`
+                }}>
+                  {(user.profile?.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
+                </div>
+              );
+            })()}
             <div>
-              <h3 style={{ 
-                margin: 0, 
-                fontSize: '1.5rem',
-                fontWeight: '700',
-                background: `linear-gradient(135deg, ${getRoleColor(user.role)} 0%, ${getRoleColor(user.role)}cc 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>👤 Seu Perfil</h3>
+              {(() => {
+                const roleColor = getRoleColor(user.role);
+                return (
+                  <h3 style={{ 
+                    margin: 0, 
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    background: `linear-gradient(135deg, ${roleColor} 0%, ${roleColor}cc 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>👤 Seu Perfil</h3>
+                );
+              })()}
               <div className="status-indicator" style={{ 
                 background: `linear-gradient(135deg, ${getRoleColor(user.role)}20, ${getRoleColor(user.role)}15)`,
                 color: getRoleColor(user.role),
@@ -531,21 +541,21 @@ const Dashboard = () => {
           }}>Ações Rápidas</h3>
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/reports" className="btn btn-primary" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
+          <Link to="/reports" className="btn btn-primary btn-shimmer" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
             <span style={{ fontSize: '1.3rem', marginRight: '0.5rem' }}>📊</span> Visualizar Relatórios
           </Link>
           {(isAdmin() || isManager()) && (
-            <Link to="/companies" className="btn btn-success" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
+            <Link to="/companies" className="btn btn-success btn-shimmer" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
               <span style={{ fontSize: '1.3rem', marginRight: '0.5rem' }}>🏢</span> Gerenciar Empresas
             </Link>
           )}
           {isAdmin() && (
-            <Link to="/admin/users" className="btn btn-warning" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
+            <Link to="/admin/users" className="btn btn-warning btn-shimmer" style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}>
               <span style={{ fontSize: '1.3rem', marginRight: '0.5rem' }}>👥</span> Gerenciar Usuários
             </Link>
           )}
           <button 
-            className="btn btn-info"
+            className="btn btn-info btn-shimmer"
             onClick={() => window.location.reload()}
             style={{ fontSize: '1.05rem', padding: '1rem 2rem' }}
           >

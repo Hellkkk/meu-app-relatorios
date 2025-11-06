@@ -913,7 +913,8 @@ p {
 /* Glass Card Effect */
 .glass-card {
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   padding: 2rem;
@@ -921,6 +922,13 @@ p {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+}
+
+/* Fallback for browsers that don't support backdrop-filter */
+@supports not (backdrop-filter: blur(12px)) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+  }
 }
 
 .glass-card::before {
@@ -1012,17 +1020,7 @@ p {
 }
 
 /* Enhanced Buttons with Vibrant Gradients */
-.btn-primary {
-  background: linear-gradient(135deg, #3e6ae1 0%, #5b7cf0 100%);
-  color: white;
-  box-shadow: 0 4px 16px rgba(62, 106, 225, 0.3);
-  font-weight: 600;
-  border: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-primary::before {
+.btn-shimmer::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1033,8 +1031,18 @@ p {
   transition: left 0.5s ease;
 }
 
-.btn-primary:hover::before {
+.btn-shimmer:hover::before {
   left: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3e6ae1 0%, #5b7cf0 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(62, 106, 225, 0.3);
+  font-weight: 600;
+  border: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary:hover {
@@ -1051,21 +1059,6 @@ p {
   overflow: hidden;
 }
 
-.btn-success::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-success:hover::before {
-  left: 100%;
-}
-
 .btn-success:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 208, 132, 0.4);
@@ -1080,21 +1073,6 @@ p {
   overflow: hidden;
 }
 
-.btn-warning::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-warning:hover::before {
-  left: 100%;
-}
-
 .btn-warning:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
@@ -1107,21 +1085,6 @@ p {
   font-weight: 600;
   position: relative;
   overflow: hidden;
-}
-
-.btn-info::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-info:hover::before {
-  left: 100%;
 }
 
 .btn-info:hover {
