@@ -36,7 +36,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', width: '100%' }}>
           <Link to="/dashboard" className="navbar-brand" style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -47,7 +47,7 @@ const Navbar = () => {
             App Relatórios
           </Link>
           
-          <div className="navbar-nav">
+          <div className="navbar-nav" style={{ marginLeft: '24px', flexWrap: 'wrap' }}>
             <Link to="/dashboard" className="nav-link">
               Dashboard
             </Link>
