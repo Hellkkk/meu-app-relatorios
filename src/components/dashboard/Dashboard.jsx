@@ -54,14 +54,6 @@ const Dashboard = () => {
     return roles[role] || role;
   };
 
-  const getRoleColor = (role) => {
-    const colors = {
-      'admin': 'var(--role-admin)',
-      'manager': 'var(--role-manager)',
-      'user': 'var(--role-user)'
-    };
-    return colors[role] || 'var(--muted-color)';
-  };
 
   if (loading) {
     return (
@@ -112,27 +104,22 @@ const Dashboard = () => {
           background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c44569 100%)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            {(() => {
-              const roleColor = '#ffffff';
-              return (
-                <div className="card-icon" style={{ 
-                  width: '80px', 
-                  height: '80px', 
-                  borderRadius: '50%', 
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  marginRight: '1.5rem',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-                }}>
-                  {(user.profile?.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
-                </div>
-              );
-            })()}
+            <div className="card-icon" style={{ 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '50%', 
+              background: 'rgba(255, 255, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              marginRight: '1.5rem',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+            }}>
+              {(user.profile?.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
+            </div>
             <div>
               <h3 style={{ 
                 margin: 0, 
