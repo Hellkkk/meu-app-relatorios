@@ -178,49 +178,17 @@ body {
   overflow-x: hidden;
 }
 
-/* App Container - Vibrant Animated Gradient Background */
+/* App Container - Neutral Background */
 .App {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* Vibrant multicolored animated gradient */
-  background: linear-gradient(135deg, 
-    #667eea 0%, 
-    #764ba2 25%, 
-    #f093fb 50%, 
-    #4facfe 75%, 
-    #00f2fe 100%
-  );
-  background-size: 200% 200%;
-  animation: gradientShift 15s ease infinite;
+  /* Neutral light gray background to highlight the colorful panels */
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
   position: relative;
 }
 
-/* Subtle overlay to soften the vibrant background */
-.App::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.05);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Gradient animation keyframes */
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+/* Subtle overlay removed - not needed with neutral background */
 
 /* Container */
 .container {
