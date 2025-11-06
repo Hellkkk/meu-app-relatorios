@@ -156,9 +156,9 @@ const UserCompanyLinks = () => {
   }
 
   return (
-    <div>
+    <div style={{ paddingTop: '24px' }}>
       <h1>Gerenciar Vínculos Usuário-Empresa</h1>
-      <p style={{ color: '#6c757d', marginBottom: '30px' }}>
+      <p style={{ color: 'var(--medium-gray)', marginBottom: '30px' }}>
         Gerencie as relações entre usuários e empresas, corrija inconsistências e monitore vínculos.
       </p>
 
