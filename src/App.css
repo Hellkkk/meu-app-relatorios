@@ -603,16 +603,16 @@ p {
   }
   
   .navbar-brand {
-    font-size: 1.1rem; /* reduced from 1.1rem for more compact navbar */
+    font-size: 1.1rem; /* slightly smaller for mobile */
   }
   
   .navbar-nav {
-    gap: 0.7rem; /* reduced from 0.6rem for more compact navbar */
+    gap: 0.7rem; /* slightly smaller gap for mobile */
   }
   
   .nav-link {
-    padding: 2px 8px; /* reduced from 3px 8px for more compact navbar */
-    font-size: 0.9rem; /* reasonable font size on mobile */
+    padding: 2px 8px; /* reduced padding for mobile */
+    font-size: 0.95rem; /* maintain good readability on mobile */
     font-weight: 500; /* maintain medium weight for legibility */
   }
   
