@@ -101,7 +101,7 @@ const Dashboard = () => {
         
         {/* Profile Card */}
         <div className="glass-card glass-card-profile" style={{ 
-          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c44569 100%)',
+          background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 50%, #374151 100%)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div className="card-icon" style={{ 

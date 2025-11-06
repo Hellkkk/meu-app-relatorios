@@ -996,9 +996,9 @@ p {
 
 /* Card Gradient Variants */
 .glass-card-profile {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c44569 100%);
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 50%, #374151 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(238, 90, 111, 0.3);
+  box-shadow: 0 8px 32px rgba(75, 85, 99, 0.3);
   color: #ffffff;
 }
 
