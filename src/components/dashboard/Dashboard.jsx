@@ -108,18 +108,18 @@ const Dashboard = () => {
       <div className="grid-3 stagger-children" style={{ marginBottom: '2rem' }}>
         
         {/* Profile Card */}
-        <div className="glass-card" style={{ 
-          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(192, 57, 43, 0.05))',
+        <div className="glass-card glass-card-profile" style={{ 
+          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c44569 100%)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
             {(() => {
-              const roleColor = getRoleColor(user.role);
+              const roleColor = '#ffffff';
               return (
-                <div style={{ 
+                <div className="card-icon" style={{ 
                   width: '80px', 
                   height: '80px', 
                   borderRadius: '50%', 
-                  background: `linear-gradient(135deg, ${roleColor} 0%, ${roleColor}dd 100%)`,
+                  background: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -127,63 +127,56 @@ const Dashboard = () => {
                   fontSize: '2rem',
                   fontWeight: 'bold',
                   marginRight: '1.5rem',
-                  boxShadow: `0 8px 24px ${roleColor}40`
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
                 }}>
                   {(user.profile?.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
                 </div>
               );
             })()}
             <div>
-              {(() => {
-                const roleColor = getRoleColor(user.role);
-                return (
-                  <h3 style={{ 
-                    margin: 0, 
-                    fontSize: '1.5rem',
-                    fontWeight: '700',
-                    background: `linear-gradient(135deg, ${roleColor} 0%, ${roleColor}cc 100%)`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>👤 Seu Perfil</h3>
-                );
-              })()}
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>👤 Seu Perfil</h3>
               <div className="status-indicator" style={{ 
-                background: `linear-gradient(135deg, ${getRoleColor(user.role)}20, ${getRoleColor(user.role)}15)`,
-                color: getRoleColor(user.role),
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
                 marginTop: '0.5rem',
                 fontWeight: '600',
-                border: `1px solid ${getRoleColor(user.role)}30`
+                border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
                 {getRoleDisplayName(user.role)}
               </div>
             </div>
           </div>
-          <div style={{ fontSize: '0.95rem', color: '#374151', lineHeight: '1.8' }}>
-            <p style={{ marginBottom: '0.8rem' }}><strong style={{ fontSize: '1.1rem' }}>📧</strong> <strong>Email:</strong> {user.email}</p>
-            <p style={{ marginBottom: '0.8rem' }}><strong style={{ fontSize: '1.1rem' }}>📅</strong> <strong>Membro desde:</strong> {new Date(user.createdAt).toLocaleDateString('pt-BR')}</p>
+          <div style={{ fontSize: '0.95rem', color: '#ffffff', lineHeight: '1.8' }}>
+            <p style={{ marginBottom: '0.8rem', color: '#ffffff' }}><strong style={{ fontSize: '1.1rem' }}>📧</strong> <strong>Email:</strong> {user.email}</p>
+            <p style={{ marginBottom: '0.8rem', color: '#ffffff' }}><strong style={{ fontSize: '1.1rem' }}>📅</strong> <strong>Membro desde:</strong> {new Date(user.createdAt).toLocaleDateString('pt-BR')}</p>
             {user.lastLogin && (
-              <p style={{ marginBottom: '0.8rem' }}><strong style={{ fontSize: '1.1rem' }}>🕒</strong> <strong>Último acesso:</strong> {new Date(user.lastLogin).toLocaleString('pt-BR')}</p>
+              <p style={{ marginBottom: '0.8rem', color: '#ffffff' }}><strong style={{ fontSize: '1.1rem' }}>🕒</strong> <strong>Último acesso:</strong> {new Date(user.lastLogin).toLocaleString('pt-BR')}</p>
             )}
           </div>
         </div>
 
         {/* Companies Card */}
-        <div className="glass-card" style={{ 
-          background: 'linear-gradient(135deg, rgba(0, 208, 132, 0.05), rgba(0, 184, 148, 0.05))',
+        <div className="glass-card glass-card-companies" style={{ 
+          background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #06d6a0 100%)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ 
+            <div className="card-icon" style={{ 
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #00d084 0%, #00b070 100%)',
+              background: 'rgba(255, 255, 255, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '2.5rem',
               marginRight: '1.5rem',
-              boxShadow: '0 8px 24px rgba(0, 208, 132, 0.3)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
             }}>
               🏢
             </div>
@@ -192,15 +185,15 @@ const Dashboard = () => {
                 margin: 0, 
                 fontSize: '1.5rem',
                 fontWeight: '700',
-                background: 'linear-gradient(135deg, #00d084 0%, #00b070 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
               }}>Suas Empresas</h3>
-              <div className="status-indicator status-success" style={{ 
+              <div className="status-indicator" style={{ 
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
                 marginTop: '0.5rem',
                 fontWeight: '600',
-                border: '1px solid rgba(0, 208, 132, 0.3)'
+                border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
                 {user.companies?.length || 0} empresa{(user.companies?.length || 0) !== 1 ? 's' : ''}
               </div>
@@ -212,12 +205,12 @@ const Dashboard = () => {
                 <div key={company._id || company} style={{ 
                   padding: '0.8rem 1rem',
                   margin: '0.6rem 0',
-                  background: 'linear-gradient(135deg, rgba(0, 208, 132, 0.12), rgba(0, 184, 148, 0.08))',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   fontSize: '0.95rem',
                   fontWeight: '500',
-                  color: '#0f1724',
-                  border: '1px solid rgba(0, 208, 132, 0.2)',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
                   • {company.name || company}
@@ -226,10 +219,11 @@ const Dashboard = () => {
               {user.companies.length > 3 && (
                 <div style={{ 
                   fontSize: '0.9rem', 
-                  color: '#6b7280', 
+                  color: '#ffffff', 
                   textAlign: 'center', 
                   marginTop: '1rem',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  opacity: 0.9
                 }}>
                   +{user.companies.length - 3} empresas adicionais
                 </div>
@@ -238,10 +232,11 @@ const Dashboard = () => {
           ) : (
             <div style={{ 
               textAlign: 'center', 
-              color: '#6b7280', 
+              color: '#ffffff', 
               padding: '2rem',
               fontSize: '1rem',
-              fontWeight: '500'
+              fontWeight: '500',
+              opacity: 0.9
             }}>
               {isAdmin() ? '🌟 Acesso a todas as empresas' : '📋 Nenhuma empresa associada'}
             </div>
@@ -249,21 +244,21 @@ const Dashboard = () => {
         </div>
 
         {/* Reports Card */}
-        <div className="glass-card" style={{ 
-          background: 'linear-gradient(135deg, rgba(62, 106, 225, 0.05), rgba(138, 85, 255, 0.05))',
+        <div className="glass-card glass-card-reports" style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5e60ce 100%)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ 
+            <div className="card-icon" style={{ 
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #3e6ae1 0%, #8a55ff 100%)',
+              background: 'rgba(255, 255, 255, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '2.5rem',
               marginRight: '1.5rem',
-              boxShadow: '0 8px 24px rgba(62, 106, 225, 0.3)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
             }}>
               📊
             </div>
@@ -272,15 +267,15 @@ const Dashboard = () => {
                 margin: 0, 
                 fontSize: '1.5rem',
                 fontWeight: '700',
-                background: 'linear-gradient(135deg, #3e6ae1 0%, #8a55ff 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
+                color: '#ffffff',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
               }}>Relatórios</h3>
-              <div className="status-indicator status-info" style={{ 
+              <div className="status-indicator" style={{ 
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: '#ffffff',
                 marginTop: '0.5rem',
                 fontWeight: '600',
-                border: '1px solid rgba(62, 106, 225, 0.3)'
+                border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
                 {stats?.reports?.overview?.total || 0} relatório{(stats?.reports?.overview?.total || 0) !== 1 ? 's' : ''}
               </div>
@@ -295,19 +290,19 @@ const Dashboard = () => {
                   alignItems: 'center',
                   padding: '0.8rem 1rem',
                   margin: '0.6rem 0',
-                  background: 'linear-gradient(135deg, rgba(62, 106, 225, 0.12), rgba(138, 85, 255, 0.08))',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   borderRadius: '12px',
                   fontSize: '0.95rem',
                   fontWeight: '500',
-                  color: '#0f1724',
-                  border: '1px solid rgba(62, 106, 225, 0.2)',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
                   <span>{type._id}</span>
                   <span style={{ 
                     fontWeight: 'bold',
                     fontSize: '1.1rem',
-                    color: '#3e6ae1'
+                    color: '#ffffff'
                   }}>{type.count}</span>
                 </div>
               ))}
@@ -315,10 +310,11 @@ const Dashboard = () => {
           ) : (
             <div style={{ 
               textAlign: 'center', 
-              color: '#6b7280', 
+              color: '#ffffff', 
               padding: '2rem',
               fontSize: '1rem',
-              fontWeight: '500'
+              fontWeight: '500',
+              opacity: 0.9
             }}>
               📈 Nenhum relatório encontrado
             </div>
@@ -332,21 +328,21 @@ const Dashboard = () => {
         <div className="grid-2 animate-fade-in-up" style={{ marginBottom: '2rem' }}>
           
           {stats?.companies && (
-            <div className="glass-card" style={{ 
-              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(230, 126, 34, 0.05))',
+            <div className="glass-card glass-card-stats-companies" style={{ 
+              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ 
+                <div className="card-icon" style={{ 
                   width: '70px',
                   height: '70px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '2.2rem',
                   marginRight: '1.5rem',
-                  boxShadow: '0 8px 24px rgba(245, 158, 11, 0.3)'
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
                 }}>
                   🏭
                 </div>
@@ -355,15 +351,15 @@ const Dashboard = () => {
                     margin: 0, 
                     fontSize: '1.4rem',
                     fontWeight: '700',
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
+                    color: '#ffffff',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}>Estatísticas de Empresas</h3>
-                  <div className="status-indicator status-warning" style={{ 
+                  <div className="status-indicator" style={{ 
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
                     marginTop: '0.5rem',
                     fontWeight: '600',
-                    border: '1px solid rgba(245, 158, 11, 0.3)'
+                    border: '1px solid rgba(255, 255, 255, 0.3)'
                   }}>
                     Visão Administrativa
                   </div>
@@ -373,62 +369,62 @@ const Dashboard = () => {
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(230, 126, 34, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--warning-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '3rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.companies.overview.total}
                   </div>
-                  <div style={{ fontSize: '0.95rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Total</div>
+                  <div style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Total</div>
                 </div>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(0, 208, 132, 0.15), rgba(0, 184, 148, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(0, 208, 132, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--success-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '3rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.companies.overview.active}
                   </div>
-                  <div style={{ fontSize: '0.95rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Ativas</div>
+                  <div style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Ativas</div>
                 </div>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(108, 117, 125, 0.15), rgba(108, 117, 125, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(108, 117, 125, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--muted-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '3rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.companies.overview.inactive}
                   </div>
-                  <div style={{ fontSize: '0.95rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Inativas</div>
+                  <div style={{ fontSize: '0.95rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Inativas</div>
                 </div>
               </div>
             </div>
           )}
 
           {stats?.users && (
-            <div className="glass-card" style={{ 
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(192, 57, 43, 0.05))',
+            <div className="glass-card glass-card-stats-users" style={{ 
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ 
+                <div className="card-icon" style={{ 
                   width: '70px',
                   height: '70px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #ef4444 0%, #c0392b 100%)',
+                  background: 'rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '2.2rem',
                   marginRight: '1.5rem',
-                  boxShadow: '0 8px 24px rgba(239, 68, 68, 0.3)'
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
                 }}>
                   👥
                 </div>
@@ -437,15 +433,15 @@ const Dashboard = () => {
                     margin: 0, 
                     fontSize: '1.4rem',
                     fontWeight: '700',
-                    background: 'linear-gradient(135deg, #ef4444 0%, #c0392b 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
+                    color: '#ffffff',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}>Estatísticas de Usuários</h3>
-                  <div className="status-indicator status-danger" style={{ 
+                  <div className="status-indicator" style={{ 
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
                     marginTop: '0.5rem',
                     fontWeight: '600',
-                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                    border: '1px solid rgba(255, 255, 255, 0.3)'
                   }}>
                     Painel Administrativo
                   </div>
@@ -455,54 +451,54 @@ const Dashboard = () => {
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(192, 57, 43, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--danger-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '3rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.users.overview.total}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Total</div>
+                  <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Total</div>
                 </div>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(0, 208, 132, 0.15), rgba(0, 184, 148, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(0, 208, 132, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '800', color: 'var(--success-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '3rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.users.overview.active}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Ativos</div>
+                  <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Ativos</div>
                 </div>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(220, 53, 69, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(220, 53, 69, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--role-admin)' }}>
+                  <div className="stat-number" style={{ fontSize: '2rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.users.overview.admins || 0}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Admins</div>
+                  <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Admins</div>
                 </div>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '1.5rem 1rem', 
-                  background: 'linear-gradient(135deg, rgba(62, 106, 225, 0.15), rgba(138, 85, 255, 0.1))', 
+                  background: 'rgba(255, 255, 255, 0.2)', 
                   borderRadius: '16px',
-                  border: '1px solid rgba(62, 106, 225, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease'
                 }}>
-                  <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--accent-color)' }}>
+                  <div className="stat-number" style={{ fontSize: '2rem', fontWeight: '900', color: '#ffffff', textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)' }}>
                     {stats.users.overview.users || 0}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#374151', fontWeight: '600', marginTop: '0.5rem' }}>Usuários</div>
+                  <div style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: '600', marginTop: '0.5rem' }}>Usuários</div>
                 </div>
               </div>
             </div>
