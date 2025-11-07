@@ -307,71 +307,75 @@ const AdminUsers = () => {
 
       {/* Tabela de Usuários */}
       <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Usuário</th>
-              <th>Email</th>
-              <th>Função</th>
-              <th>Empresas</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(users) &&
-              users.map((user) => (
-                <tr key={user._id}>
-                  <td>
-                    <div>
+        <div className="table-responsive" style={{ overflowX: 'auto', width: '100%' }}>
+          <table className="table" style={{ minWidth: '900px', width: '100%' }}>
+            <thead>
+              <tr>
+                <th style={{ width: '15%' }}>Usuário</th>
+                <th style={{ width: '20%' }}>Email</th>
+                <th style={{ width: '12%' }}>Função</th>
+                <th style={{ width: '18%' }}>Empresas</th>
+                <th style={{ width: '10%' }}>Status</th>
+                <th style={{ width: '25%', textAlign: 'right' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(users) &&
+                users.map((user) => (
+                  <tr key={user._id}>
+                    <td>
                       <div>
                         <strong>{user.name || user.username}</strong>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>@{user.username}</div>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>@{user.username}</div>
-                    </div>
-                  </td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`status-indicator ${getRoleBadgeClass(user.role)}`}>
-                      {getRoleDisplay(user.role)}
-                    </span>
-                  </td>
-                  <td>
-                    <div>
-                      <div>{user.companies?.length || 0} empresa(s)</div>
-                      <button
-                        onClick={() => openCompanyManager(user)}
-                        className="btn btn-info"
-                        style={{ marginTop: '0.5rem', padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                      >
-                        Gerenciar
-                      </button>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleToggleActive(user._id, user.isActive)}
-                      className={`status-indicator ${user.isActive ? 'status-success' : 'status-danger'}`}
-                      style={{ border: 'none', cursor: 'pointer' }}
-                    >
-                      {user.isActive ? 'Ativo' : 'Inativo'}
-                    </button>
-                  </td>
-                  <td>
-                    {user._id !== currentUser?._id && (
-                      <button
-                        onClick={() => handleDeleteUser(user._id)}
-                        className="btn btn-danger"
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                      >
-                        Excluir
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    </td>
+                    <td style={{ fontSize: '0.9rem' }}>{user.email}</td>
+                    <td>
+                      <span className={`badge ${getRoleBadgeClass(user.role)}`} style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>
+                        {getRoleDisplay(user.role)}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.9rem' }}>
+                        {user.companies?.length || 0} empresa(s)
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${user.isActive ? 'status-success' : 'status-secondary'}`} style={{ fontSize: '0.8rem' }}>
+                        {user.isActive ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <button 
+                          className="btn btn-sm btn-primary" 
+                          onClick={() => openCompanyManager(user)}
+                          style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                        >
+                          Gerenciar
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => openCompanyManager(user)}
+                          style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                        >
+                          Vínculos
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-danger" 
+                          onClick={() => handleDeleteUser(user._id)}
+                          disabled={user._id === currentUser?._id}
+                          style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
 
         {users.length === 0 && !loading && (
           <p style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
