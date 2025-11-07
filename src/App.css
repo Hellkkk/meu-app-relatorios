@@ -30,7 +30,7 @@
 
 /* Give the main content a bit more clearance from the fixed navbar */
 .container {
-  margin-top: 75px !important; /* reduced from 80px for more compact navbar */
+  margin-top: 120px !important; /* increased from 75px for better visual breathing */
 }
 
 /* Consistent spacing between page titles and top action buttons */
@@ -51,7 +51,7 @@
 
 @media (max-width: 480px) {
   .container {
-    margin-top: 60px !important;
+    margin-top: 85px !important;
   }
   
   .navbar {
@@ -197,7 +197,7 @@ body {
 /* Container */
 .container {
   max-width: 1400px;
-  margin: 80px auto 0 auto;
+  margin: 120px auto 0 auto;
   padding: 0 1.5rem;
   width: 100%;
   flex: 1;
@@ -625,7 +625,7 @@ p {
 @media (max-width: 1400px) {
   .container {
     max-width: 1200px;
-    margin-top: 75px;
+    margin-top: 110px !important;
   }
   
   .navbar-brand {
@@ -646,7 +646,7 @@ p {
 @media (max-width: 1200px) {
   .container {
     max-width: 100%;
-    margin-top: 70px;
+    margin-top: 100px !important;
     padding: 0 1.25rem;
   }
   
@@ -672,7 +672,7 @@ p {
 @media (max-width: 768px) {
   .container {
     padding: 0 1rem;
-    margin-top: 65px;
+    margin-top: 90px !important;
   }
   
   .navbar {
