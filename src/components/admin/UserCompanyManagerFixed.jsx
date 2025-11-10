@@ -131,37 +131,8 @@ const UserCompanyManager = ({
   const linkedHeader = (type === 'user' ? 'Empresas vinculadas' : 'Usu\u00e1rios vinculados');
 
   return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 6000,
-        width: '100vw',
-        height: '100vh',
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: 'min(800px, 92vw)',
-          boxSizing: 'border-box',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'fixed',
-          left: '50%',
-          top: '44%', // raise a bit more as requested
-          transform: 'translate(-50%, -50%)',
-          zIndex: 6001,
-          padding: '1.25rem',
-        }}
-      >
+    <div className="modal-overlay">
+      <div className="modal-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2>{titleText} - {entityName}</h2>
           <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
