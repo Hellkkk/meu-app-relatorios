@@ -53,7 +53,7 @@ body:has(div[style*="position: fixed"][style*="height: 100vh"]) .container {
 /* Modern Tesla-inspired Design System */
 :root {
   /* Navbar height management */
-  --navbar-height: 56px;
+  --navbar-height: 48px;
   
   /* Unified color palette (uniform & organized) */
   --primary-color: #0f1724; /* deep navy for text and emphasis */
@@ -122,15 +122,15 @@ body {
   /* keep base body minimal; page background handled by .App for stronger personality */
   background-color: var(--white);
   overflow-x: hidden;
-  padding-top: calc(var(--navbar-height) + 16px);
+  padding-top: calc(var(--navbar-height) + 12px);
 }
 
 #root {
-  padding-top: calc(var(--navbar-height) + 16px);
+  padding-top: calc(var(--navbar-height) + 12px);
 }
 
 main {
-  padding-top: calc(var(--navbar-height) + 16px);
+  padding-top: calc(var(--navbar-height) + 12px);
 }
 
 /* App Container - Neutral Background */
@@ -141,7 +141,7 @@ main {
   /* Neutral light gray background to highlight the colorful panels */
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
   position: relative;
-  padding-top: calc(var(--navbar-height) + 16px);
+  padding-top: calc(var(--navbar-height) + 12px);
 }
 
 /* Subtle overlay removed - not needed with neutral background */
@@ -213,7 +213,8 @@ p {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  min-height: 56px;
+  height: var(--navbar-height);
+  min-height: var(--navbar-height);
   padding: 8px 0;
   display: flex;
   align-items: center;
@@ -435,7 +436,7 @@ p {
 
 .table {
   width: 100%;
-  min-width: 900px;
+  min-width: 760px;
   border-collapse: collapse;
   margin-top: var(--spacing-md);
   background: #fbfdff;
@@ -845,7 +846,7 @@ p {
   margin-bottom: 2rem;
   width: 100%;
   overflow: visible;
-  position: relative;
+  position: relative !important;
 }
 
 .page-header h1 {
@@ -863,10 +864,11 @@ p {
   color: var(--medium-gray);
   font-weight: normal;
   margin-top: 0.5rem;
-  white-space: normal;
-  overflow-wrap: break-word;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
   word-break: break-word;
-  position: static;
+  position: relative !important;
+  z-index: 1;
 }
 
 .page-header .btn {
