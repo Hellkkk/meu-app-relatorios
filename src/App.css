@@ -1,14 +1,19 @@
-/* Modal UX improvements (generic heuristic selectors for our custom modal) */
-/* Center any full-screen overlay and ensure it stays above page buttons */
-/* Center overlays that cover the viewport (robust matching) */
-div[style*="position: fixed"][style*="height: 100vh"],
+/* ===== Fix: avoid full-screen overlays blocking clicks and ensure navbar small ===== */
+/* Overlay click-through fix: Many modals/dialogs are rendered with inline fixed styles (100vw x 100vh).
+   If an overlay remains in DOM or invisible it may intercept pointer events.
+   Strategy: by default allow pointer-events to pass through full-screen fixed elements
+   and enable pointer-events only for the modal card inside them. This is a safe
+   compatibility patch for existing inline-style modals used in the app. */
+
+/* Make full-screen fixed elements not intercept clicks */
 div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
+  pointer-events: none !important;
   display: flex !important;
-  align-items: flex-start !important; /* anchor to top, then push down */
+  align-items: flex-start !important;
   justify-content: center !important;
   z-index: 5000 !important;
   padding: 16px !important;
-  padding-top: 18vh !important; /* push modal well below the top */
+  padding-top: 18vh !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
@@ -17,9 +22,26 @@ div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
   height: 100vh !important;
 }
 
+/* Allow the actual modal/dialog card to receive pointer events */
+div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] .card,
+div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] .modal,
+div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] [role="dialog"] {
+  pointer-events: auto !important;
+  z-index: 5001 !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  align-self: center !important;
+}
+
+/* Fallback: if overlay uses inline backgroundColor not matching rgba(0, 0, 0, 0), allow it to block clicks
+   (this keeps visible modals interactive). We detect overlays with non-transparent backgrounds and re-enable pointer-events. */
+div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"][style*="background"] {
+  pointer-events: auto !important;
+}
+
 /* Ensure the dialog inside the overlay is centered and sized nicely */
-div[style*="position: fixed"][style*="height: 100vh"] > div,
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] > div {
+div[style*="position: fixed"][style*="height: 100vh"] > div {
   z-index: 5001 !important;
   max-height: 80vh !important;
   overflow-y: auto !important;
@@ -40,7 +62,7 @@ body:has(div[style*="position: fixed"][style*="background"]) .container .btn.btn
 }
 
 /* Prevent background from scrolling while modal is open */
-body:has(div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"]) {
+body:has(div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"][style*="background"]) {
   overflow: hidden;
 }
 
@@ -215,6 +237,7 @@ p {
   z-index: 1000;
   height: var(--navbar-height);
   min-height: var(--navbar-height);
+  max-height: var(--navbar-height);
   padding: 8px 0;
   display: flex;
   align-items: center;
@@ -847,6 +870,7 @@ p {
   width: 100%;
   overflow: visible;
   position: relative !important;
+  z-index: 1;
 }
 
 .page-header h1 {
@@ -869,6 +893,7 @@ p {
   word-break: break-word;
   position: relative !important;
   z-index: 1;
+  overflow: visible !important;
 }
 
 .page-header .btn {
