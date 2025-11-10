@@ -1,74 +1,47 @@
-/* ===== Fix: avoid full-screen overlays blocking clicks and ensure navbar small ===== */
-/* Overlay click-through fix: Many modals/dialogs are rendered with inline fixed styles (100vw x 100vh).
-   If an overlay remains in DOM or invisible it may intercept pointer events.
-   Strategy: by default allow pointer-events to pass through full-screen fixed elements
-   and enable pointer-events only for the modal card inside them. This is a safe
-   compatibility patch for existing inline-style modals used in the app. */
+/* ===== Modal System: Safe, class-based approach ===== */
+/* Use .modal-overlay and .modal-card classes for all modals to avoid click-blocking issues */
 
-/* Make full-screen fixed elements not intercept clicks */
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] {
-  pointer-events: none !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: center !important;
-  z-index: 5000 !important;
-  padding: 16px !important;
-  padding-top: 18vh !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
+/* Modal overlay - backdrop that covers the screen */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6000;
+  padding: 16px;
+  pointer-events: auto;
 }
 
-/* Allow the actual modal/dialog card to receive pointer events */
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] .card,
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] .modal,
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"] [role="dialog"] {
-  pointer-events: auto !important;
-  z-index: 5001 !important;
-  max-height: 80vh !important;
-  overflow-y: auto !important;
-  margin: auto !important;
-  align-self: center !important;
-}
-
-/* Fallback: if overlay uses inline backgroundColor not matching rgba(0, 0, 0, 0), allow it to block clicks
-   (this keeps visible modals interactive). We detect overlays with non-transparent backgrounds and re-enable pointer-events. */
-div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"][style*="background"] {
-  pointer-events: auto !important;
-}
-
-/* Ensure the dialog inside the overlay is centered and sized nicely */
-div[style*="position: fixed"][style*="height: 100vh"] > div {
-  z-index: 5001 !important;
-  max-height: 80vh !important;
-  overflow-y: auto !important;
-  margin: auto !important;
-  align-self: center !important;
-}
-
-/* Fallback: identify dialog by common visual styles as well */
-div[style*="box-shadow"][style*="border-radius"][style*="padding"] {
-  z-index: 5001 !important;
-  max-height: 80vh !important;
-  overflow-y: auto !important;
-}
-
-/* When a modal overlay is present, hide top-level primary action like "+ Nova Empresa" */
-body:has(div[style*="position: fixed"][style*="background"]) .container .btn.btn-primary {
-  visibility: hidden !important;
+/* Modal card - the actual dialog content */
+.modal-card {
+  background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(2, 6, 23, 0.06);
+  width: min(800px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 6001;
+  pointer-events: auto;
+  position: relative;
 }
 
 /* Prevent background from scrolling while modal is open */
-body:has(div[style*="position: fixed"][style*="width: 100vw"][style*="height: 100vh"][style*="background"]) {
+body:has(.modal-overlay) {
   overflow: hidden;
 }
 
 /* Remove transforms that can create a new containing block for fixed elements */
-body:has(div[style*="position: fixed"][style*="height: 100vh"]) .animate-fade-in-up,
-body:has(div[style*="position: fixed"][style*="height: 100vh"]) .container {
+body:has(.modal-overlay) .animate-fade-in-up,
+body:has(.modal-overlay) .container {
   transform: none !important;
 }
 
@@ -144,15 +117,15 @@ body {
   /* keep base body minimal; page background handled by .App for stronger personality */
   background-color: var(--white);
   overflow-x: hidden;
-  padding-top: calc(var(--navbar-height) + 12px);
+  padding-top: 0; /* Remove padding from body - handled by .App */
 }
 
 #root {
-  padding-top: calc(var(--navbar-height) + 12px);
+  padding-top: 0; /* Remove padding from root - handled by .App */
 }
 
 main {
-  padding-top: calc(var(--navbar-height) + 12px);
+  padding-top: 0; /* Remove padding from main - handled by .App */
 }
 
 /* App Container - Neutral Background */
@@ -163,7 +136,7 @@ main {
   /* Neutral light gray background to highlight the colorful panels */
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
   position: relative;
-  padding-top: calc(var(--navbar-height) + 12px);
+  padding-top: var(--navbar-height); /* Single source of truth for top padding */
 }
 
 /* Subtle overlay removed - not needed with neutral background */
