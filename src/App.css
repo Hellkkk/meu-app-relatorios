@@ -1,64 +1,3 @@
-/* UI polish: improve navbar brand visibility and add space below titles */
-/* Ensure the fixed navbar has enough vertical room and doesn't clip text */
-.navbar {
-  min-height: 64px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 4px; /* move brand further left */
-  padding-right: 16px;
-  box-sizing: border-box;
-}
-
-/* Make common brand/title elements inside navbar render fully */
-.navbar .brand,
-.navbar .navbar-brand,
-.navbar .title,
-.navbar h1,
-.navbar h2 {
-  margin: 0;
-  line-height: 1.2;
-  display: flex;
-  align-items: center;
-}
-
-/* Ensure no extra left offset inside brand element */
-.navbar .brand,
-.navbar .navbar-brand {
-  padding-left: 0;
-  margin-left: 0;
-}
-
-/* Give the main content a bit more clearance from the fixed navbar */
-.container {
-  margin-top: 120px !important; /* increased from 75px for better visual breathing */
-}
-
-/* Consistent spacing between page titles and top action buttons */
-.container h1,
-.container .page-title {
-  margin-bottom: 12px;
-}
-
-/* If action buttons sit directly after a title, nudge them down slightly */
-.container h1 + .btn,
-.container h2 + .btn,
-.container h3 + .btn,
-.container h1 + div .btn,
-.container h2 + div .btn,
-.container h3 + div .btn {
-  margin-top: 8px;
-}
-
-@media (max-width: 480px) {
-  .container {
-    margin-top: 85px !important;
-  }
-  
-  .navbar {
-    min-height: 34px;
-  }
-}
-
 /* Modal UX improvements (generic heuristic selectors for our custom modal) */
 /* Center any full-screen overlay and ensure it stays above page buttons */
 /* Center overlays that cover the viewport (robust matching) */
@@ -113,6 +52,9 @@ body:has(div[style*="position: fixed"][style*="height: 100vh"]) .container {
 
 /* Modern Tesla-inspired Design System */
 :root {
+  /* Navbar height management */
+  --navbar-height: 56px;
+  
   /* Unified color palette (uniform & organized) */
   --primary-color: #0f1724; /* deep navy for text and emphasis */
   --surface-color: #0b1220; /* primary surface/dark */
@@ -180,6 +122,15 @@ body {
   /* keep base body minimal; page background handled by .App for stronger personality */
   background-color: var(--white);
   overflow-x: hidden;
+  padding-top: calc(var(--navbar-height) + 16px);
+}
+
+#root {
+  padding-top: calc(var(--navbar-height) + 16px);
+}
+
+main {
+  padding-top: calc(var(--navbar-height) + 16px);
 }
 
 /* App Container - Neutral Background */
@@ -190,6 +141,7 @@ body {
   /* Neutral light gray background to highlight the colorful panels */
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ebf0 100%);
   position: relative;
+  padding-top: calc(var(--navbar-height) + 16px);
 }
 
 /* Subtle overlay removed - not needed with neutral background */
@@ -197,10 +149,11 @@ body {
 /* Container */
 .container {
   max-width: 1400px;
-  margin: 120px auto 0 auto;
+  margin: 0 auto;
   padding: 0 1.5rem;
   width: 100%;
   flex: 1;
+  min-height: calc(100vh - var(--navbar-height));
   overflow: visible;
   position: relative;
   z-index: 1; /* Ensure content is above .App::before overlay */
@@ -386,8 +339,9 @@ p {
 }
 
 .btn-sm {
-  padding: 0.375rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   font-size: 0.8rem;
+  min-height: auto;
 }
 
 .btn-primary {
@@ -473,8 +427,15 @@ p {
 }
 
 /* Tables */
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
   margin-top: var(--spacing-md);
   background: #fbfdff;
@@ -492,6 +453,9 @@ p {
   font-size: 0.85rem;
   color: var(--primary-color);
   border-bottom: 2px solid var(--border-gray);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .table td {
@@ -499,6 +463,9 @@ p {
   border-bottom: 1px solid var(--border-gray);
   vertical-align: middle;
   color: var(--primary-color);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .table tr:hover {
@@ -623,9 +590,12 @@ p {
 
 /* Responsiveness for medium-large screens */
 @media (max-width: 1400px) {
+  :root {
+    --navbar-height: 52px;
+  }
+  
   .container {
     max-width: 1200px;
-    margin-top: 110px !important;
   }
   
   .navbar-brand {
@@ -644,14 +614,17 @@ p {
 
 /* Responsiveness for medium screens */
 @media (max-width: 1200px) {
+  :root {
+    --navbar-height: 48px;
+  }
+  
   .container {
     max-width: 100%;
-    margin-top: 100px !important;
     padding: 0 1.25rem;
   }
   
   .navbar {
-    min-height: 52px;
+    min-height: 48px;
   }
   
   .navbar-brand {
@@ -670,13 +643,16 @@ p {
 
 /* Responsiveness for tablets and small screens */
 @media (max-width: 768px) {
+  :root {
+    --navbar-height: 44px;
+  }
+  
   .container {
     padding: 0 1rem;
-    margin-top: 90px !important;
   }
   
   .navbar {
-    min-height: 48px;
+    min-height: 44px;
     padding: 4px 0;
   }
   
@@ -710,12 +686,60 @@ p {
   }
   
   .table {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
   
   .table th,
   .table td {
-    padding: var(--spacing-sm);
+    padding: 0.5rem;
+  }
+  
+  .btn-sm {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Responsiveness for very small screens */
+@media (max-width: 480px) {
+  :root {
+    --navbar-height: 40px;
+  }
+  
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .navbar {
+    min-height: 40px;
+    padding: 2px 0;
+  }
+  
+  .navbar-brand {
+    font-size: 0.85rem;
+  }
+  
+  .nav-link {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  .table {
+    font-size: 0.8rem;
+  }
+  
+  .btn-sm {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  
+  .badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
   }
 }
 
@@ -815,20 +839,34 @@ p {
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 2rem;
   width: 100%;
   overflow: visible;
+  position: relative;
 }
 
 .page-header h1 {
   font-size: 2rem;
   margin: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.page-header .subtitle,
+.page-header .page-subtitle {
+  display: block;
+  font-size: 1rem;
+  color: var(--medium-gray);
+  font-weight: normal;
+  margin-top: 0.5rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  position: static;
 }
 
 .page-header .btn {
@@ -846,6 +884,9 @@ p {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   border-radius: 12px;
+  display: inline-block;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* More compact action cells in tables */
