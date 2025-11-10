@@ -415,18 +415,16 @@ const AdminUsers = () => {
 
   return (
     <div className="animate-fade-in-up">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>Gerenciamento de Usuários</h1>
-        <p style={{ color: 'var(--medium-gray)' }}>
-          Gerencie todos os usuários e seus vínculos com empresas
-        </p>
-      </div>
-
-      <div style={{ marginBottom: '2rem', display: 'block', width: '100%', overflow: 'visible', position: 'relative', zIndex: 2001 }}>
+      <div className="page-header">
+        <div>
+          <h1>Gerenciamento de Usuários</h1>
+          <p className="page-subtitle" style={{ color: 'var(--medium-gray)', fontSize: '1rem', marginTop: '0.5rem' }}>
+            Gerencie todos os usuários e seus vínculos com empresas
+          </p>
+        </div>
         <button
           onClick={() => setShowUserForm(true)}
           className="btn btn-primary"
-          style={{ display: 'inline-block', padding: '1rem 2rem', minHeight: '48px', fontSize: '1rem', fontWeight: '500', whiteSpace: 'nowrap', position: 'relative', zIndex: 2001 }}
         >
           + Novo Usuário
         </button>
@@ -444,87 +442,81 @@ const AdminUsers = () => {
       />
 
       <div className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Usuário</th>
-              <th>Email</th>
-              <th>Função</th>
-              <th>Empresas</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(users) &&
-              users.map((user) => (
-                <tr key={user._id}>
-                  <td>
-                    <div>
+        <div className="table-responsive" style={{ overflowX: 'auto', width: '100%' }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th style={{ width: '15%' }}>Usuário</th>
+                <th style={{ width: '20%' }}>Email</th>
+                <th style={{ width: '12%' }}>Função</th>
+                <th style={{ width: '18%' }}>Empresas</th>
+                <th style={{ width: '10%' }}>Status</th>
+                <th style={{ width: '25%', textAlign: 'right' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(users) &&
+                users.map((user) => (
+                  <tr key={user._id}>
+                    <td>
                       <div>
                         <strong>{user.name || user.username}</strong>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>@{user.username}</div>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>@{user.username}</div>
-                    </div>
-                  </td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`status-indicator ${getRoleBadgeClass(user.role)}`}>
-                      {getRoleDisplay(user.role)}
-                    </span>
-                  </td>
-                  <td>
-                    <div>
-                      <div>{user.companies?.length || 0} empresa(s)</div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                        <button
+                    </td>
+                    <td style={{ fontSize: '0.9rem' }}>{user.email}</td>
+                    <td>
+                      <span className={`badge ${getRoleBadgeClass(user.role)}`} style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>
+                        {getRoleDisplay(user.role)}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.9rem' }}>{user.companies?.length || 0} empresa(s)</div>
+                    </td>
+                    <td>
+                      <span className={`badge ${user.isActive ? 'status-success' : 'status-secondary'}`} style={{ fontSize: '0.8rem' }}>
+                        {user.isActive ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <button 
+                          className="btn btn-sm btn-primary" 
                           onClick={() => openEdit(user) || setFormData({
                             name: user.name || '',
                             username: user.username || '',
                             email: user.email || '',
                             password: '',
                             role: user.role || 'user',
-                          })}
-                          className="btn btn-primary"
-                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                          })} 
+                          style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
                         >
                           Gerenciar
                         </button>
-                        <button
-                          onClick={() => openCompanyManager(user)}
-                          className="btn btn-info"
-                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                        <button 
+                          className="btn btn-sm btn-secondary" 
+                          onClick={() => openCompanyManager(user)} 
+                          style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
                           title="Gerenciar Vínculos"
                         >
                           Vínculos
                         </button>
+                        {user._id !== currentUser?._id && (
+                          <button 
+                            className="btn btn-sm btn-danger" 
+                            onClick={() => handleDeleteUser(user._id)} 
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                          >
+                            Excluir
+                          </button>
+                        )}
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleToggleActive(user._id, user.isActive)}
-                      className={`status-indicator ${user.isActive ? 'status-success' : 'status-danger'}`}
-                      style={{ border: 'none', cursor: 'pointer' }}
-                    >
-                      {user.isActive ? 'Ativo' : 'Inativo'}
-                    </button>
-                  </td>
-                  <td>
-                    {user._id !== currentUser?._id && (
-                      <button
-                        onClick={() => handleDeleteUser(user._id)}
-                        className="btn btn-danger"
-                        style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                      >
-                        Excluir
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
 
         {users.length === 0 && !loading && (
           <p style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
