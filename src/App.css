@@ -4,16 +4,11 @@
 /* Modal overlay - backdrop that covers the screen */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.65);
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
   z-index: 6000;
   padding: 16px;
   pointer-events: auto;
@@ -29,6 +24,7 @@
   width: min(800px, 92vw);
   max-height: 80vh;
   overflow-y: auto;
+  margin: 0 16px;
   z-index: 6001;
   pointer-events: auto;
   position: relative;
@@ -48,9 +44,21 @@ body.modal-open .container {
   transform: none !important;
 }
 
-/* Salvaguarda anti-bloqueio: desativar pointer-events em elementos marcados */
-*[data-auto-overlay-clean] {
-  pointer-events: none !important;
+/* Login fullscreen wrapper - explicit pointer-events:auto to ensure clickability */
+.login-fullscreen-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+/* Initial loader hidden state - disable pointer events when hidden */
+#initial-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Modern Tesla-inspired Design System */
