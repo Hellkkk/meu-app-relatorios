@@ -53,19 +53,10 @@ const Login = () => {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-      width: '100vw',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+    <div className="login-fullscreen-wrapper" style={{ 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       overflow: 'auto',
-      padding: isDesktop ? '2rem' : '1rem',
-      boxSizing: 'border-box'
+      padding: isDesktop ? '2rem' : '1rem'
     }}>
       {/* Background Elements */}
       <div style={{
@@ -91,7 +82,6 @@ const Login = () => {
         padding: isDesktop ? '4rem' : '2rem',
         borderRadius: isDesktop ? '32px' : '16px',
         boxShadow: '0 30px 80px rgba(0, 0, 0, 0.15)',
-        transform: isDesktop ? 'scale(1.05)' : 'scale(1)',
         position: 'relative',
         zIndex: 2
       }}>

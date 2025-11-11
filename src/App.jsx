@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
@@ -11,16 +11,9 @@ import UserCompanyLinks from './components/admin/UserCompanyLinks';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 import ManagerRoute from './components/auth/ManagerRoute';
-import { setupOverlayGuard } from './utils/overlayGuard';
 import './App.css';
 
 function App() {
-  useEffect(() => {
-    // Setup overlay guard to prevent invisible elements from blocking clicks
-    const cleanup = setupOverlayGuard();
-    return cleanup;
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
