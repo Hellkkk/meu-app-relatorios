@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { createPortal } from 'react-dom';
 
 const UserCompanyManager = ({
   isOpen,
@@ -14,6 +13,19 @@ const UserCompanyManager = ({
   const [availableUsers, setAvailableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState('');
+
+  // Manage body.modal-open class
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -130,38 +142,9 @@ const UserCompanyManager = ({
   const titleText = (type === 'user' ? 'Gerenciar Empresas' : 'Gerenciar Usu\u00e1rios');
   const linkedHeader = (type === 'user' ? 'Empresas vinculadas' : 'Usu\u00e1rios vinculados');
 
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 6000,
-        width: '100vw',
-        height: '100vh',
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: 'min(800px, 92vw)',
-          boxSizing: 'border-box',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'fixed',
-          left: '50%',
-          top: '44%', // raise a bit more as requested
-          transform: 'translate(-50%, -50%)',
-          zIndex: 6001,
-          padding: '1.25rem',
-        }}
-      >
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2>{titleText} - {entityName}</h2>
           <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
@@ -248,8 +231,7 @@ const UserCompanyManager = ({
 
         {/* Botão fechar inferior removido: mantemos apenas o botão Fechar no cabeçalho */}
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 
