@@ -1,3 +1,7 @@
+// DEPRECATED: This file is obsolete and should not be used.
+// Use AdminUsersPortal.jsx instead, which has the standardized modal system.
+// This file may be removed in a future cleanup.
+
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
