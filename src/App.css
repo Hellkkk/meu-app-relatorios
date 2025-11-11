@@ -61,6 +61,31 @@ body.modal-open .container {
   pointer-events: none;
 }
 
+/* ===== Click Interception Prevention ===== */
+/* Prevent pseudo-elements from capturing pointer events */
+main.container::before,
+main.container::after,
+.container::before,
+.container::after,
+.card::before,
+.card::after {
+  pointer-events: none !important;
+}
+
+/* Ensure all interactive elements always accept clicks */
+button,
+a,
+input,
+select,
+textarea,
+label,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  pointer-events: auto !important;
+}
+
 /* Modern Tesla-inspired Design System */
 :root {
   /* Navbar height management */
