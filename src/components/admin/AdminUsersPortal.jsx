@@ -1,44 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import UserCompanyManager from './UserCompanyManagerFixed';
 
 const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
+  // Manage body.modal-open class
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 6000,
-        width: '100vw',
-        height: '100vh',
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: 'min(800px, 92vw)',
-          boxSizing: 'border-box',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'fixed',
-          left: '50%',
-          top: '44%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 6001,
-          padding: '1.25rem',
-        }}
-      >
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2>Criar Novo Usuário</h2>
           <button onClick={onClose} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
@@ -112,46 +95,29 @@ const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loadin
           </div>
         </form>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 
 const EditUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading, onOpenLinks }) => {
+  // Manage body.modal-open class
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 6000,
-        width: '100vw',
-        height: '100vh',
-      }}
-    >
-      <div
-        className="card"
-        style={{
-          width: 'min(800px, 92vw)',
-          boxSizing: 'border-box',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          position: 'fixed',
-          left: '50%',
-          top: '44%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 6001,
-          padding: '1.25rem',
-        }}
-      >
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2>Editar Usuário</h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -230,8 +196,7 @@ const EditUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loadi
           </div>
         </form>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 

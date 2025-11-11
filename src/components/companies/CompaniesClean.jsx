@@ -1,3 +1,7 @@
+// DEPRECATED: This file is obsolete and should not be used.
+// Use CompaniesFixed.jsx instead, which has the standardized modal system.
+// This file may be removed in a future cleanup.
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { createPortal } from 'react-dom';

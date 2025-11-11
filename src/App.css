@@ -35,14 +35,22 @@
 }
 
 /* Prevent background from scrolling while modal is open */
-body:has(.modal-overlay) {
+body:has(.modal-overlay),
+body.modal-open {
   overflow: hidden;
 }
 
 /* Remove transforms that can create a new containing block for fixed elements */
 body:has(.modal-overlay) .animate-fade-in-up,
-body:has(.modal-overlay) .container {
+body:has(.modal-overlay) .container,
+body.modal-open .animate-fade-in-up,
+body.modal-open .container {
   transform: none !important;
+}
+
+/* Salvaguarda anti-bloqueio: desativar pointer-events em elementos marcados */
+*[data-auto-overlay-clean] {
+  pointer-events: none !important;
 }
 
 /* Modern Tesla-inspired Design System */
@@ -310,6 +318,8 @@ p {
   border: 1px solid rgba(2, 6, 23, 0.06);
   transition: var(--transition-normal);
   margin-bottom: var(--spacing-lg);
+  /* Ensure cards stay in normal document flow z-index */
+  z-index: auto;
 }
 
 .card:hover {
