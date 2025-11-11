@@ -18,6 +18,7 @@
 export class OverlayFix {
   constructor() {
     // NO-OP: No runtime pointer-events manipulation
+    this.observer = null;
   }
 
   init() {
@@ -25,13 +26,27 @@ export class OverlayFix {
     return this;
   }
 
-  apply() {
-    // NO-OP: Nothing to apply at runtime
+  checkAndFixOverlays() {
+    // NO-OP: No runtime checking or fixing
     return this;
   }
 
-  remove() {
-    // NO-OP: Nothing to remove
+  processElement() {
+    // NO-OP: No element processing
+    return this;
+  }
+
+  restoreIfVisible() {
+    // NO-OP: No restoration needed
+    return this;
+  }
+
+  destroy() {
+    // Clean up observer if it exists (safety measure)
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
     return this;
   }
 }
