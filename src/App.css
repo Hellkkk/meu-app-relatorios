@@ -256,7 +256,7 @@ p {
   display: flex;
   align-items: center;
   transition: var(--transition-normal);
-  overflow: visible;
+  overflow: hidden;
 }
 
 .navbar .container {
