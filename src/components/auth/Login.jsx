@@ -55,6 +55,10 @@ const Login = () => {
   return (
     <div className="login-fullscreen-wrapper" style={{ 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
       overflow: 'auto',
       padding: isDesktop ? '2rem' : '1rem'
     }}>
@@ -74,31 +78,31 @@ const Login = () => {
       
       <div className="glass-card animate-fade-in-up" style={{ 
         width: '100%', 
-        maxWidth: isDesktop ? '600px' : '450px',
+        maxWidth: isDesktop ? '480px' : '440px',
         margin: 0,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.3)',
-        padding: isDesktop ? '4rem' : '2rem',
-        borderRadius: isDesktop ? '32px' : '16px',
+        padding: isDesktop ? '2rem' : '1.5rem',
+        borderRadius: isDesktop ? '20px' : '16px',
         boxShadow: '0 30px 80px rgba(0, 0, 0, 0.15)',
         position: 'relative',
         zIndex: 2
       }}>
         
         {/* Logo/Header */}
-        <div style={{ textAlign: 'center', marginBottom: isDesktop ? '3rem' : '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: isDesktop ? '2rem' : '1.5rem' }}>
           <div style={{
-            width: isDesktop ? '120px' : '80px',
-            height: isDesktop ? '120px' : '80px',
+            width: isDesktop ? '72px' : '64px',
+            height: isDesktop ? '72px' : '64px',
             background: 'linear-gradient(135deg, #3867d6 0%, #764ba2 100%)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 1.5rem auto',
+            margin: '0 auto 1rem auto',
             color: 'white',
-            fontSize: isDesktop ? '3rem' : '2rem',
+            fontSize: isDesktop ? '2rem' : '1.75rem',
             fontWeight: 'bold',
             boxShadow: '0 12px 35px rgba(56, 103, 214, 0.4)'
           }}>
@@ -106,7 +110,7 @@ const Login = () => {
           </div>
           <h1 style={{ 
             margin: 0,
-            fontSize: isDesktop ? '3rem' : '2rem',
+            fontSize: isDesktop ? '2rem' : '1.7rem',
             fontWeight: '700',
             background: 'linear-gradient(135deg, #171a20 0%, #3867d6 100%)',
             WebkitBackgroundClip: 'text',
@@ -116,9 +120,9 @@ const Login = () => {
             App Relatórios
           </h1>
           <p style={{ 
-            margin: '1rem 0 0 0',
+            margin: '0.75rem 0 0 0',
             color: '#6c757d',
-            fontSize: isDesktop ? '1.3rem' : '1rem',
+            fontSize: isDesktop ? '1.0rem' : '0.95rem',
             fontWeight: '400'
           }}>
             Faça login para continuar
@@ -156,13 +160,13 @@ const Login = () => {
               required
               disabled={loading}
               style={{
-                height: isDesktop ? '64px' : '50px',
-                fontSize: isDesktop ? '1.2rem' : '1rem',
+                height: isDesktop ? '48px' : '44px',
+                fontSize: isDesktop ? '0.95rem' : '0.9rem',
                 background: 'rgba(255, 255, 255, 0.9)',
                 border: '2px solid rgba(56, 103, 214, 0.2)',
                 transition: 'all 0.3s ease',
-                borderRadius: isDesktop ? '16px' : '8px',
-                padding: isDesktop ? '1rem 1.5rem' : '0.75rem 1rem'
+                borderRadius: isDesktop ? '12px' : '10px',
+                padding: isDesktop ? '0.75rem 1rem' : '0.65rem 0.9rem'
               }}
             />
           </div>
@@ -187,13 +191,13 @@ const Login = () => {
               required
               disabled={loading}
               style={{
-                height: isDesktop ? '64px' : '50px',
-                fontSize: isDesktop ? '1.2rem' : '1rem',
+                height: isDesktop ? '48px' : '44px',
+                fontSize: isDesktop ? '0.95rem' : '0.9rem',
                 background: 'rgba(255, 255, 255, 0.9)',
                 border: '2px solid rgba(56, 103, 214, 0.2)',
                 transition: 'all 0.3s ease',
-                borderRadius: isDesktop ? '16px' : '8px',
-                padding: isDesktop ? '1rem 1.5rem' : '0.75rem 1rem'
+                borderRadius: isDesktop ? '12px' : '10px',
+                padding: isDesktop ? '0.75rem 1rem' : '0.65rem 0.9rem'
               }}
             />
           </div>
@@ -203,12 +207,12 @@ const Login = () => {
             className="btn btn-hero"
             style={{ 
               width: '100%', 
-              marginTop: isDesktop ? '2rem' : '1.5rem',
-              height: isDesktop ? '64px' : '50px',
-              fontSize: isDesktop ? '1.3rem' : '1.1rem',
+              marginTop: '1rem',
+              height: isDesktop ? '48px' : '44px',
+              fontSize: isDesktop ? '1rem' : '0.95rem',
               position: 'relative',
               overflow: 'hidden',
-              borderRadius: isDesktop ? '16px' : '8px',
+              borderRadius: isDesktop ? '12px' : '10px',
               fontWeight: '600'
             }}
             disabled={loading}
@@ -225,82 +229,6 @@ const Login = () => {
             )}
           </button>
         </form>
-        
-        {/* Demo Accounts */}
-        <div style={{ 
-          marginTop: isDesktop ? '3rem' : '2rem', 
-          padding: isDesktop ? '2.5rem' : '1.5rem', 
-          background: 'linear-gradient(135deg, rgba(56, 103, 214, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-          borderRadius: isDesktop ? '20px' : '12px',
-          fontSize: isDesktop ? '1.1rem' : '0.9rem',
-          border: '1px solid rgba(56, 103, 214, 0.2)'
-        }}>
-          <div style={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            fontWeight: '600',
-            color: '#3867d6'
-          }}>
-            🎭 Contas de Demonstração
-          </div>
-          
-          <div style={{ display: 'grid', gap: isDesktop ? '1.2rem' : '0.8rem' }}>
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: isDesktop ? '1.2rem' : '0.8rem',
-              background: 'rgba(220, 53, 69, 0.1)',
-              borderRadius: isDesktop ? '12px' : '8px',
-              border: '1px solid rgba(220, 53, 69, 0.2)'
-            }}>
-              <span><strong>👑 Admin:</strong></span>
-              <span style={{ fontFamily: 'monospace', fontSize: isDesktop ? '1rem' : '0.8rem' }}>admin@teste.com / admin123</span>
-            </div>
-            
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: isDesktop ? '1.2rem' : '0.8rem',
-              background: 'rgba(253, 126, 20, 0.1)',
-              borderRadius: isDesktop ? '12px' : '8px',
-              border: '1px solid rgba(253, 126, 20, 0.2)'
-            }}>
-              <span><strong>🏢 Gerente:</strong></span>
-              <span style={{ fontFamily: 'monospace', fontSize: isDesktop ? '1rem' : '0.8rem' }}>manager@teste.com / manager123</span>
-            </div>
-            
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: isDesktop ? '1.2rem' : '0.8rem',
-              background: 'rgba(56, 103, 214, 0.1)',
-              borderRadius: isDesktop ? '12px' : '8px',
-              border: '1px solid rgba(56, 103, 214, 0.2)'
-            }}>
-              <span><strong>👤 Usuário:</strong></span>
-              <span style={{ fontFamily: 'monospace', fontSize: isDesktop ? '1rem' : '0.8rem' }}>user@teste.com / user123</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Footer */}
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '2rem',
-          padding: '1rem 0',
-          borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-          color: '#6c757d',
-          fontSize: '0.9rem'
-        }}>
-          <div style={{ marginBottom: '0.5rem' }}>
-            🔐 Sistema seguro com JWT
-          </div>
-          <div>
-            💼 Gestão inteligente de relatórios
-          </div>
-        </div>
       </div>
 
       <style>{`
