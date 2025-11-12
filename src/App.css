@@ -89,7 +89,7 @@ label,
 /* Modern Tesla-inspired Design System */
 :root {
   /* Navbar height management */
-  --navbar-height: 48px;
+  --navbar-height: 56px;
   --content-top-gap: 64px;
   
   /* Unified color palette (uniform & organized) */
@@ -272,6 +272,9 @@ p {
   width: 100%;
   max-width: 100%;
   padding: 0 1.5rem;
+  height: var(--navbar-height);
+  min-height: var(--navbar-height);
+  max-height: var(--navbar-height);
 }
 
 .navbar-brand {
@@ -338,6 +341,56 @@ p {
 .user-profile {
   flex-shrink: 0;
   margin-left: auto;
+}
+
+/* User profile pill styles */
+.navbar .user-profile .user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  max-height: calc(var(--navbar-height) - 6px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.navbar .user-profile .user-avatar {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  line-height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.navbar .user-profile .user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1;
+  color: #fff;
+}
+
+.navbar .user-profile .user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.navbar .user-profile .user-role {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Navbar Button Styles - More legible and proportional */

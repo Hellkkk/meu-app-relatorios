@@ -73,34 +73,25 @@ const Navbar = () => {
             alignItems: 'center',
             gap: '1rem'
           }}>
-            <div style={{ 
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.4rem 0.8rem',
-              background: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '50px',
-              border: `1px solid ${getRoleColor(user.role)}30`
-            }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, ${getRoleColor(user.role)}, ${getRoleColor(user.role)}dd)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '0.85rem',
-                fontWeight: 'bold'
-              }}>
+            <div 
+              className="user-pill"
+              style={{ 
+                borderColor: `${getRoleColor(user.role)}30`
+              }}
+            >
+              <div 
+                className="user-avatar"
+                style={{
+                  background: `linear-gradient(135deg, ${getRoleColor(user.role)}, ${getRoleColor(user.role)}dd)`
+                }}
+              >
                 {getRoleIcon(user.role)}
               </div>
-              <div style={{ color: '#ffffff' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+              <div className="user-info">
+                <div className="user-name">
                   {user.profile?.firstName || user.username}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+                <div className="user-role">
                   {user.role === 'admin' ? 'Administrador' : user.role === 'manager' ? 'Gerente' : 'Usuário'}
                 </div>
               </div>
