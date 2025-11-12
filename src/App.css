@@ -90,6 +90,7 @@ label,
 :root {
   /* Navbar height management */
   --navbar-height: 48px;
+  --content-top-gap: 64px;
   
   /* Unified color palette (uniform & organized) */
   --primary-color: #0f1724; /* deep navy for text and emphasis */
@@ -193,6 +194,11 @@ main {
   overflow: visible;
   position: relative;
   z-index: 1; /* Ensure content is above .App::before overlay */
+}
+
+/* Main content container - add vertical gap from navbar */
+main.container {
+  padding-top: var(--content-top-gap);
 }
 
 /* Typography */
