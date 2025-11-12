@@ -42,7 +42,7 @@ const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loa
           </div>
 
           <div className="form-group">
-            <label className="form-label">Documento (CPF)</label>
+            <label className="form-label">Documento (CNPJ/CPF)</label>
             <input
               type="text"
               className="form-control"
@@ -131,7 +131,7 @@ const EditCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, lo
           </div>
 
           <div className="form-group">
-            <label className="form-label">Documento (CPF)</label>
+            <label className="form-label">Documento (CNPJ/CPF)</label>
             <input
               type="text"
               className="form-control"
