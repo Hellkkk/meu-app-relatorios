@@ -5,7 +5,7 @@ import Navbar from './components/layout/Navbar';
 import Login from './components/auth/Login';
 import Dashboard from './components/dashboard/Dashboard';
 import CompaniesFixed from './components/companies/CompaniesFixed';
-import Reports from './components/reports/Reports';
+import ReportsPage from './pages/ReportsPage';
 import AdminUsersPortal from './components/admin/AdminUsersPortal';
 import UserCompanyLinks from './components/admin/UserCompanyLinks';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -38,7 +38,7 @@ function App() {
               
               <Route path="/reports" element={
                 <ProtectedRoute>
-                  <Reports />
+                  <ReportsPage />
                 </ProtectedRoute>
               } />
               
