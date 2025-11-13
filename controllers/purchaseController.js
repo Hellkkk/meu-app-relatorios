@@ -8,6 +8,7 @@ function normalizeHeader(str) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/\s+/g, '_') // Substitui espaços por underscores
     .trim();
 }
 
