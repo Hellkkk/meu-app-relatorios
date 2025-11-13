@@ -12,12 +12,19 @@ const upload = multer({
     fileSize: 25 * 1024 * 1024 // 25MB
   },
   fileFilter: (req, file, cb) => {
-    // Aceitar apenas arquivos .xlsx e .xls
-    if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel') {
+    // Aceitar apenas arquivos .xlsx e .xls (verificar MIME type e extensão)
+    const allowedMimeTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'application/octet-stream' // Alguns sistemas enviam como octet-stream
+    ];
+    const fileExtension = file.originalname.toLowerCase().split('.').pop();
+    const allowedExtensions = ['xlsx', 'xls'];
+    
+    if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(fileExtension)) {
       cb(null, true);
     } else {
-      cb(new Error('Apenas arquivos .xlsx e .xls são permitidos'));
+      cb(new Error(`Apenas arquivos .xlsx e .xls são permitidos. Recebido: ${file.mimetype}, extensão: ${fileExtension}`));
     }
   }
 });
