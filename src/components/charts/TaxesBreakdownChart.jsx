@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
-const TaxesBreakdownChart = ({ data }) => {
+const TaxesBreakdownChart = ({ data, height = 380 }) => {
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -12,20 +12,22 @@ const TaxesBreakdownChart = ({ data }) => {
     }).format(value || 0);
   };
 
+  const chartHeight = height - 70; // Subtract space for title and padding
+
   return (
-    <Paper sx={{ p: 3, height: 450 }}>
+    <Paper sx={{ p: 3, height: height + 70 }}>
       <Typography variant="h6" gutterBottom>
         Composição de Impostos
       </Typography>
-      <ResponsiveContainer width="100%" height={380}>
-        <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
             labelLine={true}
             label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={100}
+            outerRadius={120}
             fill="#8884d8"
             dataKey="value"
           >

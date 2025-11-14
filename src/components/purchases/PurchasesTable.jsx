@@ -100,29 +100,29 @@ const PurchasesTable = ({ refresh }) => {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
-      valueGetter: (params) => toNumberBR(params.row.valor_total),
-      valueFormatter: (params) => formatCurrency(params.value)
+      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
-      valueGetter: (params) => toNumberBR(params.row.icms),
-      valueFormatter: (params) => formatCurrency(params.value)
+      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
-      valueGetter: (params) => toNumberBR(params.row.ipi),
-      valueFormatter: (params) => formatCurrency(params.value)
+      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
-      valueGetter: (params) => toNumberBR(params.row.cofins),
-      valueFormatter: (params) => formatCurrency(params.value)
+      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     }
   ];
 
@@ -200,7 +200,7 @@ const PurchasesTable = ({ refresh }) => {
           paginationModel={paginationModel}
           paginationMode="server"
           onPaginationModelChange={setPaginationModel}
-          getRowId={(row) => row._id}
+          getRowId={(row) => row._id || `${row.fornecedor}-${row.numero_nfe}-${row.data_compra}`}
           disableRowSelectionOnClick
         />
       </Box>
