@@ -14,6 +14,52 @@ const PurchasesTable = ({ refresh }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTimeout, setSearchTimeout] = useState(null);
 
+  // Função para converter valores PT-BR em números
+  const toNumberBR = (value) => {
+    if (typeof value === 'number') return value;
+    if (!value) return 0;
+    
+    const str = String(value).trim();
+    if (str === '') return 0;
+    
+    // Remove prefixos comuns (R$, $), parênteses e espaços
+    let cleaned = str
+      .replace(/^R\$\s*/i, '')
+      .replace(/^\$\s*/, '')
+      .replace(/[()]/g, '')
+      .replace(/\s+/g, '')
+      .trim();
+    
+    // Detectar o formato baseado na estrutura:
+    if (cleaned.includes('.') && cleaned.includes(',')) {
+      const lastComma = cleaned.lastIndexOf(',');
+      const lastDot = cleaned.lastIndexOf('.');
+      
+      if (lastComma > lastDot) {
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes(',') && !cleaned.includes('.')) {
+      const parts = cleaned.split(',');
+      if (parts.length === 2 && parts[1].length === 2) {
+        cleaned = cleaned.replace(',', '.');
+      } else {
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes('.') && !cleaned.includes(',')) {
+      const parts = cleaned.split('.');
+      if (parts.length === 2 && parts[1].length === 2) {
+        // Mantém como está (formato US decimal)
+      } else if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+        cleaned = cleaned.replace(/\./g, '');
+      }
+    }
+    
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -54,24 +100,28 @@ const PurchasesTable = ({ refresh }) => {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
+      valueGetter: (params) => toNumberBR(params.row.valor_total),
       valueFormatter: (params) => formatCurrency(params.value)
     },
     {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
+      valueGetter: (params) => toNumberBR(params.row.icms),
       valueFormatter: (params) => formatCurrency(params.value)
     },
     {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
+      valueGetter: (params) => toNumberBR(params.row.ipi),
       valueFormatter: (params) => formatCurrency(params.value)
     },
     {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
+      valueGetter: (params) => toNumberBR(params.row.cofins),
       valueFormatter: (params) => formatCurrency(params.value)
     }
   ];

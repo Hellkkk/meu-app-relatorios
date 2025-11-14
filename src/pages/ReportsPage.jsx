@@ -93,13 +93,13 @@ const ReportsPage = () => {
           <ReportSummaryCards summary={summary} />
 
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <PurchasesBySupplierChart data={supplierData} />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <TaxesBreakdownChart data={taxesData} />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <MonthlyPurchasesChart data={monthlyData} />
             </Grid>
           </Grid>

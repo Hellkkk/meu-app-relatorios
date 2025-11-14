@@ -11,23 +11,35 @@ const PurchasesBySupplierChart = ({ data }) => {
   };
 
   return (
-    <Paper sx={{ p: 3, height: 400 }}>
+    <Paper sx={{ p: 3, height: 450 }}>
       <Typography variant="h6" gutterBottom>
         Top Fornecedores
       </Typography>
-      <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={data}>
+      <ResponsiveContainer width="100%" height={380}>
+        <BarChart 
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
             dataKey="fornecedor" 
             angle={-45}
             textAnchor="end"
             height={100}
+            tick={{ fontSize: 12 }}
           />
-          <YAxis tickFormatter={formatCurrency} />
+          <YAxis 
+            tickFormatter={formatCurrency}
+            tick={{ fontSize: 12 }}
+          />
           <Tooltip formatter={(value) => formatCurrency(value)} />
-          <Legend />
-          <Bar dataKey="total" fill="#1976d2" name="Valor Total" />
+          <Legend wrapperStyle={{ paddingTop: '10px' }} />
+          <Bar 
+            dataKey="total" 
+            fill="#1976d2" 
+            name="Valor Total"
+            barSize={40}
+          />
         </BarChart>
       </ResponsiveContainer>
     </Paper>
