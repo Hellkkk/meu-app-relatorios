@@ -34,6 +34,11 @@ const upload = multer({
 // @access  Private (autenticado)
 router.post('/upload', authenticate, upload.single('file'), purchaseController.uploadExcel);
 
+// @route   POST /api/purchases/reload-repo
+// @desc    Recarregar dados da planilha do repositório
+// @access  Private (autenticado)
+router.post('/reload-repo', authenticate, purchaseController.reloadFromRepo);
+
 // @route   GET /api/purchases
 // @desc    Listar compras com paginação e filtros
 // @access  Private (autenticado)

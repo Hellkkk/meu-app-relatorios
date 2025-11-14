@@ -16,6 +16,9 @@ const ReportsPage = () => {
   const [taxesData, setTaxesData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Verifica se o upload manual está habilitado via variável de ambiente
+  const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -69,7 +72,13 @@ const ReportsPage = () => {
         Relatórios de Compras
       </Typography>
 
-      <UploadPanel onImported={handleImported} />
+      {uploadEnabled ? (
+        <UploadPanel onImported={handleImported} />
+      ) : (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Dados carregados automaticamente de <strong>Compras_AVM.xlsx</strong> do repositório.
+        </Alert>
+      )}
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>

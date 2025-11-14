@@ -58,8 +58,21 @@ app.use(express.urlencoded({
   limit: '50mb'
 }));
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB and auto-import Excel data
+connectDB().then(async () => {
+  // Auto-import data from repository Excel file on startup
+  try {
+    const { importPurchasesFromRepoSource } = require('./services/excelSourceLoader');
+    console.log('Auto-importando dados da planilha do repositório...');
+    const result = await importPurchasesFromRepoSource({ mode: 'replace' });
+    console.log(`Auto-importação concluída: ${result.imported} registros importados`);
+  } catch (error) {
+    console.error('Erro na auto-importação (continuando execução):', error.message);
+  }
+}).catch(err => {
+  console.error('Erro fatal na conexão MongoDB:', err);
+  process.exit(1);
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
