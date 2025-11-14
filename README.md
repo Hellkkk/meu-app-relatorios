@@ -10,11 +10,14 @@ Sistema de gerenciamento de relatórios com autenticação JWT, MongoDB e funcio
 - Portal administrativo para gestão de usuários
 - Controle de acesso baseado em roles (Admin, Manager, User)
 
-### Relatórios de Compras (Novo)
-- **Importação de Planilhas Excel**: Upload de arquivos .xlsx/.xls com dados de compras
-- **Modos de Importação**: 
-  - Append: Adiciona novos registros
-  - Replace: Substitui registros existentes da mesma fonte
+### Relatórios de Compras
+- **Carregamento Automático**: Por padrão, o sistema carrega dados automaticamente da planilha `Compras_AVM.xlsx` versionada no repositório durante o startup do servidor
+- **Importação Manual (Opcional)**: Disponível via variável de ambiente `VITE_ENABLE_UPLOAD=true`
+  - Upload de arquivos .xlsx/.xls com dados de compras
+  - Modos de Importação: 
+    - Append: Adiciona novos registros
+    - Replace: Substitui registros existentes da mesma fonte
+- **Recarga Manual**: Endpoint POST `/api/purchases/reload-repo` para recarregar dados do repositório sob demanda
 - **Dashboard Interativo**:
   - Cards com resumo de totais (compras, valores, impostos)
   - Gráfico de barras: Top 10 fornecedores
@@ -66,10 +69,28 @@ npm run client:build
 ## Variáveis de Ambiente
 
 ```env
+# Backend
 MONGODB_URI=mongodb://localhost:27017/meu-app-relatorios
 JWT_SECRET=seu_secret_jwt_aqui
 PORT=5001
+
+# Caminho da planilha Excel (opcional - se não definido, usa fallbacks automáticos)
+# EXCEL_SOURCE_PATH=./Compras_AVM.xlsx
+
+# Frontend - Habilitar painel de upload manual (default: false)
+# VITE_ENABLE_UPLOAD=false
 ```
+
+### Configuração do Caminho da Planilha
+
+O sistema busca a planilha `Compras_AVM.xlsx` automaticamente nos seguintes locais (em ordem):
+1. Caminho definido em `EXCEL_SOURCE_PATH` (se configurado)
+2. `./Compras_AVM.xlsx` (raiz do repositório)
+3. `./data/Compras_AVM.xlsx`
+4. `./assets/Compras_AVM.xlsx`
+5. `./public/Compras_AVM.xlsx`
+
+Se a planilha estiver em outro local, configure `EXCEL_SOURCE_PATH` com o caminho relativo ou absoluto.
 
 ## API Endpoints
 
@@ -77,16 +98,17 @@ PORT=5001
 - `POST /api/auth/login` - Login de usuário
 - `POST /api/auth/register` - Registro de usuário
 
-### Compras (Novo)
-- `POST /api/purchases/upload` - Upload de planilha Excel (requer autenticação)
+### Compras
+- `POST /api/purchases/upload` - Upload de planilha Excel (requer autenticação, disponível apenas se VITE_ENABLE_UPLOAD=true)
+- `POST /api/purchases/reload-repo` - Recarregar dados da planilha do repositório (requer autenticação)
 - `GET /api/purchases` - Listar compras com paginação (requer autenticação)
 
-### Relatórios de Compras (Novo)
-- `GET /api/purchase-reports/summary` - Resumo geral
-- `GET /api/purchase-reports/by-supplier` - Totais por fornecedor
-- `GET /api/purchase-reports/by-cfop` - Totais por CFOP
-- `GET /api/purchase-reports/monthly` - Evolução mensal
-- `GET /api/purchase-reports/taxes-breakdown` - Composição de impostos
+### Relatórios de Compras
+- `GET /api/purchase-reports/summary` - Resumo geral (requer autenticação)
+- `GET /api/purchase-reports/by-supplier` - Totais por fornecedor (requer autenticação)
+- `GET /api/purchase-reports/by-cfop` - Totais por CFOP (requer autenticação)
+- `GET /api/purchase-reports/monthly` - Evolução mensal (requer autenticação)
+- `GET /api/purchase-reports/taxes-breakdown` - Composição de impostos (requer autenticação)
 
 ## Estrutura da Planilha Excel
 
