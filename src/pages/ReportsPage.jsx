@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Grid, CircularProgress, Alert } from '@mui/material';
 import UploadPanel from '../components/purchases/UploadPanel';
 import ReportSummaryCards from '../components/purchases/ReportSummaryCards';
@@ -7,7 +7,6 @@ import TaxesBreakdownChart from '../components/charts/TaxesBreakdownChart';
 import MonthlyPurchasesChart from '../components/charts/MonthlyPurchasesChart';
 import PurchasesTable from '../components/purchases/PurchasesTable';
 import http from '../api/http';
-import useResizeObserver from '../hooks/useResizeObserver';
 
 const ReportsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -17,10 +16,6 @@ const ReportsPage = () => {
   const [taxesData, setTaxesData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
-  
-  // Ref for measuring table width
-  const tableWrapperRef = useRef(null);
-  const { width: tableWidth } = useResizeObserver(tableWrapperRef);
   
   // Verifica se o upload manual está habilitado via variável de ambiente
   const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
@@ -71,11 +66,6 @@ const ReportsPage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  // Calculate chart container dimensions
-  const chartGap = 24; // 24px gap between charts
-  const chartHeight = 360;
-  const chartWidth = tableWidth > 0 ? (tableWidth - 2 * chartGap) / 3 : undefined;
-
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -102,31 +92,46 @@ const ReportsPage = () => {
         <>
           <ReportSummaryCards summary={summary} />
 
-          {/* Charts container synchronized with table width */}
-          <Box
-            sx={{
-              width: tableWidth > 0 ? tableWidth : '100%',
-              mx: 'auto',
-              mb: 3,
-              display: 'flex',
-              gap: `${chartGap}px`,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Box sx={{ width: chartWidth, minWidth: 300 }}>
-              <PurchasesBySupplierChart data={supplierData} height={chartHeight} />
+          {/* Content area wrapper for charts and table */}
+          <Box sx={{ width: '100%' }}>
+            {/* Charts container with CSS-based width distribution */}
+            <Box
+              sx={{
+                width: '100%',
+                mb: 3,
+                display: 'flex',
+                gap: 'var(--charts-gap)',
+                '--charts-gap': '24px',
+                flexWrap: 'nowrap',
+              }}
+            >
+              <Box sx={{ 
+                flex: '0 0 calc((100% - 2 * var(--charts-gap)) / 3)',
+                width: 'calc((100% - 2 * var(--charts-gap)) / 3)',
+                minWidth: 0,
+              }}>
+                <PurchasesBySupplierChart data={supplierData} height={360} />
+              </Box>
+              <Box sx={{ 
+                flex: '0 0 calc((100% - 2 * var(--charts-gap)) / 3)',
+                width: 'calc((100% - 2 * var(--charts-gap)) / 3)',
+                minWidth: 0,
+              }}>
+                <TaxesBreakdownChart data={taxesData} height={360} />
+              </Box>
+              <Box sx={{ 
+                flex: '0 0 calc((100% - 2 * var(--charts-gap)) / 3)',
+                width: 'calc((100% - 2 * var(--charts-gap)) / 3)',
+                minWidth: 0,
+              }}>
+                <MonthlyPurchasesChart data={monthlyData} height={360} />
+              </Box>
             </Box>
-            <Box sx={{ width: chartWidth, minWidth: 300 }}>
-              <TaxesBreakdownChart data={taxesData} height={chartHeight} />
-            </Box>
-            <Box sx={{ width: chartWidth, minWidth: 300 }}>
-              <MonthlyPurchasesChart data={monthlyData} height={chartHeight} />
-            </Box>
-          </Box>
 
-          {/* Table wrapper with ref for width measurement */}
-          <Box ref={tableWrapperRef}>
-            <PurchasesTable refresh={refreshKey} />
+            {/* Table */}
+            <Box>
+              <PurchasesTable refresh={refreshKey} />
+            </Box>
           </Box>
         </>
       )}
