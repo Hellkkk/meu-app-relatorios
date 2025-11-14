@@ -69,6 +69,7 @@ const PurchasesBySupplierChart = ({ data, height = 360 }) => {
   };
 
   const chartHeight = height - 70; // Subtract space for title and padding
+  const scaledHeight = chartHeight / 0.72; // Account for scale transform
 
   return (
     <Paper sx={{ p: 3, height: height + 70 }}>
@@ -82,7 +83,7 @@ const PurchasesBySupplierChart = ({ data, height = 360 }) => {
         transformOrigin: 'top left',
         overflow: 'visible'
       }}>
-        <ResponsiveContainer width="138.89%" height="138.89%">
+        <ResponsiveContainer width="138.89%" height={scaledHeight}>
           <BarChart 
             data={top5Data}
             margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
