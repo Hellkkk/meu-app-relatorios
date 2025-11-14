@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Box, Typography, Grid, CircularProgress, Alert } from '@mui/material';
 import UploadPanel from '../components/purchases/UploadPanel';
 import ReportSummaryCards from '../components/purchases/ReportSummaryCards';
@@ -7,6 +7,7 @@ import TaxesBreakdownChart from '../components/charts/TaxesBreakdownChart';
 import MonthlyPurchasesChart from '../components/charts/MonthlyPurchasesChart';
 import PurchasesTable from '../components/purchases/PurchasesTable';
 import http from '../api/http';
+import useResizeObserver from '../hooks/useResizeObserver';
 
 const ReportsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,10 @@ const ReportsPage = () => {
   const [taxesData, setTaxesData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Ref for measuring table width
+  const tableWrapperRef = useRef(null);
+  const { width: tableWidth } = useResizeObserver(tableWrapperRef);
   
   // Verifica se o upload manual está habilitado via variável de ambiente
   const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
@@ -66,6 +71,11 @@ const ReportsPage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  // Calculate chart container dimensions
+  const chartGap = 24; // 24px gap between charts
+  const chartHeight = 360;
+  const chartWidth = tableWidth > 0 ? (tableWidth - 2 * chartGap) / 3 : undefined;
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -92,19 +102,32 @@ const ReportsPage = () => {
         <>
           <ReportSummaryCards summary={summary} />
 
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={6}>
-              <PurchasesBySupplierChart data={supplierData} height={400} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TaxesBreakdownChart data={taxesData} height={400} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <MonthlyPurchasesChart data={monthlyData} height={400} />
-            </Grid>
-          </Grid>
+          {/* Charts container synchronized with table width */}
+          <Box
+            sx={{
+              width: tableWidth > 0 ? tableWidth : '100%',
+              mx: 'auto',
+              mb: 3,
+              display: 'flex',
+              gap: `${chartGap}px`,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Box sx={{ width: chartWidth, minWidth: 300 }}>
+              <PurchasesBySupplierChart data={supplierData} height={chartHeight} />
+            </Box>
+            <Box sx={{ width: chartWidth, minWidth: 300 }}>
+              <TaxesBreakdownChart data={taxesData} height={chartHeight} />
+            </Box>
+            <Box sx={{ width: chartWidth, minWidth: 300 }}>
+              <MonthlyPurchasesChart data={monthlyData} height={chartHeight} />
+            </Box>
+          </Box>
 
-          <PurchasesTable refresh={refreshKey} />
+          {/* Table wrapper with ref for width measurement */}
+          <Box ref={tableWrapperRef}>
+            <PurchasesTable refresh={refreshKey} />
+          </Box>
         </>
       )}
     </Container>
