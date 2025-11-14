@@ -13,19 +13,19 @@ const TaxesBreakdownChart = ({ data }) => {
   };
 
   return (
-    <Paper sx={{ p: 3, height: 400 }}>
+    <Paper sx={{ p: 3, height: 450 }}>
       <Typography variant="h6" gutterBottom>
         Composição de Impostos
       </Typography>
-      <ResponsiveContainer width="100%" height="90%">
-        <PieChart>
+      <ResponsiveContainer width="100%" height={380}>
+        <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
-            labelLine={false}
+            labelLine={true}
             label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={80}
+            outerRadius={100}
             fill="#8884d8"
             dataKey="value"
           >
@@ -34,7 +34,7 @@ const TaxesBreakdownChart = ({ data }) => {
             ))}
           </Pie>
           <Tooltip formatter={(value) => formatCurrency(value)} />
-          <Legend />
+          <Legend wrapperStyle={{ paddingTop: '10px' }} />
         </PieChart>
       </ResponsiveContainer>
     </Paper>

@@ -61,13 +61,19 @@ app.use(express.urlencoded({
 // Connect to MongoDB and auto-import Excel data
 connectDB().then(async () => {
   // Auto-import data from repository Excel file on startup
-  try {
-    const { importPurchasesFromRepoSource } = require('./services/excelSourceLoader');
-    console.log('Auto-importando dados da planilha do repositório...');
-    const result = await importPurchasesFromRepoSource({ mode: 'replace' });
-    console.log(`Auto-importação concluída: ${result.imported} registros importados`);
-  } catch (error) {
-    console.error('Erro na auto-importação (continuando execução):', error.message);
+  const enableAutoImport = process.env.ENABLE_REPO_EXCEL_BOOTSTRAP !== 'false';
+  
+  if (enableAutoImport) {
+    try {
+      const { importPurchasesFromRepoSource } = require('./services/excelSourceLoader');
+      console.log('Auto-importando dados da planilha do repositório...');
+      const result = await importPurchasesFromRepoSource({ mode: 'replace' });
+      console.log(`Auto-importação concluída: ${result.imported} registros importados`);
+    } catch (error) {
+      console.error('Erro na auto-importação (continuando execução):', error.message);
+    }
+  } else {
+    console.log('Auto-importação desabilitada (ENABLE_REPO_EXCEL_BOOTSTRAP=false)');
   }
 }).catch(err => {
   console.error('Erro fatal na conexão MongoDB:', err);

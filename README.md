@@ -77,6 +77,9 @@ PORT=5001
 # Caminho da planilha Excel (opcional - se não definido, usa fallbacks automáticos)
 # EXCEL_SOURCE_PATH=./Compras_AVM.xlsx
 
+# Habilitar auto-importação do Excel no startup do servidor (default: true)
+# ENABLE_REPO_EXCEL_BOOTSTRAP=true
+
 # Frontend - Habilitar painel de upload manual (default: false)
 # VITE_ENABLE_UPLOAD=false
 ```
@@ -91,6 +94,14 @@ O sistema busca a planilha `Compras_AVM.xlsx` automaticamente nos seguintes loca
 5. `./public/Compras_AVM.xlsx`
 
 Se a planilha estiver em outro local, configure `EXCEL_SOURCE_PATH` com o caminho relativo ou absoluto.
+
+### Auto-Importação no Startup
+
+Por padrão, o sistema importa automaticamente os dados da planilha do repositório quando o servidor inicia (`ENABLE_REPO_EXCEL_BOOTSTRAP=true`). Para desabilitar este comportamento, defina a variável como `false`.
+
+### Painel de Upload Manual
+
+Por padrão, o painel de upload está oculto (`VITE_ENABLE_UPLOAD=false`), pois o sistema carrega dados automaticamente. Para habilitar o upload manual na interface, defina `VITE_ENABLE_UPLOAD=true`.
 
 ## API Endpoints
 
