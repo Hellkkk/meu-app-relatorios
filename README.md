@@ -103,6 +103,22 @@ Por padrão, o sistema importa automaticamente os dados da planilha do repositó
 
 Por padrão, o painel de upload está oculto (`VITE_ENABLE_UPLOAD=false`), pois o sistema carrega dados automaticamente. Para habilitar o upload manual na interface, defina `VITE_ENABLE_UPLOAD=true`.
 
+### Recarregar Dados Manualmente
+
+Se você atualizar a planilha `Compras_AVM.xlsx` no repositório e quiser recarregar os dados sem reiniciar o servidor, use o endpoint de reload:
+
+```bash
+# Exemplo com curl (substitua o token JWT)
+curl -X POST http://localhost:5001/api/purchases/reload-repo \
+  -H "Authorization: Bearer SEU_TOKEN_JWT_AQUI"
+```
+
+Ou faça uma requisição POST para `/api/purchases/reload-repo` usando qualquer cliente HTTP. O endpoint:
+- Requer autenticação (token JWT no header Authorization)
+- Apaga todos os registros anteriores com source_filename: "Repo-Compras-AVM"
+- Importa os dados atualizados da planilha
+- Retorna o número de registros importados
+
 ## API Endpoints
 
 ### Autenticação
