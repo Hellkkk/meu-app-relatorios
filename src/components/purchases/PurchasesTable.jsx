@@ -24,8 +24,8 @@ const PurchasesTable = ({ refresh }) => {
     
     // Remove prefixos comuns (R$, $), parênteses e espaços
     let cleaned = str
-      .replace(/^R\$\s*/i, '')
-      .replace(/^\$\s*/, '')
+      .replace(/R\$/gi, '')
+      .replace(/\$/g, '')
       .replace(/[()]/g, '')
       .replace(/\s+/g, '')
       .trim();
@@ -42,7 +42,7 @@ const PurchasesTable = ({ refresh }) => {
       }
     } else if (cleaned.includes(',') && !cleaned.includes('.')) {
       const parts = cleaned.split(',');
-      if (parts.length === 2 && parts[1].length === 2) {
+      if (parts.length === 2 && parts[1].length <= 2) {
         cleaned = cleaned.replace(',', '.');
       } else {
         cleaned = cleaned.replace(/,/g, '');
