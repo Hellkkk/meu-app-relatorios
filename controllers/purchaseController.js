@@ -103,45 +103,40 @@ function parseDate(value) {
   // Se é string, tentar vários formatos
   const str = String(value).trim();
   
-  // Formato dd/mm/yyyy ou dd/mm/yy (com opcionais hh:mm:ss)
-  const ddmmyyyyMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(\s+\d{1,2}:\d{2}(:\d{2})?)?$/);
-  if (ddmmyyyyMatch) {
-    const day = parseInt(ddmmyyyyMatch[1]);
-    const month = parseInt(ddmmyyyyMatch[2]) - 1;
-    let year = parseInt(ddmmyyyyMatch[3]);
+  // Formato M/D/YY ou MM/DD/YYYY com heurística para detectar dd/mm vs mm/dd
+  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(\s+\d{1,2}:\d{2}(:\d{2})?)?$/);
+  if (slashMatch) {
+    let first = parseInt(slashMatch[1]);
+    let second = parseInt(slashMatch[2]);
+    let year = parseInt(slashMatch[3]);
     
     // Se ano tem 2 dígitos, assumir 20xx se < 50, senão 19xx
     if (year < 100) {
       year += year < 50 ? 2000 : 1900;
     }
     
-    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-      return new Date(year, month, day);
-    }
-  }
-  
-  // Formato MM/DD/YY ou MM/DD/YYYY (formato americano comum em Excel)
-  const mmddyyMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (mmddyyMatch) {
-    const month = parseInt(mmddyyMatch[1]) - 1;
-    const day = parseInt(mmddyyMatch[2]);
-    let year = parseInt(mmddyyMatch[3]);
+    // Heurística para determinar se é dd/mm ou mm/dd:
+    // - Se second > 12: definitivamente dd/mm (second é o dia)
+    // - Se first > 12: definitivamente mm/dd (first é o dia) - IMPOSSÍVEL, seria inválido
+    // - Se first > 12: first deve ser dia, então formato é dd/mm/yyyy
+    // - Se ambos <= 12: ambíguo, preferir MM/DD (formato americano padrão do Excel)
     
-    // Se ano tem 2 dígitos, assumir 20xx se < 50, senão 19xx
-    if (year < 100) {
-      year += year < 50 ? 2000 : 1900;
-    }
-    
-    // Heurística: se dia > 12, então formato é dd/mm, senão pode ser mm/dd
-    // Para valores ambíguos, tentamos ambos os formatos
-    if (day > 12) {
-      // Definitivamente dd/mm/yyyy
-      return new Date(year, month, day);
-    } else if (month > 11) {
-      // month inválido como mês, deve ser dd/mm/yyyy
-      return new Date(year, day, month);
+    let day, month;
+    if (first > 12) {
+      // first só pode ser dia, formato é dd/mm/yyyy
+      day = first;
+      month = second - 1;
+    } else if (second > 12) {
+      // second só pode ser dia, formato é mm/dd/yyyy  
+      month = first - 1;
+      day = second;
     } else {
-      // Ambíguo: preferir MM/DD/YYYY (formato americano comum em Excel)
+      // Ambíguo (ambos <= 12): preferir formato americano MM/DD/YYYY
+      month = first - 1;
+      day = second;
+    }
+    
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year) && month >= 0 && month <= 11) {
       return new Date(year, month, day);
     }
   }
