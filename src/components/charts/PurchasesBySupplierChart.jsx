@@ -19,7 +19,7 @@ const CustomTick = ({ x, y, payload }) => {
         textAnchor="end"
         fill="#666"
         transform="rotate(-35)"
-        style={{ fontSize: '0.60rem' }}
+        style={{ fontSize: '10px' }}
       >
         <title>{fullText}</title>
         {displayText}
@@ -69,24 +69,21 @@ const PurchasesBySupplierChart = ({ data, height = 360 }) => {
   };
 
   const chartHeight = height - 70; // Subtract space for title and padding
-  const scaledHeight = chartHeight / 0.72; // Account for scale transform
 
   return (
-    <Paper sx={{ p: 3, height: height + 70 }}>
+    <Paper sx={{ p: 3, height: height + 70 }} className="chart-card">
       <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
         Top Fornecedores
       </Typography>
       <Box sx={{ 
         width: '100%', 
         height: chartHeight,
-        transform: 'scale(0.72)',
-        transformOrigin: 'top left',
         overflow: 'visible'
       }}>
-        <ResponsiveContainer width="138.89%" height={scaledHeight}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart 
             data={top5Data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+            margin={{ top: 10, right: 12, bottom: 56, left: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
@@ -97,15 +94,16 @@ const PurchasesBySupplierChart = ({ data, height = 360 }) => {
             />
             <YAxis 
               tickFormatter={formatCurrency}
-              tick={{ fontSize: '0.60rem' }}
+              tick={{ fontSize: 10 }}
+              width={92}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.64rem' }} />
+            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.76rem' }} />
             <Bar 
               dataKey="total" 
               fill="#1976d2" 
               name="Valor Total"
-              barSize={50}
+              barSize={18}
             />
           </BarChart>
         </ResponsiveContainer>
