@@ -13,21 +13,18 @@ const TaxesBreakdownChart = ({ data, height = 360 }) => {
   };
 
   const chartHeight = height - 70; // Subtract space for title and padding
-  const scaledHeight = chartHeight / 0.72; // Account for scale transform
 
   return (
-    <Paper sx={{ p: 3, height: height + 70 }}>
+    <Paper sx={{ p: 3, height: height + 70 }} className="chart-card">
       <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
         Composição de Impostos
       </Typography>
       <Box sx={{ 
         width: '100%', 
         height: chartHeight,
-        transform: 'scale(0.72)',
-        transformOrigin: 'top left',
         overflow: 'visible'
       }}>
-        <ResponsiveContainer width="138.89%" height={scaledHeight}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <PieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
             <Pie
               data={data}
@@ -35,17 +32,19 @@ const TaxesBreakdownChart = ({ data, height = 360 }) => {
               cy="50%"
               labelLine={true}
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              outerRadius={120}
+              outerRadius="58%"
+              innerRadius="40%"
               fill="#8884d8"
               dataKey="value"
-              style={{ fontSize: '0.60rem' }}
+              paddingAngle={1.2}
+              style={{ fontSize: '10px' }}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip formatter={(value) => formatCurrency(value)} />
-            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.64rem' }} />
+            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.76rem' }} />
           </PieChart>
         </ResponsiveContainer>
       </Box>

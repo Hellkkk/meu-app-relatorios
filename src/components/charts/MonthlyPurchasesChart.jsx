@@ -11,47 +11,46 @@ const MonthlyPurchasesChart = ({ data, height = 360 }) => {
   };
 
   const chartHeight = height - 70; // Subtract space for title and padding
-  const scaledHeight = chartHeight / 0.72; // Account for scale transform
 
   return (
-    <Paper sx={{ p: 3, height: height + 70 }}>
+    <Paper sx={{ p: 3, height: height + 70 }} className="chart-card">
       <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
         Evolução Mensal
       </Typography>
       <Box sx={{ 
         width: '100%', 
         height: chartHeight,
-        transform: 'scale(0.72)',
-        transformOrigin: 'top left',
         overflow: 'visible'
       }}>
-        <ResponsiveContainer width="138.89%" height={scaledHeight}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <LineChart 
             data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+            margin={{ top: 10, right: 16, bottom: 26, left: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="label"
-              tick={{ fontSize: '0.60rem' }}
+              tick={{ fontSize: 10 }}
               angle={-35}
               textAnchor="end"
               height={80}
+              minTickGap={24}
             />
             <YAxis 
               tickFormatter={formatCurrency}
-              tick={{ fontSize: '0.60rem' }}
+              tick={{ fontSize: 10 }}
+              width={92}
             />
             <Tooltip formatter={(value) => formatCurrency(value)} />
-            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.64rem' }} />
+            <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '0.76rem' }} />
             <Line 
               type="monotone" 
               dataKey="total" 
               stroke="#1976d2" 
               strokeWidth={3}
               name="Valor Total"
-              dot={{ r: 5 }}
-              activeDot={{ r: 7 }}
+              dot={{ r: 2 }}
+              activeDot={{ r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>

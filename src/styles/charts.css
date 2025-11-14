@@ -1,0 +1,17 @@
+/* Chart styling for consistent font sizes and layout */
+
+/* Consistent font sizes for chart axis ticks */
+.chart-card .recharts-cartesian-axis-tick text {
+  font-size: 0.68rem;
+}
+
+/* Consistent font sizes for legends */
+.chart-card .recharts-legend-wrapper {
+  font-size: 0.76rem;
+}
+
+/* Ensure overflow is visible for all chart wrappers */
+.chart-card .recharts-wrapper,
+.chart-card .recharts-surface {
+  overflow: visible !important;
+}
