@@ -282,6 +282,30 @@ Após o deploy, acesse:
 
 ## ❗ Solução de Problemas
 
+### 🔍 Diagnóstico Rápido
+
+**Não consegue acessar a aplicação?** Execute estes comandos na EC2:
+
+```bash
+# 1. Verificar se os processos estão rodando
+pm2 status
+# Deve mostrar: relatorios-backend (online) e relatorios-frontend (online)
+
+# 2. Testar health checks internamente
+curl http://127.0.0.1:5001/api/health  # Backend
+curl http://127.0.0.1:3001/health      # Frontend
+curl http://127.0.0.1:3001/api/health  # Frontend -> Backend proxy
+
+# 3. Verificar portas abertas
+sudo netstat -tlnp | grep -E ':(3001|5001)'
+# Deve mostrar ambas as portas com 0.0.0.0 (não 127.0.0.1)
+
+# 4. Testar do seu computador local
+curl http://SEU_IP_EC2:3001/health
+# Se falhar: problema no Security Group da AWS
+# Se funcionar: problema no browser/CORS
+```
+
 ### Erro de versão do Node.js
 ```bash
 # Verificar versão atual
@@ -315,7 +339,7 @@ npm run client:build
 
 ### Erro ECONNREFUSED no login
 
-Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001`:
+Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001` ou você ver **502 Bad Gateway**:
 
 ```bash
 # 1. Verificar se ambos os processos estão rodando
@@ -344,6 +368,8 @@ pm2 delete all
 npm run start:api     # Em um terminal
 npm run start:web     # Em outro terminal
 ```
+
+**Nota sobre 502 Bad Gateway**: O frontend proxy retorna HTTP 502 quando o backend não está acessível. Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas precisa do backend rodando.
 
 **Causa comum**: O arquivo `.env.production` tinha `PORT=3001` que causava conflito. Agora usa `BACKEND_PORT=5001` e `FRONTEND_PORT=3001` separadamente.
 
