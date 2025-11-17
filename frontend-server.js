@@ -79,12 +79,18 @@ app.use('/api', (req, res) => {
   proxyReq.on('error', (err) => {
     console.error('❌ Proxy Error:', err.message);
     console.error(`   Target: ${BACKEND_URL}${fullPath}`);
+    console.error(`   Error Code: ${err.code}`);
+    
     if (!res.headersSent) {
-      res.status(500).json({ 
-        error: 'Proxy Error', 
-        message: err.message,
+      // Return 502 Bad Gateway for connection errors
+      const statusCode = err.code === 'ECONNREFUSED' ? 502 : 500;
+      res.status(statusCode).json({ 
+        error: err.code === 'ECONNREFUSED' ? 'Backend Unavailable' : 'Proxy Error', 
+        message: err.code === 'ECONNREFUSED' 
+          ? 'Cannot connect to backend server. Make sure the backend is running on the configured port.'
+          : err.message,
         target: `${BACKEND_URL}${fullPath}`,
-        hint: 'Make sure the backend server is running on the configured port'
+        code: err.code
       });
     }
   });

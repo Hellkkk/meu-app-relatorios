@@ -33,10 +33,27 @@ const { authenticate } = require('./middleware/authorization');
 const app = express();
 
 // Middleware
-const CLIENT_URL = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:3001';
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3001';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
+
+// Build allowed origins list
 const allowedOrigins = [CLIENT_URL, 'http://localhost:3001'];
-// Add EC2 IP if different from CLIENT_URL
-if (CLIENT_URL.includes('3.14.182.194') === false) {
+
+// Add additional CORS origins if specified (comma-separated)
+if (CORS_ORIGIN) {
+  const additionalOrigins = CORS_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean);
+  additionalOrigins.forEach(origin => {
+    if (!allowedOrigins.includes(origin)) {
+      allowedOrigins.push(origin);
+    }
+  });
+}
+
+// Always include the EC2 IP on both ports if not already present
+if (!allowedOrigins.includes('http://3.14.182.194')) {
+  allowedOrigins.push('http://3.14.182.194');
+}
+if (!allowedOrigins.includes('http://3.14.182.194:3001')) {
   allowedOrigins.push('http://3.14.182.194:3001');
 }
 
