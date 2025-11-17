@@ -33,8 +33,15 @@ const { authenticate } = require('./middleware/authorization');
 const app = express();
 
 // Middleware
+const CLIENT_URL = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:3001';
+const allowedOrigins = [CLIENT_URL, 'http://localhost:3001'];
+// Add EC2 IP if different from CLIENT_URL
+if (CLIENT_URL.includes('3.14.182.194') === false) {
+  allowedOrigins.push('http://3.14.182.194:3001');
+}
+
 app.use(cors({
-  origin: ['http://3.14.182.194:3001', 'http://localhost:3001'],
+  origin: allowedOrigins,
   credentials: true
 }));
 
@@ -102,12 +109,39 @@ app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    port: process.env.BACKEND_PORT || process.env.PORT || 5001
+  });
+});
+
+// Version endpoint
+app.get('/api/version', (req, res) => {
+  res.json({
+    success: true,
+    version: '1.0.0',
+    node: process.version,
+    env: process.env.NODE_ENV || 'development'
   });
 });
 
 // Start server
-const PORT = process.env.PORT || 5001;
+// Use BACKEND_PORT with fallback to PORT for compatibility
+const PORT = process.env.BACKEND_PORT || process.env.PORT || 5001;
+
+// Log warning if using PORT instead of BACKEND_PORT
+if (!process.env.BACKEND_PORT && process.env.PORT) {
+  console.warn('⚠️  WARNING: Using PORT variable for backend. Consider using BACKEND_PORT instead.');
+  console.warn('   Set BACKEND_PORT=5001 in your .env file for clarity.');
+}
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log('='.repeat(60));
+  console.log('🚀 Backend API Server Started');
+  console.log('='.repeat(60));
+  console.log(`📡 Port: ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`📊 Version: http://localhost:${PORT}/api/version`);
+  console.log(`🔒 CORS Origins: ${allowedOrigins.join(', ')}`);
+  console.log('='.repeat(60));
 });
