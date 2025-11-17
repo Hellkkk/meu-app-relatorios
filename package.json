@@ -5,6 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:api": "node server.js",
+    "start:web": "node frontend-server.js",
+    "verify:ports": "node scripts/verify-ports.js",
     "dev": "nodemon server.js",
     "client": "vite",
     "client:build": "vite build",
@@ -13,7 +16,7 @@
     "build:frontend": "npm run client:build",
     "deploy": "chmod +x deploy.sh && ./deploy.sh",
     "deploy:amazon": "chmod +x deploy-amazon-linux.sh && ./deploy-amazon-linux.sh",
-    "pm2:start": "pm2 start server.js --name relatorios-backend && pm2 start frontend-server.js --name relatorios-frontend",
+    "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 delete all",
     "pm2:restart": "pm2 restart all",
     "pm2:status": "pm2 status"

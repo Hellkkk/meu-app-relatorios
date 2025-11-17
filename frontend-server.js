@@ -1,8 +1,33 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
+
+// Load environment variables
+const localEnvPath = path.resolve(__dirname, '.env');
+const parentEnvPath = path.resolve(__dirname, '../.env');
+
+if (fs.existsSync(localEnvPath)) {
+  require('dotenv').config({ path: localEnvPath });
+} else if (fs.existsSync(parentEnvPath)) {
+  require('dotenv').config({ path: parentEnvPath });
+} else {
+  require('dotenv').config();
+}
 
 const app = express();
+
+// Configuration from environment variables
+const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
+const BACKEND_PORT = process.env.BACKEND_PORT || 5001;
+const FRONTEND_PORT = process.env.FRONTEND_PORT || process.env.PORT || 3001;
+const BACKEND_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+
+// Log warning if using PORT instead of FRONTEND_PORT
+if (!process.env.FRONTEND_PORT && process.env.PORT) {
+  console.warn('⚠️  WARNING: Using PORT variable for frontend. Consider using FRONTEND_PORT instead.');
+  console.warn('   Set FRONTEND_PORT=3001 in your .env file for clarity.');
+}
 
 // Log middleware para debug
 app.use((req, res, next) => {
@@ -25,16 +50,16 @@ app.get('/health', (req, res) => {
 // Proxy manual para API
 app.use('/api', (req, res) => {
   const fullPath = `/api${req.url}`;
-  console.log(`🔄 Proxying: ${req.method} ${fullPath} -> http://127.0.0.1:5001${fullPath}`);
+  console.log(`🔄 Proxying: ${req.method} ${fullPath} -> ${BACKEND_URL}${fullPath}`);
   
   const options = {
-    hostname: '127.0.0.1',
-    port: 5001,
+    hostname: BACKEND_HOST,
+    port: BACKEND_PORT,
     path: fullPath,
     method: req.method,
     headers: {
       ...req.headers,
-      host: '127.0.0.1:5001'
+      host: `${BACKEND_HOST}:${BACKEND_PORT}`
     }
   };
 
@@ -53,11 +78,13 @@ app.use('/api', (req, res) => {
 
   proxyReq.on('error', (err) => {
     console.error('❌ Proxy Error:', err.message);
+    console.error(`   Target: ${BACKEND_URL}${fullPath}`);
     if (!res.headersSent) {
       res.status(500).json({ 
         error: 'Proxy Error', 
         message: err.message,
-        url: fullPath 
+        target: `${BACKEND_URL}${fullPath}`,
+        hint: 'Make sure the backend server is running on the configured port'
       });
     }
   });
@@ -97,9 +124,15 @@ app.get('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = FRONTEND_PORT;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Frontend server running on port ${PORT}`);
-  console.log(`🔄 Proxying /api requests to http://127.0.0.1:5001`);
-  console.log(`📁 Serving static files from ${distPath}`);
+  console.log('='.repeat(60));
+  console.log('🚀 Frontend Proxy Server Started');
+  console.log('='.repeat(60));
+  console.log(`📡 Port: ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health Check: http://localhost:${PORT}/health`);
+  console.log(`🔄 Proxying /api to: ${BACKEND_URL}`);
+  console.log(`📁 Serving static files from: ${distPath}`);
+  console.log('='.repeat(60));
 });

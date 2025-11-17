@@ -37,7 +37,13 @@ nano .env
 
 ```env
 NODE_ENV=production
-PORT=5000
+
+# Backend API Server
+BACKEND_PORT=5001
+BACKEND_HOST=127.0.0.1
+
+# Frontend Proxy Server  
+FRONTEND_PORT=3001
 
 # MongoDB Atlas (recomendado)
 MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/relatorios
@@ -53,10 +59,39 @@ CLIENT_URL=http://SEU_IP_EC2:3001
 CORS_ORIGIN=http://SEU_IP_EC2:3001
 ```
 
+**Importante**: O sistema agora requer variáveis separadas para backend (`BACKEND_PORT=5001`) e frontend (`FRONTEND_PORT=3001`).
+
 ### 3. Deploy da Aplicação
 
 ```bash
 npm run deploy:amazon
+```
+
+### 4. Verificar Deploy
+
+Após o deploy, verifique se ambos os servidores estão rodando:
+
+```bash
+# Verificar status do PM2
+pm2 status
+
+# Deve mostrar 2 processos:
+# - relatorios-backend (port 5001)
+# - relatorios-frontend (port 3001)
+
+# Verificar health dos servidores
+npm run verify:ports
+
+# Ou manualmente:
+curl http://127.0.0.1:5001/api/health  # Backend
+curl http://127.0.0.1:3001/api/health  # Frontend proxy -> Backend
+curl http://127.0.0.1:3001/health      # Frontend server
+```
+
+Se algum servidor não estiver respondendo, verifique os logs:
+```bash
+pm2 logs relatorios-backend
+pm2 logs relatorios-frontend
 ```
 
 ## 🐧 Deploy para Ubuntu EC2
@@ -108,8 +143,13 @@ cp .env.production .env
 # 6. Build e deploy
 npm run client:build
 node seed.js
-pm2 start server.js --name backend
-pm2 serve dist 3000 --name frontend --spa
+
+# Iniciar com PM2 usando ecosystem config (RECOMENDADO)
+pm2 start ecosystem.config.js
+
+# OU iniciar processos individuais
+# pm2 start server.js --name relatorios-backend
+# pm2 start frontend-server.js --name relatorios-frontend
 pm2 save
 pm2 startup
 ```
@@ -193,6 +233,40 @@ npm install
 npm run client:build
 ```
 
+### Erro ECONNREFUSED no login
+
+Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001`:
+
+```bash
+# 1. Verificar se ambos os processos estão rodando
+pm2 status
+# Deve mostrar: relatorios-backend e relatorios-frontend
+
+# 2. Verificar health dos servidores
+npm run verify:ports
+
+# 3. Testar endpoints manualmente
+curl http://127.0.0.1:5001/api/health  # Backend direto
+curl http://127.0.0.1:3001/api/health  # Via proxy frontend
+
+# 4. Se o backend não estiver rodando, verificar logs
+pm2 logs relatorios-backend --lines 50
+
+# 5. Verificar variáveis de ambiente
+cat .env | grep -E "BACKEND_PORT|FRONTEND_PORT"
+# Deve mostrar: BACKEND_PORT=5001 e FRONTEND_PORT=3001
+
+# 6. Reiniciar processos
+pm2 restart all
+
+# 7. Se ainda não funcionar, iniciar manualmente para ver erros
+pm2 delete all
+npm run start:api     # Em um terminal
+npm run start:web     # Em outro terminal
+```
+
+**Causa comum**: O arquivo `.env.production` tinha `PORT=3001` que causava conflito. Agora usa `BACKEND_PORT=5001` e `FRONTEND_PORT=3001` separadamente.
+
 ## 💡 Dicas
 
 1. **Use MongoDB Atlas** para produção (mais confiável)
@@ -200,3 +274,4 @@ npm run client:build
 3. **Use SSL/HTTPS** com Let's Encrypt
 4. **Monitore recursos** com `pm2 monit`
 5. **Faça backups** regulares do banco de dados
+6. **Use `npm run verify:ports`** após cada deploy para confirmar que ambos os servidores estão online

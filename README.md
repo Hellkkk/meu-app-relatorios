@@ -56,23 +56,40 @@ npm install
 cp .env.example .env
 # Editar .env com suas configurações
 
-# Iniciar servidor backend
-npm start
-
-# Em outro terminal, iniciar frontend em modo desenvolvimento
-npm run client
-
-# Ou construir frontend para produção
+# Construir frontend para produção
 npm run client:build
+
+# Iniciar ambos os servidores (backend API + frontend proxy)
+# Opção 1: Usar PM2 (recomendado para produção)
+npm run pm2:start
+
+# Opção 2: Iniciar manualmente em terminais separados
+# Terminal 1 - Backend API
+npm run start:api
+
+# Terminal 2 - Frontend Proxy
+npm run start:web
+
+# Verificar se ambos estão rodando
+npm run verify:ports
 ```
 
 ## Variáveis de Ambiente
 
 ```env
-# Backend
+# Backend API Server
+BACKEND_PORT=5001          # Porta do servidor de API backend
+BACKEND_HOST=127.0.0.1     # Host do backend (para configuração de proxy)
+
+# Frontend Proxy Server
+FRONTEND_PORT=3001         # Porta do servidor proxy do frontend
+
+# Database
 MONGODB_URI=mongodb://localhost:27017/meu-app-relatorios
 JWT_SECRET=seu_secret_jwt_aqui
-PORT=5001
+
+# CORS Configuration
+CLIENT_URL=http://localhost:3001  # URL do frontend para CORS
 
 # Caminho da planilha Excel (opcional - se não definido, usa fallbacks automáticos)
 # EXCEL_SOURCE_PATH=./Compras_AVM.xlsx
@@ -83,6 +100,25 @@ PORT=5001
 # Frontend - Habilitar painel de upload manual (default: false)
 # VITE_ENABLE_UPLOAD=false
 ```
+
+### Portas e Processos
+
+Este aplicativo requer **dois processos rodando simultaneamente**:
+
+1. **Backend API Server** (`server.js`)
+   - Porta padrão: `5001` (configurável via `BACKEND_PORT`)
+   - Endpoints: `/api/*`
+   - Gerencia autenticação, banco de dados, e lógica de negócios
+
+2. **Frontend Proxy Server** (`frontend-server.js`)
+   - Porta padrão: `3001` (configurável via `FRONTEND_PORT`)
+   - Serve arquivos estáticos do build do React
+   - Faz proxy de requisições `/api/*` para o backend
+   - Endpoint de health check: `/health`
+
+**Importante**: Ambos os processos devem estar rodando para o aplicativo funcionar corretamente.
+
+Use `npm run verify:ports` para verificar se ambos estão online.
 
 ### Configuração do Caminho da Planilha
 
@@ -211,7 +247,7 @@ Consulte [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md) para análise de seguranç
 ## Scripts PM2
 
 ```bash
-# Iniciar com PM2
+# Iniciar com PM2 (inicia ambos backend e frontend)
 npm run pm2:start
 
 # Parar PM2
@@ -223,6 +259,64 @@ npm run pm2:restart
 # Status PM2
 npm run pm2:status
 ```
+
+## Troubleshooting
+
+### Login Falha com ECONNREFUSED
+
+Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login:
+
+1. **Verifique se ambos os servidores estão rodando:**
+   ```bash
+   npm run verify:ports
+   ```
+
+2. **Verifique processos ativos:**
+   ```bash
+   # Linux/Mac
+   lsof -i :5001
+   lsof -i :3001
+   
+   # Ou com PM2
+   pm2 status
+   ```
+
+3. **Certifique-se de que o backend está rodando:**
+   ```bash
+   curl http://127.0.0.1:5001/api/health
+   # Deve retornar: {"success":true,"message":"Server is running",...}
+   ```
+
+4. **Verifique o proxy do frontend:**
+   ```bash
+   curl http://127.0.0.1:3001/api/health
+   # Deve fazer proxy para o backend e retornar a mesma resposta
+   ```
+
+5. **Verifique variáveis de ambiente:**
+   - Confirme que `.env` tem `BACKEND_PORT=5001` e `FRONTEND_PORT=3001`
+   - Se usar PM2, verifique `ecosystem.config.js`
+
+6. **Inicie os servidores manualmente para ver logs:**
+   ```bash
+   # Terminal 1
+   npm run start:api
+   
+   # Terminal 2  
+   npm run start:web
+   ```
+
+### Frontend mostra página em branco
+
+- Certifique-se de ter executado `npm run client:build`
+- Verifique se o diretório `dist/` existe
+- Verifique os logs do frontend-server.js
+
+### Erros de CORS
+
+- Verifique a variável `CLIENT_URL` no `.env`
+- Para desenvolvimento local: `CLIENT_URL=http://localhost:3001`
+- Para EC2: `CLIENT_URL=http://SEU_IP_EC2:3001`
 
 ## Desenvolvimento
 
