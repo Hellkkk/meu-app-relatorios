@@ -46,6 +46,39 @@ Sistema de gerenciamento de relatórios com autenticação JWT, MongoDB e funcio
 - React Dropzone para upload
 - MUI DataGrid para tabelas
 
+## Arquitetura
+
+O aplicativo segue uma arquitetura de três camadas:
+
+### Desenvolvimento Local
+```
+Cliente (Browser)
+    ↓
+Frontend Proxy Server (port 3001)
+    ├─ Serve SPA (arquivos estáticos do /dist)
+    └─ Proxy /api → Backend API (127.0.0.1:5001)
+```
+
+### Produção com Nginx (Recomendado)
+```
+Cliente (Browser) → http://IP_PUBLICO/
+    ↓
+Nginx (port 80)
+    ├─ /api/* → Backend API (127.0.0.1:5001)
+    └─ /* → Frontend Proxy Server (127.0.0.1:3001)
+```
+
+**Camadas**:
+1. **Nginx (Porta 80)**: Entry point público, faz reverse proxy
+2. **Frontend Server (Porta 3001)**: Serve a SPA React e proxia requisições /api
+3. **Backend API (Porta 5001)**: API REST com Express, MongoDB e autenticação JWT
+
+**Vantagens**:
+- Acesso sem especificar porta na URL
+- SSL/TLS fácil de configurar no Nginx
+- Melhor performance com cache e compressão
+- Isolamento entre camadas
+
 ## Instalação
 
 ```bash
@@ -89,7 +122,11 @@ MONGODB_URI=mongodb://localhost:27017/meu-app-relatorios
 JWT_SECRET=seu_secret_jwt_aqui
 
 # CORS Configuration
-CLIENT_URL=http://localhost:3001  # URL do frontend para CORS
+CLIENT_URL=http://localhost:3001  # URL primária do frontend para CORS
+
+# CORS Adicional (opcional, para múltiplas origens)
+# Exemplo: CORS_ORIGIN=http://3.14.182.194,http://3.14.182.194:3001
+CORS_ORIGIN=
 
 # Caminho da planilha Excel (opcional - se não definido, usa fallbacks automáticos)
 # EXCEL_SOURCE_PATH=./Compras_AVM.xlsx
@@ -100,6 +137,22 @@ CLIENT_URL=http://localhost:3001  # URL do frontend para CORS
 # Frontend - Habilitar painel de upload manual (default: false)
 # VITE_ENABLE_UPLOAD=false
 ```
+
+### CORS Configuration
+
+O backend aceita múltiplas origens para CORS:
+- `CLIENT_URL`: Origem primária (geralmente http://IP:3001)
+- `CORS_ORIGIN`: Origens adicionais separadas por vírgula
+- Sempre inclui `http://localhost:3001` para desenvolvimento local
+- Sempre inclui `http://3.14.182.194` e `http://3.14.182.194:3001` (IP público do EC2)
+
+Exemplo para produção no EC2:
+```env
+CLIENT_URL=http://3.14.182.194:3001
+CORS_ORIGIN=http://3.14.182.194,http://3.14.182.194:3001
+```
+
+Isso permite acesso tanto pela porta 80 (Nginx) quanto pela 3001 (direto).
 
 ### Portas e Processos
 
@@ -317,6 +370,25 @@ Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login:
 - Verifique a variável `CLIENT_URL` no `.env`
 - Para desenvolvimento local: `CLIENT_URL=http://localhost:3001`
 - Para EC2: `CLIENT_URL=http://SEU_IP_EC2:3001`
+- Para acesso via Nginx (porta 80), adicione: `CORS_ORIGIN=http://SEU_IP_EC2,http://SEU_IP_EC2:3001`
+
+### Nginx não está funcionando
+
+```bash
+# Verificar status
+sudo systemctl status nginx
+
+# Ver logs
+sudo tail -f /var/log/nginx/app-relatorios.error.log
+
+# Reinstalar configuração
+cd /home/ec2-user/meu-app-relatorios  # ou seu diretório
+sudo ./scripts/nginx/install-config.sh
+
+# Verificar se PM2 está rodando os processos
+pm2 status
+# Deve mostrar: relatorios-backend (port 5001) e relatorios-frontend (port 3001)
+```
 
 ## Desenvolvimento
 
