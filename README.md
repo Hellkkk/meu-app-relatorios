@@ -309,6 +309,36 @@ Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login ou ver **502 Bad G
 
 **Nota**: O frontend proxy retorna **HTTP 502 Bad Gateway** quando o backend não está acessível (ECONNREFUSED). Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas o backend não está respondendo.
 
+### Não consegue acessar porta 3001 de fora (EC2/Produção)
+
+Se a aplicação funciona localmente mas não consegue acessar de fora:
+
+1. **Verifique se o servidor está escutando em todas as interfaces:**
+   ```bash
+   sudo netstat -tlnp | grep :3001
+   # Deve mostrar: 0.0.0.0:3001 (não 127.0.0.1:3001)
+   ```
+
+2. **Verifique o Security Group da AWS (se usando EC2):**
+   - A porta 3001 deve estar aberta para entrada (Inbound Rules)
+   - Tipo: TCP Personalizado, Porta: 3001, Origem: 0.0.0.0/0
+
+3. **Verifique o firewall local:**
+   ```bash
+   # Linux
+   sudo iptables -L -n | grep 3001
+   
+   # Se necessário, abrir porta
+   sudo iptables -I INPUT -p tcp --dport 3001 -j ACCEPT
+   ```
+
+4. **Teste do seu computador:**
+   ```bash
+   curl http://SEU_IP_SERVIDOR:3001/health
+   # Se falhar: problema de firewall/Security Group
+   # Se funcionar: problema no browser/CORS
+   ```
+
 ### Frontend mostra página em branco
 
 - Certifique-se de ter executado `npm run client:build`
