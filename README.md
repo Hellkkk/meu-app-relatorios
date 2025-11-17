@@ -109,6 +109,8 @@ npm run verify:ports
 
 ## Variáveis de Ambiente
 
+**IMPORTANTE**: Não defina `NODE_ENV` no arquivo `.env`! O Vite não suporta `NODE_ENV` em arquivos `.env` e exibirá um warning durante o build. Em produção, `NODE_ENV=production` é definido automaticamente pelo PM2 via `ecosystem.config.js` apenas para o processo do backend.
+
 ```env
 # Backend API Server
 BACKEND_PORT=5001          # Porta do servidor de API backend

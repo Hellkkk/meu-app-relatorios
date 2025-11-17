@@ -35,9 +35,9 @@ nano .env
 
 **Configure estas variáveis no arquivo .env:**
 
-```env
-NODE_ENV=production
+**IMPORTANTE**: Não defina `NODE_ENV` no arquivo `.env`! O Vite não suporta `NODE_ENV` em arquivos `.env` (apenas `NODE_ENV=development` é suportado para builds de desenvolvimento). Em produção, `NODE_ENV=production` é definido automaticamente pelo PM2 no `ecosystem.config.js` apenas para o processo do backend.
 
+```env
 # Backend API Server
 BACKEND_PORT=5001
 BACKEND_HOST=127.0.0.1
@@ -211,6 +211,30 @@ curl http://localhost/
 # Testar acesso externo (substitua pelo seu IP)
 curl http://3.14.182.194/api/health
 ```
+
+**Testes Pós-Deploy Completos:**
+
+Após configurar o Nginx, execute todos os testes abaixo para confirmar que a arquitetura está funcionando corretamente:
+
+```bash
+# 1. Backend direto (porta 5001)
+curl http://127.0.0.1:5001/api/health
+# Esperado: {"success":true,"message":"Server is running",...}
+
+# 2. Frontend proxy -> Backend (porta 3001)
+curl http://127.0.0.1:3001/api/health
+# Esperado: {"success":true,"message":"Server is running",...}
+
+# 3. Nginx -> Backend (porta 80, rota /api)
+curl http://localhost/api/health
+# Esperado: {"success":true,"message":"Server is running",...}
+
+# 4. Nginx -> Frontend SPA (porta 80, rota /)
+curl -I http://localhost/
+# Esperado: HTTP/1.1 200 OK + Content-Type: text/html
+```
+
+Se todos os testes passarem, acesse a aplicação no navegador: `http://3.14.182.194/`
 
 ### 4. Troubleshooting Nginx
 
