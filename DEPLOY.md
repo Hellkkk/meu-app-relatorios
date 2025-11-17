@@ -235,7 +235,7 @@ npm run client:build
 
 ### Erro ECONNREFUSED no login
 
-Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001`:
+Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001` ou você ver **502 Bad Gateway**:
 
 ```bash
 # 1. Verificar se ambos os processos estão rodando
@@ -264,6 +264,8 @@ pm2 delete all
 npm run start:api     # Em um terminal
 npm run start:web     # Em outro terminal
 ```
+
+**Nota sobre 502 Bad Gateway**: O frontend proxy retorna HTTP 502 quando o backend não está acessível. Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas precisa do backend rodando.
 
 **Causa comum**: O arquivo `.env.production` tinha `PORT=3001` que causava conflito. Agora usa `BACKEND_PORT=5001` e `FRONTEND_PORT=3001` separadamente.
 

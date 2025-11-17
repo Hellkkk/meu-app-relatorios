@@ -264,7 +264,7 @@ npm run pm2:status
 
 ### Login Falha com ECONNREFUSED
 
-Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login:
+Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login ou ver **502 Bad Gateway** ao acessar a aplicação:
 
 1. **Verifique se ambos os servidores estão rodando:**
    ```bash
@@ -290,7 +290,8 @@ Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login:
 4. **Verifique o proxy do frontend:**
    ```bash
    curl http://127.0.0.1:3001/api/health
-   # Deve fazer proxy para o backend e retornar a mesma resposta
+   # Se backend OK: retorna a mesma resposta com status 200
+   # Se backend DOWN: retorna erro 502 com mensagem clara sobre ECONNREFUSED
    ```
 
 5. **Verifique variáveis de ambiente:**
@@ -305,6 +306,8 @@ Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login:
    # Terminal 2  
    npm run start:web
    ```
+
+**Nota**: O frontend proxy retorna **HTTP 502 Bad Gateway** quando o backend não está acessível (ECONNREFUSED). Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas o backend não está respondendo.
 
 ### Frontend mostra página em branco
 
