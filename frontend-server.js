@@ -82,16 +82,15 @@ app.use('/api', (req, res) => {
     console.error(`   Error Code: ${err.code}`);
     
     if (!res.headersSent) {
-      // Use 502 Bad Gateway for connection refused to make diagnosis easier
+      // Return 502 Bad Gateway for connection errors
       const statusCode = err.code === 'ECONNREFUSED' ? 502 : 500;
       res.status(statusCode).json({ 
-        error: err.code === 'ECONNREFUSED' ? 'Backend Connection Refused' : 'Proxy Error', 
-        message: err.message,
-        code: err.code,
+        error: err.code === 'ECONNREFUSED' ? 'Backend Unavailable' : 'Proxy Error', 
+        message: err.code === 'ECONNREFUSED' 
+          ? 'Cannot connect to backend server. Make sure the backend is running on the configured port.'
+          : err.message,
         target: `${BACKEND_URL}${fullPath}`,
-        hint: err.code === 'ECONNREFUSED' 
-          ? `Backend server is not running on ${BACKEND_URL}. Start it with: npm run start:api`
-          : 'Make sure the backend server is running on the configured port'
+        code: err.code
       });
     }
   });

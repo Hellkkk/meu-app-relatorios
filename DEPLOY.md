@@ -161,10 +161,86 @@ Configure estas regras no Security Group da EC2:
 | Tipo | Porta | Origem | Descrição |
 |------|-------|---------|-----------|
 | SSH | 22 | Seu IP | Acesso SSH |
-| HTTP | 80 | 0.0.0.0/0 | HTTP público |
-| HTTPS | 443 | 0.0.0.0/0 | HTTPS público |
-| Custom TCP | 3001 | 0.0.0.0/0 | Frontend React |
-| Custom TCP | 5001 | 0.0.0.0/0 | Backend API |
+| HTTP | 80 | 0.0.0.0/0 | HTTP público (acesso principal via Nginx) |
+| HTTPS | 443 | 0.0.0.0/0 | HTTPS público (futuro SSL) |
+| Custom TCP | 3001 | 0.0.0.0/0 | Frontend React (acesso direto) |
+| Custom TCP | 5001 | 0.0.0.0/0 | Backend API (acesso direto - pode restringir em produção) |
+
+**Nota**: Após configurar o Nginx, você pode acessar a aplicação pela porta 80 sem especificar porta na URL.
+
+## 🌐 Configuração do Nginx (Porta 80)
+
+Para permitir acesso à aplicação sem especificar porta (http://3.14.182.194/):
+
+### 1. Instalar Nginx
+
+```bash
+# Amazon Linux
+sudo yum install nginx -y
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+# Ubuntu
+sudo apt install nginx -y
+sudo systemctl enable nginx
+sudo systemctl start nginx
+```
+
+### 2. Instalar a Configuração
+
+```bash
+cd /home/ec2-user/meu-app-relatorios
+sudo ./scripts/nginx/install-config.sh
+```
+
+O script automaticamente:
+- Copia a configuração para `/etc/nginx/conf.d/app-relatorios.conf`
+- Testa a configuração
+- Recarrega o nginx
+
+### 3. Verificar Configuração
+
+```bash
+# Verificar se o nginx está rodando
+sudo systemctl status nginx
+
+# Testar acesso pela porta 80
+curl http://localhost/api/health
+curl http://localhost/
+
+# Testar acesso externo (substitua pelo seu IP)
+curl http://3.14.182.194/api/health
+```
+
+### 4. Troubleshooting Nginx
+
+```bash
+# Ver logs
+sudo tail -f /var/log/nginx/app-relatorios.access.log
+sudo tail -f /var/log/nginx/app-relatorios.error.log
+
+# Testar configuração
+sudo nginx -t
+
+# Recarregar nginx
+sudo systemctl reload nginx
+
+# Reiniciar nginx
+sudo systemctl restart nginx
+```
+
+### Arquitetura com Nginx
+
+```
+Cliente → Nginx (port 80)
+           ├─ /api/* → Backend API (127.0.0.1:5001)
+           └─ /* → Frontend SPA (127.0.0.1:3001)
+```
+
+O Nginx atua como reverse proxy:
+- Requisições para `/api/*` vão diretamente para o backend na porta 5001
+- Todas as outras requisições vão para o frontend na porta 3001 (que serve a SPA)
+- Isso permite acesso sem porta na URL: `http://3.14.182.194/`
 
 ## 📊 Gerenciar Aplicação
 
@@ -191,8 +267,12 @@ npm run deploy:amazon
 
 Após o deploy, acesse:
 
-- **Frontend:** `http://SEU_IP_EC2:3001`
-- **Backend API:** `http://SEU_IP_EC2:5001/api`
+- **Via Nginx (Porta 80 - Recomendado):** `http://SEU_IP_EC2/`
+  - Requer configuração do Nginx (veja seção "Configuração do Nginx" acima)
+- **Frontend Direto:** `http://SEU_IP_EC2:3001`
+- **Backend API Direto:** `http://SEU_IP_EC2:5001/api`
+
+**Nota**: Quando acessar via Nginx (porta 80), o axios do frontend enviará requisições `/api` que serão automaticamente roteadas para o backend.
 
 ## 🔐 Contas de Teste
 
@@ -293,51 +373,33 @@ npm run start:web     # Em outro terminal
 
 **Causa comum**: O arquivo `.env.production` tinha `PORT=3001` que causava conflito. Agora usa `BACKEND_PORT=5001` e `FRONTEND_PORT=3001` separadamente.
 
-### Porta 3001 não acessível externamente
+### Porta 80 não acessível
 
-Se você consegue acessar internamente (`curl http://127.0.0.1:3001`) mas não consegue acessar de fora da EC2:
+Se você não conseguir acessar via `http://SEU_IP_EC2/`:
 
 ```bash
-# 1. Verificar se o frontend está rodando internamente
-curl http://127.0.0.1:3001/health
-# Deve retornar: {"success":true,"message":"Frontend proxy server is running",...}
+# 1. Verificar se o Nginx está instalado e rodando
+sudo systemctl status nginx
 
-# 2. Verificar se o servidor está escutando em 0.0.0.0 (todas as interfaces)
-sudo netstat -tlnp | grep :3001
-# Deve mostrar: 0.0.0.0:3001 (não 127.0.0.1:3001)
+# 2. Instalar/configurar Nginx se necessário
+sudo yum install nginx -y  # Amazon Linux
+sudo systemctl enable nginx
+sudo systemctl start nginx
 
-# 3. Verificar firewall local
-sudo iptables -L -n | grep 3001
-# Se houver regras DROP ou REJECT, adicionar regra ACCEPT:
-sudo iptables -I INPUT -p tcp --dport 3001 -j ACCEPT
-sudo service iptables save  # Amazon Linux 1
-# OU
-sudo iptables-save | sudo tee /etc/sysconfig/iptables  # Amazon Linux 2
-```
+# 3. Instalar a configuração do app
+cd /home/ec2-user/meu-app-relatorios
+sudo ./scripts/nginx/install-config.sh
 
-**⚠️ IMPORTANTE: Security Group da AWS**
+# 4. Verificar se a porta 80 está aberta no Security Group
+# No AWS Console: EC2 → Security Groups → Inbound rules
+# Deve ter: HTTP, Port 80, Source 0.0.0.0/0
 
-A causa mais comum é o Security Group da EC2 não ter a porta 3001 aberta. Verifique:
+# 5. Testar localmente
+curl http://localhost/api/health
+curl http://localhost/
 
-1. Vá para **EC2 Console → Instâncias → Selecione sua instância**
-2. Na aba **Segurança**, clique no Security Group
-3. Na aba **Regras de entrada**, verifique se há uma regra:
-   - **Tipo**: TCP Personalizado
-   - **Porta**: 3001
-   - **Origem**: 0.0.0.0/0 (ou seu IP específico)
-4. Se não houver, clique em **Editar regras de entrada** e adicione:
-   - **Tipo**: TCP Personalizado
-   - **Intervalo de portas**: 3001
-   - **Origem**: 0.0.0.0/0
-   - **Descrição**: Frontend React App
-
-**Teste após configurar:**
-```bash
-# Do seu computador local (substitua SEU_IP_EC2)
-curl http://SEU_IP_EC2:3001/health
-
-# Se retornar o JSON do health check, está funcionando!
-# Se der timeout, o Security Group ainda não está configurado corretamente
+# 6. Ver logs do nginx
+sudo tail -f /var/log/nginx/app-relatorios.error.log
 ```
 
 ## 💡 Dicas
