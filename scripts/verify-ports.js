@@ -9,11 +9,25 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
-// Load environment variables
-const envPath = path.resolve(__dirname, '../.env');
-if (fs.existsSync(envPath)) {
-  require('dotenv').config({ path: envPath });
+// Load environment variables manually from .env file
+function loadEnv() {
+  const envPath = path.resolve(__dirname, '../.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [key, ...valueParts] = trimmed.split('=');
+        if (key && valueParts.length > 0) {
+          const value = valueParts.join('=').trim();
+          process.env[key.trim()] = value;
+        }
+      }
+    });
+  }
 }
+
+loadEnv();
 
 const BACKEND_PORT = process.env.BACKEND_PORT || 5001;
 const FRONTEND_PORT = process.env.FRONTEND_PORT || process.env.PORT || 3001;
