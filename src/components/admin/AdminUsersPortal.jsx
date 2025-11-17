@@ -35,17 +35,6 @@ const AddUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loadin
             <input
               type="text"
               className="form-control"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              className="form-control"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
@@ -136,17 +125,6 @@ const EditUserModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loadi
             <input
               type="text"
               className="form-control"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Username</label>
-            <input
-              type="text"
-              className="form-control"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
@@ -208,7 +186,7 @@ const AdminUsers = () => {
   const [showUserForm, setShowUserForm] = useState(false);
   const [showCompanyManager, setShowCompanyManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', name: '', role: 'user' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', role: 'user' });
 
   const { user: currentUser } = useAuth();
 
@@ -240,7 +218,6 @@ const AdminUsers = () => {
     try {
       setLoading(true);
       const payload = {
-        name: (formData.name || '').trim(),
         username: (formData.username || '').trim(),
         email: (formData.email || '').trim(),
         password: formData.password,
@@ -256,7 +233,7 @@ const AdminUsers = () => {
       if (response.data?.success) {
         await fetchUsers();
         setShowUserForm(false);
-        setFormData({ username: '', email: '', password: '', name: '', role: 'user' });
+        setFormData({ username: '', email: '', password: '', role: 'user' });
         setError('');
       }
     } catch (err) {
@@ -285,7 +262,6 @@ const AdminUsers = () => {
     try {
       setLoading(true);
       const payload = {
-        name: (formData.name || '').trim(),
         username: (formData.username || '').trim(),
         email: (formData.email || '').trim(),
         role: formData.role || 'user',
@@ -303,7 +279,7 @@ const AdminUsers = () => {
       if (res.data?.success) {
         await fetchUsers();
         closeEdit();
-        setFormData({ username: '', email: '', password: '', name: '', role: 'user' });
+        setFormData({ username: '', email: '', password: '', role: 'user' });
         setError('');
       }
     } catch (err) {
@@ -448,7 +424,6 @@ const AdminUsers = () => {
                         <button 
                           className="btn btn-sm btn-primary" 
                           onClick={() => openEdit(user) || setFormData({
-                            name: user.name || '',
                             username: user.username || '',
                             email: user.email || '',
                             password: '',
