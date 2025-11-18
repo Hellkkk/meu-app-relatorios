@@ -35,15 +35,9 @@ nano .env
 
 **Configure estas variáveis no arquivo .env:**
 
-**IMPORTANTE**: Não defina `NODE_ENV` no arquivo `.env`! O Vite não suporta `NODE_ENV` em arquivos `.env` (apenas `NODE_ENV=development` é suportado para builds de desenvolvimento). Em produção, `NODE_ENV=production` é definido automaticamente pelo PM2 no `ecosystem.config.js` apenas para o processo do backend.
-
 ```env
-# Backend API Server
-BACKEND_PORT=5001
-BACKEND_HOST=127.0.0.1
-
-# Frontend Proxy Server  
-FRONTEND_PORT=3001
+NODE_ENV=production
+PORT=5000
 
 # MongoDB Atlas (recomendado)
 MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/relatorios
@@ -59,39 +53,10 @@ CLIENT_URL=http://SEU_IP_EC2:3001
 CORS_ORIGIN=http://SEU_IP_EC2:3001
 ```
 
-**Importante**: O sistema agora requer variáveis separadas para backend (`BACKEND_PORT=5001`) e frontend (`FRONTEND_PORT=3001`).
-
 ### 3. Deploy da Aplicação
 
 ```bash
 npm run deploy:amazon
-```
-
-### 4. Verificar Deploy
-
-Após o deploy, verifique se ambos os servidores estão rodando:
-
-```bash
-# Verificar status do PM2
-pm2 status
-
-# Deve mostrar 2 processos:
-# - relatorios-backend (port 5001)
-# - relatorios-frontend (port 3001)
-
-# Verificar health dos servidores
-npm run verify:ports
-
-# Ou manualmente:
-curl http://127.0.0.1:5001/api/health  # Backend
-curl http://127.0.0.1:3001/api/health  # Frontend proxy -> Backend
-curl http://127.0.0.1:3001/health      # Frontend server
-```
-
-Se algum servidor não estiver respondendo, verifique os logs:
-```bash
-pm2 logs relatorios-backend
-pm2 logs relatorios-frontend
 ```
 
 ## 🐧 Deploy para Ubuntu EC2
@@ -143,13 +108,8 @@ cp .env.production .env
 # 6. Build e deploy
 npm run client:build
 node seed.js
-
-# Iniciar com PM2 usando ecosystem config (RECOMENDADO)
-pm2 start ecosystem.config.js
-
-# OU iniciar processos individuais
-# pm2 start server.js --name relatorios-backend
-# pm2 start frontend-server.js --name relatorios-frontend
+pm2 start server.js --name backend
+pm2 serve dist 3000 --name frontend --spa
 pm2 save
 pm2 startup
 ```
@@ -161,110 +121,10 @@ Configure estas regras no Security Group da EC2:
 | Tipo | Porta | Origem | Descrição |
 |------|-------|---------|-----------|
 | SSH | 22 | Seu IP | Acesso SSH |
-| HTTP | 80 | 0.0.0.0/0 | HTTP público (acesso principal via Nginx) |
-| HTTPS | 443 | 0.0.0.0/0 | HTTPS público (futuro SSL) |
-| Custom TCP | 3001 | 0.0.0.0/0 | Frontend React (acesso direto) |
-| Custom TCP | 5001 | 0.0.0.0/0 | Backend API (acesso direto - pode restringir em produção) |
-
-**Nota**: Após configurar o Nginx, você pode acessar a aplicação pela porta 80 sem especificar porta na URL.
-
-## 🌐 Configuração do Nginx (Porta 80)
-
-Para permitir acesso à aplicação sem especificar porta (http://3.14.182.194/):
-
-### 1. Instalar Nginx
-
-```bash
-# Amazon Linux
-sudo yum install nginx -y
-sudo systemctl enable nginx
-sudo systemctl start nginx
-
-# Ubuntu
-sudo apt install nginx -y
-sudo systemctl enable nginx
-sudo systemctl start nginx
-```
-
-### 2. Instalar a Configuração
-
-```bash
-cd /home/ec2-user/meu-app-relatorios
-sudo ./scripts/nginx/install-config.sh
-```
-
-O script automaticamente:
-- Copia a configuração para `/etc/nginx/conf.d/app-relatorios.conf`
-- Testa a configuração
-- Recarrega o nginx
-
-### 3. Verificar Configuração
-
-```bash
-# Verificar se o nginx está rodando
-sudo systemctl status nginx
-
-# Testar acesso pela porta 80
-curl http://localhost/api/health
-curl http://localhost/
-
-# Testar acesso externo (substitua pelo seu IP)
-curl http://3.14.182.194/api/health
-```
-
-**Testes Pós-Deploy Completos:**
-
-Após configurar o Nginx, execute todos os testes abaixo para confirmar que a arquitetura está funcionando corretamente:
-
-```bash
-# 1. Backend direto (porta 5001)
-curl http://127.0.0.1:5001/api/health
-# Esperado: {"success":true,"message":"Server is running",...}
-
-# 2. Frontend proxy -> Backend (porta 3001)
-curl http://127.0.0.1:3001/api/health
-# Esperado: {"success":true,"message":"Server is running",...}
-
-# 3. Nginx -> Backend (porta 80, rota /api)
-curl http://localhost/api/health
-# Esperado: {"success":true,"message":"Server is running",...}
-
-# 4. Nginx -> Frontend SPA (porta 80, rota /)
-curl -I http://localhost/
-# Esperado: HTTP/1.1 200 OK + Content-Type: text/html
-```
-
-Se todos os testes passarem, acesse a aplicação no navegador: `http://3.14.182.194/`
-
-### 4. Troubleshooting Nginx
-
-```bash
-# Ver logs
-sudo tail -f /var/log/nginx/app-relatorios.access.log
-sudo tail -f /var/log/nginx/app-relatorios.error.log
-
-# Testar configuração
-sudo nginx -t
-
-# Recarregar nginx
-sudo systemctl reload nginx
-
-# Reiniciar nginx
-sudo systemctl restart nginx
-```
-
-### Arquitetura com Nginx
-
-```
-Cliente → Nginx (port 80)
-           ├─ /api/* → Backend API (127.0.0.1:5001)
-           └─ /* → Frontend SPA (127.0.0.1:3001)
-```
-
-O Nginx atua como reverse proxy:
-- Requisições para `/api/*` vão diretamente para o backend na porta 5001
-- Todas as outras requisições vão para o frontend na porta 3001 (que serve a SPA)
-- Isso permite acesso sem porta na URL: `http://3.14.182.194/`
+| HTTP | 80 | 0.0.0.0/0 | HTTP público |
+| HTTPS | 443 | 0.0.0.0/0 | HTTPS público |
+| Custom TCP | 3001 | 0.0.0.0/0 | Frontend React |
+| Custom TCP | 5001 | 0.0.0.0/0 | Backend API |
 
 ## 📊 Gerenciar Aplicação
 
@@ -291,12 +151,8 @@ npm run deploy:amazon
 
 Após o deploy, acesse:
 
-- **Via Nginx (Porta 80 - Recomendado):** `http://SEU_IP_EC2/`
-  - Requer configuração do Nginx (veja seção "Configuração do Nginx" acima)
-- **Frontend Direto:** `http://SEU_IP_EC2:3001`
-- **Backend API Direto:** `http://SEU_IP_EC2:5001/api`
-
-**Nota**: Quando acessar via Nginx (porta 80), o axios do frontend enviará requisições `/api` que serão automaticamente roteadas para o backend.
+- **Frontend:** `http://SEU_IP_EC2:3001`
+- **Backend API:** `http://SEU_IP_EC2:5001/api`
 
 ## 🔐 Contas de Teste
 
@@ -305,30 +161,6 @@ Após o deploy, acesse:
 - **Usuário:** user@teste.com / user123
 
 ## ❗ Solução de Problemas
-
-### 🔍 Diagnóstico Rápido
-
-**Não consegue acessar a aplicação?** Execute estes comandos na EC2:
-
-```bash
-# 1. Verificar se os processos estão rodando
-pm2 status
-# Deve mostrar: relatorios-backend (online) e relatorios-frontend (online)
-
-# 2. Testar health checks internamente
-curl http://127.0.0.1:5001/api/health  # Backend
-curl http://127.0.0.1:3001/health      # Frontend
-curl http://127.0.0.1:3001/api/health  # Frontend -> Backend proxy
-
-# 3. Verificar portas abertas
-sudo netstat -tlnp | grep -E ':(3001|5001)'
-# Deve mostrar ambas as portas com 0.0.0.0 (não 127.0.0.1)
-
-# 4. Testar do seu computador local
-curl http://SEU_IP_EC2:3001/health
-# Se falhar: problema no Security Group da AWS
-# Se funcionar: problema no browser/CORS
-```
 
 ### Erro de versão do Node.js
 ```bash
@@ -361,71 +193,6 @@ npm install
 npm run client:build
 ```
 
-### Erro ECONNREFUSED no login
-
-Se o login falhar com erro `ECONNREFUSED 127.0.0.1:5001` ou você ver **502 Bad Gateway**:
-
-```bash
-# 1. Verificar se ambos os processos estão rodando
-pm2 status
-# Deve mostrar: relatorios-backend e relatorios-frontend
-
-# 2. Verificar health dos servidores
-npm run verify:ports
-
-# 3. Testar endpoints manualmente
-curl http://127.0.0.1:5001/api/health  # Backend direto
-curl http://127.0.0.1:3001/api/health  # Via proxy frontend
-
-# 4. Se o backend não estiver rodando, verificar logs
-pm2 logs relatorios-backend --lines 50
-
-# 5. Verificar variáveis de ambiente
-cat .env | grep -E "BACKEND_PORT|FRONTEND_PORT"
-# Deve mostrar: BACKEND_PORT=5001 e FRONTEND_PORT=3001
-
-# 6. Reiniciar processos
-pm2 restart all
-
-# 7. Se ainda não funcionar, iniciar manualmente para ver erros
-pm2 delete all
-npm run start:api     # Em um terminal
-npm run start:web     # Em outro terminal
-```
-
-**Nota sobre 502 Bad Gateway**: O frontend proxy retorna HTTP 502 quando o backend não está acessível. Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas precisa do backend rodando.
-
-**Causa comum**: O arquivo `.env.production` tinha `PORT=3001` que causava conflito. Agora usa `BACKEND_PORT=5001` e `FRONTEND_PORT=3001` separadamente.
-
-### Porta 80 não acessível
-
-Se você não conseguir acessar via `http://SEU_IP_EC2/`:
-
-```bash
-# 1. Verificar se o Nginx está instalado e rodando
-sudo systemctl status nginx
-
-# 2. Instalar/configurar Nginx se necessário
-sudo yum install nginx -y  # Amazon Linux
-sudo systemctl enable nginx
-sudo systemctl start nginx
-
-# 3. Instalar a configuração do app
-cd /home/ec2-user/meu-app-relatorios
-sudo ./scripts/nginx/install-config.sh
-
-# 4. Verificar se a porta 80 está aberta no Security Group
-# No AWS Console: EC2 → Security Groups → Inbound rules
-# Deve ter: HTTP, Port 80, Source 0.0.0.0/0
-
-# 5. Testar localmente
-curl http://localhost/api/health
-curl http://localhost/
-
-# 6. Ver logs do nginx
-sudo tail -f /var/log/nginx/app-relatorios.error.log
-```
-
 ## 💡 Dicas
 
 1. **Use MongoDB Atlas** para produção (mais confiável)
@@ -433,4 +200,3 @@ sudo tail -f /var/log/nginx/app-relatorios.error.log
 3. **Use SSL/HTTPS** com Let's Encrypt
 4. **Monitore recursos** com `pm2 monit`
 5. **Faça backups** regulares do banco de dados
-6. **Use `npm run verify:ports`** após cada deploy para confirmar que ambos os servidores estão online

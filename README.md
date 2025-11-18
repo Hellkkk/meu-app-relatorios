@@ -46,39 +46,6 @@ Sistema de gerenciamento de relatórios com autenticação JWT, MongoDB e funcio
 - React Dropzone para upload
 - MUI DataGrid para tabelas
 
-## Arquitetura
-
-O aplicativo segue uma arquitetura de três camadas:
-
-### Desenvolvimento Local
-```
-Cliente (Browser)
-    ↓
-Frontend Proxy Server (port 3001)
-    ├─ Serve SPA (arquivos estáticos do /dist)
-    └─ Proxy /api → Backend API (127.0.0.1:5001)
-```
-
-### Produção com Nginx (Recomendado)
-```
-Cliente (Browser) → http://IP_PUBLICO/
-    ↓
-Nginx (port 80)
-    ├─ /api/* → Backend API (127.0.0.1:5001)
-    └─ /* → Frontend Proxy Server (127.0.0.1:3001)
-```
-
-**Camadas**:
-1. **Nginx (Porta 80)**: Entry point público, faz reverse proxy
-2. **Frontend Server (Porta 3001)**: Serve a SPA React e proxia requisições /api
-3. **Backend API (Porta 5001)**: API REST com Express, MongoDB e autenticação JWT
-
-**Vantagens**:
-- Acesso sem especificar porta na URL
-- SSL/TLS fácil de configurar no Nginx
-- Melhor performance com cache e compressão
-- Isolamento entre camadas
-
 ## Instalação
 
 ```bash
@@ -89,46 +56,23 @@ npm install
 cp .env.example .env
 # Editar .env com suas configurações
 
-# Construir frontend para produção
+# Iniciar servidor backend
+npm start
+
+# Em outro terminal, iniciar frontend em modo desenvolvimento
+npm run client
+
+# Ou construir frontend para produção
 npm run client:build
-
-# Iniciar ambos os servidores (backend API + frontend proxy)
-# Opção 1: Usar PM2 (recomendado para produção)
-npm run pm2:start
-
-# Opção 2: Iniciar manualmente em terminais separados
-# Terminal 1 - Backend API
-npm run start:api
-
-# Terminal 2 - Frontend Proxy
-npm run start:web
-
-# Verificar se ambos estão rodando
-npm run verify:ports
 ```
 
 ## Variáveis de Ambiente
 
-**IMPORTANTE**: Não defina `NODE_ENV` no arquivo `.env`! O Vite não suporta `NODE_ENV` em arquivos `.env` e exibirá um warning durante o build. Em produção, `NODE_ENV=production` é definido automaticamente pelo PM2 via `ecosystem.config.js` apenas para o processo do backend.
-
 ```env
-# Backend API Server
-BACKEND_PORT=5001          # Porta do servidor de API backend
-BACKEND_HOST=127.0.0.1     # Host do backend (para configuração de proxy)
-
-# Frontend Proxy Server
-FRONTEND_PORT=3001         # Porta do servidor proxy do frontend
-
-# Database
+# Backend
 MONGODB_URI=mongodb://localhost:27017/meu-app-relatorios
 JWT_SECRET=seu_secret_jwt_aqui
-
-# CORS Configuration
-CLIENT_URL=http://localhost:3001  # URL primária do frontend para CORS
-
-# CORS Adicional (opcional, para múltiplas origens)
-# Exemplo: CORS_ORIGIN=http://3.14.182.194,http://3.14.182.194:3001
-CORS_ORIGIN=
+PORT=5001
 
 # Caminho da planilha Excel (opcional - se não definido, usa fallbacks automáticos)
 # EXCEL_SOURCE_PATH=./Compras_AVM.xlsx
@@ -139,41 +83,6 @@ CORS_ORIGIN=
 # Frontend - Habilitar painel de upload manual (default: false)
 # VITE_ENABLE_UPLOAD=false
 ```
-
-### CORS Configuration
-
-O backend aceita múltiplas origens para CORS:
-- `CLIENT_URL`: Origem primária (geralmente http://IP:3001)
-- `CORS_ORIGIN`: Origens adicionais separadas por vírgula
-- Sempre inclui `http://localhost:3001` para desenvolvimento local
-- Sempre inclui `http://3.14.182.194` e `http://3.14.182.194:3001` (IP público do EC2)
-
-Exemplo para produção no EC2:
-```env
-CLIENT_URL=http://3.14.182.194:3001
-CORS_ORIGIN=http://3.14.182.194,http://3.14.182.194:3001
-```
-
-Isso permite acesso tanto pela porta 80 (Nginx) quanto pela 3001 (direto).
-
-### Portas e Processos
-
-Este aplicativo requer **dois processos rodando simultaneamente**:
-
-1. **Backend API Server** (`server.js`)
-   - Porta padrão: `5001` (configurável via `BACKEND_PORT`)
-   - Endpoints: `/api/*`
-   - Gerencia autenticação, banco de dados, e lógica de negócios
-
-2. **Frontend Proxy Server** (`frontend-server.js`)
-   - Porta padrão: `3001` (configurável via `FRONTEND_PORT`)
-   - Serve arquivos estáticos do build do React
-   - Faz proxy de requisições `/api/*` para o backend
-   - Endpoint de health check: `/health`
-
-**Importante**: Ambos os processos devem estar rodando para o aplicativo funcionar corretamente.
-
-Use `npm run verify:ports` para verificar se ambos estão online.
 
 ### Configuração do Caminho da Planilha
 
@@ -302,7 +211,7 @@ Consulte [SECURITY_ANALYSIS.md](SECURITY_ANALYSIS.md) para análise de seguranç
 ## Scripts PM2
 
 ```bash
-# Iniciar com PM2 (inicia ambos backend e frontend)
+# Iniciar com PM2
 npm run pm2:start
 
 # Parar PM2
@@ -313,116 +222,6 @@ npm run pm2:restart
 
 # Status PM2
 npm run pm2:status
-```
-
-## Troubleshooting
-
-### Login Falha com ECONNREFUSED
-
-Se você receber erros `ECONNREFUSED 127.0.0.1:5001` no login ou ver **502 Bad Gateway** ao acessar a aplicação:
-
-1. **Verifique se ambos os servidores estão rodando:**
-   ```bash
-   npm run verify:ports
-   ```
-
-2. **Verifique processos ativos:**
-   ```bash
-   # Linux/Mac
-   lsof -i :5001
-   lsof -i :3001
-   
-   # Ou com PM2
-   pm2 status
-   ```
-
-3. **Certifique-se de que o backend está rodando:**
-   ```bash
-   curl http://127.0.0.1:5001/api/health
-   # Deve retornar: {"success":true,"message":"Server is running",...}
-   ```
-
-4. **Verifique o proxy do frontend:**
-   ```bash
-   curl http://127.0.0.1:3001/api/health
-   # Se backend OK: retorna a mesma resposta com status 200
-   # Se backend DOWN: retorna erro 502 com mensagem clara sobre ECONNREFUSED
-   ```
-
-5. **Verifique variáveis de ambiente:**
-   - Confirme que `.env` tem `BACKEND_PORT=5001` e `FRONTEND_PORT=3001`
-   - Se usar PM2, verifique `ecosystem.config.js`
-
-6. **Inicie os servidores manualmente para ver logs:**
-   ```bash
-   # Terminal 1
-   npm run start:api
-   
-   # Terminal 2  
-   npm run start:web
-   ```
-
-**Nota**: O frontend proxy retorna **HTTP 502 Bad Gateway** quando o backend não está acessível (ECONNREFUSED). Este é o comportamento esperado e facilita o diagnóstico - significa que o frontend está funcionando, mas o backend não está respondendo.
-
-### Não consegue acessar porta 3001 de fora (EC2/Produção)
-
-Se a aplicação funciona localmente mas não consegue acessar de fora:
-
-1. **Verifique se o servidor está escutando em todas as interfaces:**
-   ```bash
-   sudo netstat -tlnp | grep :3001
-   # Deve mostrar: 0.0.0.0:3001 (não 127.0.0.1:3001)
-   ```
-
-2. **Verifique o Security Group da AWS (se usando EC2):**
-   - A porta 3001 deve estar aberta para entrada (Inbound Rules)
-   - Tipo: TCP Personalizado, Porta: 3001, Origem: 0.0.0.0/0
-
-3. **Verifique o firewall local:**
-   ```bash
-   # Linux
-   sudo iptables -L -n | grep 3001
-   
-   # Se necessário, abrir porta
-   sudo iptables -I INPUT -p tcp --dport 3001 -j ACCEPT
-   ```
-
-4. **Teste do seu computador:**
-   ```bash
-   curl http://SEU_IP_SERVIDOR:3001/health
-   # Se falhar: problema de firewall/Security Group
-   # Se funcionar: problema no browser/CORS
-   ```
-
-### Frontend mostra página em branco
-
-- Certifique-se de ter executado `npm run client:build`
-- Verifique se o diretório `dist/` existe
-- Verifique os logs do frontend-server.js
-
-### Erros de CORS
-
-- Verifique a variável `CLIENT_URL` no `.env`
-- Para desenvolvimento local: `CLIENT_URL=http://localhost:3001`
-- Para EC2: `CLIENT_URL=http://SEU_IP_EC2:3001`
-- Para acesso via Nginx (porta 80), adicione: `CORS_ORIGIN=http://SEU_IP_EC2,http://SEU_IP_EC2:3001`
-
-### Nginx não está funcionando
-
-```bash
-# Verificar status
-sudo systemctl status nginx
-
-# Ver logs
-sudo tail -f /var/log/nginx/app-relatorios.error.log
-
-# Reinstalar configuração
-cd /home/ec2-user/meu-app-relatorios  # ou seu diretório
-sudo ./scripts/nginx/install-config.sh
-
-# Verificar se PM2 está rodando os processos
-pm2 status
-# Deve mostrar: relatorios-backend (port 5001) e relatorios-frontend (port 3001)
 ```
 
 ## Desenvolvimento
