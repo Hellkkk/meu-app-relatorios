@@ -3,7 +3,7 @@ import { Paper, Typography, TextField, Box, CircularProgress } from '@mui/materi
 import { DataGrid } from '@mui/x-data-grid';
 import http from '../../api/http';
 
-const PurchasesTable = ({ refresh, records = null }) => {
+const PurchasesTable = ({ refresh }) => {
   const [loading, setLoading] = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [paginationModel, setPaginationModel] = useState({
@@ -13,9 +13,6 @@ const PurchasesTable = ({ refresh, records = null }) => {
   const [rowCount, setRowCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTimeout, setSearchTimeout] = useState(null);
-
-  // If records are provided directly, use them instead of fetching
-  const useDirectRecords = records !== null;
 
   // Função para converter valores PT-BR em números
   const toNumberBR = (value) => {
@@ -81,21 +78,13 @@ const PurchasesTable = ({ refresh, records = null }) => {
       field: 'data_compra',
       headerName: 'Data',
       width: 120,
-      valueFormatter: (params) => {
-        // Handle both data_compra and data_emissao
-        const dateValue = params.value || params.row?.data_emissao;
-        return formatDate(dateValue);
-      }
+      valueFormatter: (params) => formatDate(params.value)
     },
     {
       field: 'fornecedor',
-      headerName: 'Fornecedor/Cliente',
+      headerName: 'Fornecedor',
       width: 200,
-      flex: 1,
-      valueGetter: (params) => {
-        // Handle both fornecedor and cliente
-        return params.row?.fornecedor || params.row?.cliente || '';
-      }
+      flex: 1
     },
     {
       field: 'numero_nfe',
@@ -160,15 +149,8 @@ const PurchasesTable = ({ refresh, records = null }) => {
   };
 
   useEffect(() => {
-    if (useDirectRecords) {
-      // Use provided records
-      setPurchases(records);
-      setRowCount(records.length);
-    } else {
-      // Fetch from server
-      fetchPurchases();
-    }
-  }, [paginationModel, refresh, records]);
+    fetchPurchases();
+  }, [paginationModel, refresh]);
 
   useEffect(() => {
     // Debounce da busca
