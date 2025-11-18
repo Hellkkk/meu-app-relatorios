@@ -60,14 +60,6 @@ const companySchema = new mongoose.Schema({
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
     },
     website: String
-  },
-  purchasesReportPath: {
-    type: String,
-    trim: true
-  },
-  salesReportPath: {
-    type: String,
-    trim: true
   }
 }, {
   timestamps: true

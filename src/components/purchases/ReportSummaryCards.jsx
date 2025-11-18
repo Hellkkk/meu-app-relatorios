@@ -13,14 +13,14 @@ const ReportSummaryCards = ({ summary }) => {
 
   const cards = [
     {
-      title: 'Total de Registros',
-      value: summary?.totalRecords || 0,
+      title: 'Total de Compras',
+      value: summary?.totalCompras || 0,
       icon: <ShoppingCartIcon sx={{ fontSize: 40 }} />,
       color: '#1976d2'
     },
     {
       title: 'Valor Total',
-      value: formatCurrency(summary?.totalValue),
+      value: formatCurrency(summary?.valorTotal),
       icon: <AttachMoneyIcon sx={{ fontSize: 40 }} />,
       color: '#2e7d32'
     },

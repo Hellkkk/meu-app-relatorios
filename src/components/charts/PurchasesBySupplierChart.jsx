@@ -28,7 +28,7 @@ const CustomTick = ({ x, y, payload }) => {
   );
 };
 
-const PurchasesBySupplierChart = ({ data, height = 360, title = 'Top Fornecedores' }) => {
+const PurchasesBySupplierChart = ({ data, height = 360 }) => {
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -41,12 +41,7 @@ const PurchasesBySupplierChart = ({ data, height = 360, title = 'Top Fornecedore
     if (!data || data.length === 0) return [];
     return [...data]
       .sort((a, b) => (b.total || 0) - (a.total || 0))
-      .slice(0, 5)
-      .map(item => ({
-        ...item,
-        // Use name field from backend, fallback to fornecedor if available
-        displayName: item.name || item.fornecedor || 'N/A'
-      }));
+      .slice(0, 5);
   }, [data]);
 
   // Custom tooltip to show full supplier name
@@ -62,7 +57,7 @@ const PurchasesBySupplierChart = ({ data, height = 360, title = 'Top Fornecedore
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>
-            {payload[0].payload.displayName}
+            {payload[0].payload.fornecedor}
           </Typography>
           <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
             Valor Total: {formatCurrency(payload[0].value)}
@@ -78,7 +73,7 @@ const PurchasesBySupplierChart = ({ data, height = 360, title = 'Top Fornecedore
   return (
     <Paper sx={{ p: 3, height: height + 70 }} className="chart-card">
       <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
-        {title}
+        Top Fornecedores
       </Typography>
       <Box sx={{ 
         width: '100%', 
@@ -92,7 +87,7 @@ const PurchasesBySupplierChart = ({ data, height = 360, title = 'Top Fornecedore
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="displayName" 
+              dataKey="fornecedor" 
               height={120}
               tick={<CustomTick />}
               interval={0}

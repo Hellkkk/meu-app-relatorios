@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UserCompanyManager from '../admin/UserCompanyManagerFixed';
-import ReportFilesModal from './ReportFilesModal';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AddCompanyModal = ({ isOpen, onClose, formData, setFormData, onSubmit, loading }) => {
@@ -213,7 +212,6 @@ const CompaniesFixed = () => {
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [showUserManager, setShowUserManager] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showReportFilesModal, setShowReportFilesModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', cnpj: '', address: '', phone: '', email: '' });
 
   useEffect(() => {
@@ -390,16 +388,6 @@ const CompaniesFixed = () => {
     fetchCompanies(); // Recarrega para atualizar os v\u00ednculos
   };
 
-  const openReportFilesModal = (company) => {
-    setSelectedCompany(company);
-    setShowReportFilesModal(true);
-  };
-
-  const closeReportFilesModal = () => {
-    setShowReportFilesModal(false);
-    setSelectedCompany(null);
-  };
-
   const canManageUsersForCompany = (company) => {
     if (isAdmin && isAdmin()) return true;
     if (isManager && isManager()) {
@@ -515,17 +503,6 @@ const CompaniesFixed = () => {
                 )}
 
                 {isAdmin && isAdmin() && (
-                  <button
-                    onClick={() => openReportFilesModal(company)}
-                    className="btn btn-warning"
-                    style={{ flex: 1, minWidth: '140px' }}
-                    title="Configurar Relatórios"
-                  >
-                    Relatórios
-                  </button>
-                )}
-
-                {isAdmin && isAdmin() && (
                   <button onClick={() => handleDeleteCompany(company._id)} className="btn btn-danger" title="Excluir Empresa">
                     Excluir
                   </button>
@@ -557,16 +534,6 @@ const CompaniesFixed = () => {
         onSubmit={handleUpdateCompany}
         loading={loading}
       />
-
-      {/* Modal de Configuração de Arquivos de Relatório (apenas admin) */}
-      {isAdmin && isAdmin() && showReportFilesModal && selectedCompany && (
-        <ReportFilesModal
-          isOpen={showReportFilesModal}
-          onClose={closeReportFilesModal}
-          companyId={selectedCompany._id}
-          companyName={selectedCompany.name}
-        />
-      )}
     </div>
   );
 };
