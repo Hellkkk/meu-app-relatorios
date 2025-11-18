@@ -2,16 +2,22 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
+// Enhanced .env loading with logging
 const localEnvPath = path.resolve(__dirname, '.env');
 const parentEnvPath = path.resolve(__dirname, '../.env');
 
+let envFileLoaded = 'none';
 if (fs.existsSync(localEnvPath)) {
   require('dotenv').config({ path: localEnvPath });
+  envFileLoaded = localEnvPath;
 } else if (fs.existsSync(parentEnvPath)) {
   require('dotenv').config({ path: parentEnvPath });
+  envFileLoaded = parentEnvPath;
 } else {
   require('dotenv').config();
+  envFileLoaded = 'default (.env from cwd)';
 }
 
 // Import database connection
@@ -32,9 +38,17 @@ const { authenticate } = require('./middleware/authorization');
 // Initialize Express app
 const app = express();
 
+// Track server start time for uptime calculation
+const serverStartTime = Date.now();
+
 // Middleware
 app.use(cors({
-  origin: ['http://3.14.182.194:3001', 'http://localhost:3001'],
+  origin: [
+    'http://3.14.182.194:3001',
+    'http://3.14.182.194',
+    'http://localhost:3001',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 
@@ -106,8 +120,76 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Version endpoint - returns app version info
+app.get('/api/version', (req, res) => {
+  const uptimeSeconds = Math.floor((Date.now() - serverStartTime) / 1000);
+  const mongoConnected = mongoose.connection.readyState === 1;
+  
+  res.json({
+    success: true,
+    data: {
+      commit: process.env.APP_COMMIT || 'unknown',
+      port: process.env.BACKEND_PORT || process.env.PORT || 5001,
+      pid: process.pid,
+      uptimeSeconds,
+      mongoConnected,
+      nodeVersion: process.version,
+      environment: process.env.NODE_ENV || 'development'
+    }
+  });
+});
+
+// Readiness endpoint - returns 200 if ready, 503 if not
+app.get('/api/readiness', (req, res) => {
+  const mongoConnected = mongoose.connection.readyState === 1;
+  
+  if (mongoConnected) {
+    res.status(200).json({
+      success: true,
+      message: 'Server is ready',
+      mongo: 'connected'
+    });
+  } else {
+    res.status(503).json({
+      success: false,
+      message: 'Server is not ready',
+      mongo: 'disconnected'
+    });
+  }
+});
+
+// Start server with enhanced configuration
+const BACKEND_PORT = process.env.BACKEND_PORT || process.env.PORT || 5001;
+const BACKEND_HOST = process.env.BACKEND_HOST || '0.0.0.0';
+
+// Log warning if using fallback PORT
+if (!process.env.BACKEND_PORT && process.env.PORT) {
+  console.warn('[STARTUP WARNING] Using PORT instead of BACKEND_PORT. Consider using BACKEND_PORT for clarity.');
+}
+
+app.listen(BACKEND_PORT, BACKEND_HOST, () => {
+  console.log('[STARTUP] Backend server configuration:');
+  console.log(`  envFileLoaded: ${envFileLoaded}`);
+  console.log(`  cwd: ${process.cwd()}`);
+  console.log(`  backendPort: ${BACKEND_PORT}`);
+  console.log(`  backendHost: ${BACKEND_HOST}`);
+  console.log(`  commit: ${process.env.APP_COMMIT || 'unknown'}`);
+  console.log(`  pid: ${process.pid}`);
+  console.log(`  nodeVersion: ${process.version}`);
+  console.log(`Server running on http://${BACKEND_HOST}:${BACKEND_PORT}`);
+  
+  // Count and log registered routes
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push(middleware.route);
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          routes.push(handler.route);
+        }
+      });
+    }
+  });
+  console.log(`[STARTUP] Total routes registered: ${routes.length}`);
 });

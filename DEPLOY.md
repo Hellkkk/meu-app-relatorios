@@ -36,8 +36,12 @@ nano .env
 **Configure estas variáveis no arquivo .env:**
 
 ```env
-NODE_ENV=production
-PORT=5000
+# Backend Configuration
+BACKEND_PORT=5001
+BACKEND_HOST=127.0.0.1
+
+# Frontend Configuration
+FRONTEND_PORT=3001
 
 # MongoDB Atlas (recomendado)
 MONGODB_URI=mongodb+srv://usuario:senha@cluster.mongodb.net/relatorios
@@ -50,7 +54,11 @@ JWT_SECRET=sua_chave_jwt_super_secreta_com_pelo_menos_32_caracteres
 
 # URLs (substitua SEU_IP_EC2 pelo IP público da sua instância)
 CLIENT_URL=http://SEU_IP_EC2:3001
-CORS_ORIGIN=http://SEU_IP_EC2:3001
+CORS_ORIGIN=http://SEU_IP_EC2:3001,http://SEU_IP_EC2
+
+# IMPORTANTE: NÃO defina NODE_ENV no .env
+# NODE_ENV será definido pelo PM2 em runtime
+# Definir NODE_ENV no .env quebra o build do Vite
 ```
 
 ### 3. Deploy da Aplicação
@@ -145,6 +153,89 @@ pm2 stop all
 cd meu-app-relatorios
 git pull origin main
 npm run deploy:amazon
+```
+
+## 🔍 Diagnóstico e Verificação
+
+### Verificar Configuração PM2
+
+```bash
+# Verificar que o cwd está correto (deve ser o subdiretório meu-app-relatorios)
+pm2 describe relatorios-backend | grep cwd
+
+# Deve mostrar: cwd: /home/ec2-user/meu-app-relatorios/meu-app-relatorios
+# NÃO: /home/ec2-user/meu-app-relatorios (diretório pai)
+```
+
+### Verificar Variáveis de Ambiente
+
+```bash
+# Garantir que .env está no diretório correto
+ls -la /home/ec2-user/meu-app-relatorios/meu-app-relatorios/.env
+
+# Verificar conteúdo (deve ter BACKEND_PORT, não NODE_ENV no arquivo)
+cat /home/ec2-user/meu-app-relatorios/meu-app-relatorios/.env
+
+# Configuração correta:
+# BACKEND_PORT=5001
+# BACKEND_HOST=127.0.0.1
+# FRONTEND_PORT=3001
+# JWT_SECRET=...
+# MONGODB_URI=...
+# (NÃO incluir NODE_ENV no .env)
+```
+
+### Testar Endpoints do Backend
+
+```bash
+# Health check
+curl http://127.0.0.1:5001/api/health
+
+# Informações de versão (mostra commit, porta, uptime, MongoDB status)
+curl http://127.0.0.1:5001/api/version
+
+# Readiness check (200 se MongoDB conectado, 503 se não)
+curl http://127.0.0.1:5001/api/readiness
+```
+
+### Verificar Proxy do Frontend
+
+```bash
+# Testar se o frontend está proxying corretamente para o backend
+curl http://127.0.0.1:3001/api/health
+```
+
+### Ver Logs de Startup
+
+```bash
+# Ver linha de STARTUP nos logs
+pm2 logs relatorios-backend --lines 100 | grep STARTUP
+
+# Deve mostrar algo como:
+# [STARTUP] Backend server configuration:
+#   envFileLoaded: /home/ec2-user/meu-app-relatorios/meu-app-relatorios/.env
+#   cwd: /home/ec2-user/meu-app-relatorios/meu-app-relatorios
+#   backendPort: 5001
+#   commit: abc1234
+```
+
+### Após Deploy - Checklist de Validação
+
+```bash
+# 1. Backend está respondendo
+curl http://127.0.0.1:5001/api/readiness
+# Esperado: {"success":true,"message":"Server is ready","mongo":"connected"}
+
+# 2. Frontend está respondendo
+curl http://127.0.0.1:3001/api/health
+# Esperado: resposta JSON via proxy
+
+# 3. Verificar porta no log
+pm2 logs relatorios-backend --lines 50 | grep "Server running"
+# Esperado: Server running on http://0.0.0.0:5001 ou http://127.0.0.1:5001
+
+# 4. Verificar commit no log (se configurado)
+pm2 logs relatorios-backend --lines 50 | grep "commit:"
 ```
 
 ## 🌐 Acessar Aplicação
