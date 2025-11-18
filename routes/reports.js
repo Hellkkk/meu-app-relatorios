@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../models/Report');
 const Company = require('../models/Company');
-const { authenticate, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
+const { authenticate, requireAdmin, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
 
 // @route   GET /api/reports
 // @desc    Listar relatórios (filtrado por empresas do usuário)

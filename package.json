@@ -4,6 +4,7 @@
   "description": "Backend application with Express.js, MongoDB and JWT authentication",
   "main": "server.js",
   "scripts": {
+    "prestart": "node -e \"const { execSync } = require('child_process'); try { const commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); process.env.APP_COMMIT = commit; console.log('APP_COMMIT set to:', commit); } catch (e) { console.log('Could not determine git commit'); }\"",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "client": "vite",

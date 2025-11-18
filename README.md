@@ -224,6 +224,80 @@ npm run pm2:restart
 npm run pm2:status
 ```
 
+## Diagnóstico Rápido
+
+### Verificar Status do Backend
+
+```bash
+# Health check básico
+curl http://127.0.0.1:5001/api/health
+
+# Informações de versão e configuração
+curl http://127.0.0.1:5001/api/version
+
+# Verificar readiness (MongoDB conectado?)
+curl http://127.0.0.1:5001/api/readiness
+```
+
+### Verificar Proxy do Frontend
+
+```bash
+# Verificar se o proxy está funcionando
+curl http://127.0.0.1:3001/api/health
+```
+
+### Verificar Configuração do PM2
+
+```bash
+# Verificar diretório de trabalho (cwd) do PM2
+pm2 describe relatorios-backend | grep cwd
+
+# Deve retornar: cwd: /home/ec2-user/meu-app-relatorios/meu-app-relatorios
+# NÃO deve ser: /home/ec2-user/meu-app-relatorios (diretório pai)
+```
+
+### Logs de Diagnóstico
+
+```bash
+# Ver logs do backend
+pm2 logs relatorios-backend --lines 50
+
+# Procurar linha de STARTUP no log
+pm2 logs relatorios-backend --lines 100 | grep STARTUP
+
+# Deve mostrar:
+# [STARTUP] Backend server configuration:
+#   envFileLoaded: /path/to/.env
+#   cwd: /home/ec2-user/meu-app-relatorios/meu-app-relatorios
+#   backendPort: 5001
+#   commit: abc1234
+```
+
+### Troubleshooting Comum
+
+**Backend não inicia (ReferenceError)**
+- Causa: Middleware `requireAdmin` não importado
+- Solução: Já corrigido nesta PR
+
+**ECONNREFUSED ao fazer login**
+- Causa: Backend não está rodando na porta 5001
+- Verificar: `curl http://127.0.0.1:5001/api/health`
+- Solução: Verificar logs do PM2 e garantir que BACKEND_PORT=5001
+
+**Conflito de portas (5000 vs 5001)**
+- Causa: Múltiplos .env ou PORT vs BACKEND_PORT
+- Solução: Usar BACKEND_PORT=5001 (backend) e FRONTEND_PORT=3001 (frontend)
+- Remover arquivo .env no diretório pai se existir
+
+**NODE_ENV quebrando build do Vite**
+- Causa: NODE_ENV definido no .env que o Vite consome
+- Solução: Remover NODE_ENV do .env, definir apenas via PM2 ou linha de comando
+
+**PM2 cwd incorreto**
+- Causa: PM2 configurado com cwd no diretório pai
+- Verificar: `pm2 describe relatorios-backend | grep cwd`
+- Solução: Atualizar ecosystem.config.js com cwd correto e `pm2 restart all`
+
 ## Desenvolvimento
 
 ```bash
