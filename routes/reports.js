@@ -564,7 +564,7 @@ function buildSummaryFromRecords(records, type) {
   const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
   const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
   
-  // Calcular totais
+  // Calcular totais usando campos canônicos
   let totalValue = 0;
   let totalICMS = 0;
   let totalIPI = 0;
@@ -576,7 +576,7 @@ function buildSummaryFromRecords(records, type) {
     totalICMS += record.icms || 0;
     totalIPI += record.ipi || 0;
     totalCOFINS += record.cofins || 0;
-    totalPIS += (record.outras_info?.pis || 0);
+    totalPIS += record.pis || 0; // Use canonical pis field
   });
   
   // Agrupar por entidade (fornecedor/cliente)
@@ -599,10 +599,15 @@ function buildSummaryFromRecords(records, type) {
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
   
-  // Agrupar por mês
+  // Agrupar por mês usando campo canônico de data
   const byMonth = {};
   records.forEach(record => {
-    const date = new Date(record[dateField]);
+    const dateStr = record[dateField];
+    if (!dateStr) return;
+    
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return;
+    
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     
     if (!byMonth[monthKey]) {

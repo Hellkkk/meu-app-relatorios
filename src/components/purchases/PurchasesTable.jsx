@@ -105,19 +105,6 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
       headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        // For sales, try data_emissao first, then fallback to outras_info.data_de_emissao_completa
-        if (type === 'sales') {
-          return row.data_emissao 
-            || row.data_compra
-            || (row._unmapped && row._unmapped.data_de_emissao_completa)
-            || (row.outras_info && row.outras_info.data_de_emissao_completa)
-            || '';
-        }
-        // For purchases, try data_compra first
-        return row.data_compra || row.data_emissao || '';
-      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatDate(value);
@@ -127,47 +114,22 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: type === 'purchases' ? 'fornecedor' : 'cliente',
       headerName: type === 'purchases' ? 'Fornecedor' : 'Cliente',
       width: 200,
-      flex: 1,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        if (type === 'sales') {
-          // For sales, try cliente, then fornecedor, then fallback to outras_info
-          return row.cliente 
-            || row.fornecedor
-            || (row._unmapped && row._unmapped.cliente_nome_fantasia)
-            || (row.outras_info && row.outras_info.cliente_nome_fantasia)
-            || '';
-        }
-        // For purchases, try fornecedor first
-        return row.fornecedor || row.cliente || '';
-      }
+      flex: 1
     },
     {
       field: 'numero_nfe',
       headerName: 'Nº NFe',
-      width: 150,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.numero_nfe || '';
-      }
+      width: 150
     },
     {
       field: 'cfop',
       headerName: 'CFOP',
-      width: 100,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.cfop || '';
-      }
+      width: 100
     },
     {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.valor_total || 0;
-      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -178,10 +140,6 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.icms || 0;
-      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -192,10 +150,16 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.ipi || 0;
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatCurrency(value);
       },
+      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+    },
+    {
+      field: 'pis',
+      headerName: 'PIS',
+      width: 120,
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -206,10 +170,6 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return row.cofins || 0;
-      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);

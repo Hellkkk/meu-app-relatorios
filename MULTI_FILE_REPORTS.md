@@ -111,20 +111,54 @@ This feature enables the application to support multiple Excel files in the repo
 ### Excel File Format
 
 **Purchases Files** should contain columns (aliases recognized):
-- Fornecedor / Supplier
-- Data de Compra / Data de Registro / Data de Emissão
+- Fornecedor / Supplier / Fornecedor/Cliente (Nome Fantasia)
+- Data de Compra / Data de Registro (completa) / Data de Emissão
 - CFOP / CFOP de Entrada
 - Número NFe / Nota Fiscal
-- Valor Total / Total
-- ICMS, IPI, COFINS, PIS
+- Valor Total / Total / Total de Mercadoria
+- ICMS / Valor do ICMS
+- IPI / Valor do IPI
+- COFINS / Valor do COFINS
+- PIS / Valor do PIS
 
 **Sales Files** should contain columns (aliases recognized):
-- Cliente / Customer
-- Data de Emissão / Data de Venda
+- Cliente / Customer / Cliente (Nome Fantasia)
+- Data de Emissão / Data de Emissão (completa) / Data de Venda
 - CFOP / CFOP de Saída
 - Número NFe / Nota Fiscal
-- Valor Total / Total
-- ICMS, IPI, COFINS, PIS
+- Valor Total / Total / Total de Mercadoria
+- ICMS / Valor do ICMS
+- IPI / Valor do IPI
+- COFINS / Valor do COFINS
+- PIS / Valor do PIS
+
+**Canonical Field Names**
+
+After parsing, all records are canonized to contain these standard fields:
+
+*Purchases (Compras):*
+- `fornecedor` (string): Supplier name
+- `data_compra` (ISO date string): Purchase date
+- `numero_nfe` (string): Invoice number
+- `cfop` (string): CFOP code
+- `valor_total` (number): Total value
+- `icms` (number): ICMS tax
+- `ipi` (number): IPI tax
+- `pis` (number): PIS tax
+- `cofins` (number): COFINS tax
+
+*Sales (Vendas):*
+- `cliente` (string): Customer name
+- `data_emissao` (ISO date string): Emission date
+- `numero_nfe` (string): Invoice number
+- `cfop` (string): CFOP code
+- `valor_total` (number): Total value
+- `icms` (number): ICMS tax
+- `ipi` (number): IPI tax
+- `pis` (number): PIS tax
+- `cofins` (number): COFINS tax
+
+All numeric fields are guaranteed to be present (defaulting to 0 if not in source data). Dates are always converted to ISO 8601 strings.
 
 ## Security Considerations
 
@@ -181,3 +215,21 @@ Potential improvements:
 **Company selector empty**
 - User must be linked to at least one company
 - Contact administrator to set up company links
+
+**Table displaying R$ 0,00 in all lines**
+- This issue has been resolved by canonizing the parser
+- Ensure you're using the latest version of the code
+- Verify that the Excel file contains the expected columns
+- The parser now automatically promotes all tax fields (ICMS, IPI, PIS, COFINS) to the root level
+- Check that column headers match one of the recognized aliases (see Excel File Format section)
+- If using custom column names, add them to the aliases in `utils/excelParser.js`
+
+**PIS values not showing**
+- PIS is now a canonical field at the root level
+- Frontend tables include a PIS column
+- Verify the Excel file has a column matching: "PIS", "Valor do PIS", "vl_pis", or "valor_pis"
+
+**Date fields showing incorrectly**
+- Dates are now returned as ISO 8601 strings from the API
+- Frontend automatically formats them to pt-BR locale
+- Ensure Excel dates are in a recognized format (DD/MM/YYYY or Excel serial numbers)
