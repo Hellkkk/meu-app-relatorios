@@ -94,6 +94,172 @@ router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
   }
 });
 
+// @route   GET /api/reports/stats/overview
+// @desc    Obter estatísticas dos relatórios por empresa
+// @access  Private
+router.get('/stats/overview', authenticate, filterCompaniesByUser, async (req, res) => {
+  try {
+    let matchFilter = {};
+    
+    // Aplicar filtro de empresas baseado no usuário
+    if (req.companyFilter) {
+      const userCompanies = await Company.find(req.companyFilter).select('_id');
+      matchFilter.company = { $in: userCompanies.map(c => c._id) };
+    }
+
+    const totalReports = await Report.countDocuments(matchFilter);
+    
+    const reportsByType = await Report.aggregate([
+      { $match: matchFilter },
+      {
+        $group: {
+          _id: '$type',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]);
+
+    const reportsByStatus = await Report.aggregate([
+      { $match: matchFilter },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const reportsByMonth = await Report.aggregate([
+      { $match: matchFilter },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 12 }
+    ]);
+
+    const reportsByCompany = await Report.aggregate([
+      { $match: matchFilter },
+      {
+        $lookup: {
+          from: 'companies',
+          localField: 'company',
+          foreignField: '_id',
+          as: 'companyInfo'
+        }
+      },
+      { $unwind: '$companyInfo' },
+      {
+        $group: {
+          _id: '$company',
+          name: { $first: '$companyInfo.name' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          total: totalReports,
+          byType: reportsByType,
+          byStatus: reportsByStatus
+        },
+        trends: {
+          byMonth: reportsByMonth,
+          byCompany: reportsByCompany
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter estatísticas de relatórios',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/reports/templates
+// @desc    Obter templates de relatórios disponíveis
+// @access  Private
+router.get('/templates', authenticate, (req, res) => {
+  const templates = [
+    {
+      id: 'financeiro-basico',
+      name: 'Relatório Financeiro Básico',
+      type: 'financeiro',
+      description: 'Relatório com indicadores financeiros essenciais',
+      fields: [
+        { name: 'receita', label: 'Receita Total', type: 'currency' },
+        { name: 'despesas', label: 'Despesas Totais', type: 'currency' },
+        { name: 'lucro', label: 'Lucro Líquido', type: 'currency' },
+        { name: 'margem', label: 'Margem de Lucro', type: 'percentage' }
+      ]
+    },
+    {
+      id: 'vendas-mensal',
+      name: 'Relatório de Vendas Mensal',
+      type: 'vendas',
+      description: 'Análise de vendas por período mensal',
+      fields: [
+        { name: 'vendas_total', label: 'Total de Vendas', type: 'currency' },
+        { name: 'quantidade', label: 'Quantidade Vendida', type: 'number' },
+        { name: 'ticket_medio', label: 'Ticket Médio', type: 'currency' },
+        { name: 'crescimento', label: 'Crescimento vs Mês Anterior', type: 'percentage' }
+      ]
+    },
+    {
+      id: 'operacional-kpis',
+      name: 'KPIs Operacionais',
+      type: 'operacional',
+      description: 'Indicadores chave de performance operacional',
+      fields: [
+        { name: 'produtividade', label: 'Produtividade', type: 'percentage' },
+        { name: 'eficiencia', label: 'Eficiência Operacional', type: 'percentage' },
+        { name: 'qualidade', label: 'Índice de Qualidade', type: 'number' },
+        { name: 'satisfacao', label: 'Satisfação do Cliente', type: 'percentage' }
+      ]
+    }
+  ];
+
+  res.json({
+    success: true,
+    data: templates
+  });
+});
+
+// @route   GET /api/reports/xlsx-files
+// @desc    Listar todos os arquivos .xlsx disponíveis no diretório configurado
+// @access  Private/Admin
+router.get('/xlsx-files', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { discoverExcelFiles } = require('../utils/excelFileDiscovery');
+    const files = discoverExcelFiles();
+    
+    res.json({
+      success: true,
+      data: files
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao listar arquivos Excel',
+      error: error.message
+    });
+  }
+});
+
 // @route   GET /api/reports/:id
 // @desc    Obter detalhes completos de um relatório
 // @access  Private
@@ -296,172 +462,6 @@ router.delete('/:id', authenticate, logActivity('DELETE_REPORT'), async (req, re
     res.status(500).json({
       success: false,
       message: 'Erro ao deletar relatório',
-      error: error.message
-    });
-  }
-});
-
-// @route   GET /api/reports/stats/overview
-// @desc    Obter estatísticas dos relatórios por empresa
-// @access  Private
-router.get('/stats/overview', authenticate, filterCompaniesByUser, async (req, res) => {
-  try {
-    let matchFilter = {};
-    
-    // Aplicar filtro de empresas baseado no usuário
-    if (req.companyFilter) {
-      const userCompanies = await Company.find(req.companyFilter).select('_id');
-      matchFilter.company = { $in: userCompanies.map(c => c._id) };
-    }
-
-    const totalReports = await Report.countDocuments(matchFilter);
-    
-    const reportsByType = await Report.aggregate([
-      { $match: matchFilter },
-      {
-        $group: {
-          _id: '$type',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } }
-    ]);
-
-    const reportsByStatus = await Report.aggregate([
-      { $match: matchFilter },
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    const reportsByMonth = await Report.aggregate([
-      { $match: matchFilter },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' }
-          },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id.year': -1, '_id.month': -1 } },
-      { $limit: 12 }
-    ]);
-
-    const reportsByCompany = await Report.aggregate([
-      { $match: matchFilter },
-      {
-        $lookup: {
-          from: 'companies',
-          localField: 'company',
-          foreignField: '_id',
-          as: 'companyInfo'
-        }
-      },
-      { $unwind: '$companyInfo' },
-      {
-        $group: {
-          _id: '$company',
-          name: { $first: '$companyInfo.name' },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]);
-
-    res.json({
-      success: true,
-      data: {
-        overview: {
-          total: totalReports,
-          byType: reportsByType,
-          byStatus: reportsByStatus
-        },
-        trends: {
-          byMonth: reportsByMonth,
-          byCompany: reportsByCompany
-        }
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao obter estatísticas de relatórios',
-      error: error.message
-    });
-  }
-});
-
-// @route   GET /api/reports/templates
-// @desc    Obter templates de relatórios disponíveis
-// @access  Private
-router.get('/templates', authenticate, (req, res) => {
-  const templates = [
-    {
-      id: 'financeiro-basico',
-      name: 'Relatório Financeiro Básico',
-      type: 'financeiro',
-      description: 'Relatório com indicadores financeiros essenciais',
-      fields: [
-        { name: 'receita', label: 'Receita Total', type: 'currency' },
-        { name: 'despesas', label: 'Despesas Totais', type: 'currency' },
-        { name: 'lucro', label: 'Lucro Líquido', type: 'currency' },
-        { name: 'margem', label: 'Margem de Lucro', type: 'percentage' }
-      ]
-    },
-    {
-      id: 'vendas-mensal',
-      name: 'Relatório de Vendas Mensal',
-      type: 'vendas',
-      description: 'Análise de vendas por período mensal',
-      fields: [
-        { name: 'vendas_total', label: 'Total de Vendas', type: 'currency' },
-        { name: 'quantidade', label: 'Quantidade Vendida', type: 'number' },
-        { name: 'ticket_medio', label: 'Ticket Médio', type: 'currency' },
-        { name: 'crescimento', label: 'Crescimento vs Mês Anterior', type: 'percentage' }
-      ]
-    },
-    {
-      id: 'operacional-kpis',
-      name: 'KPIs Operacionais',
-      type: 'operacional',
-      description: 'Indicadores chave de performance operacional',
-      fields: [
-        { name: 'produtividade', label: 'Produtividade', type: 'percentage' },
-        { name: 'eficiencia', label: 'Eficiência Operacional', type: 'percentage' },
-        { name: 'qualidade', label: 'Índice de Qualidade', type: 'number' },
-        { name: 'satisfacao', label: 'Satisfação do Cliente', type: 'percentage' }
-      ]
-    }
-  ];
-
-  res.json({
-    success: true,
-    data: templates
-  });
-});
-
-// @route   GET /api/reports/xlsx-files
-// @desc    Listar todos os arquivos .xlsx disponíveis no diretório configurado
-// @access  Private/Admin
-router.get('/xlsx-files', authenticate, requireAdmin, async (req, res) => {
-  try {
-    const { discoverExcelFiles } = require('../utils/excelFileDiscovery');
-    const files = discoverExcelFiles();
-    
-    res.json({
-      success: true,
-      data: files
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erro ao listar arquivos Excel',
       error: error.message
     });
   }
