@@ -6,6 +6,7 @@ import PurchasesBySupplierChart from '../components/charts/PurchasesBySupplierCh
 import TaxesBreakdownChart from '../components/charts/TaxesBreakdownChart';
 import MonthlyPurchasesChart from '../components/charts/MonthlyPurchasesChart';
 import PurchasesTable from '../components/purchases/PurchasesTable';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 import http from '../api/http';
 
 const ReportsPage = () => {
@@ -178,7 +179,7 @@ const ReportsPage = () => {
           {error}
         </Alert>
       ) : selectedCompany && summary ? (
-        <>
+        <ErrorBoundary>
           <ReportSummaryCards summary={summary} />
 
           {/* Content area wrapper for charts and table */}
@@ -230,7 +231,7 @@ const ReportsPage = () => {
               <PurchasesTable refresh={refreshKey} records={summary.records || []} type={reportType} />
             </Box>
           </Box>
-        </>
+        </ErrorBoundary>
       ) : null}
     </Container>
   );

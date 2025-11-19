@@ -64,16 +64,40 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value || 0);
+    try {
+      const numValue = toNumberBR(value);
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(numValue);
+    } catch (error) {
+      console.warn('Error formatting currency:', value, error);
+      return 'R$ 0,00';
+    }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.warn('Error formatting date:', dateString, error);
+      return '';
+    }
+  };
+
+  // Safe value accessor for params that may be undefined
+  const safeValue = (params) => {
+    if (!params) return null;
+    return params.value !== undefined ? params.value : null;
+  };
+
+  // Safe row accessor for params that may be undefined
+  const safeRow = (params) => {
+    if (!params || !params.row) return {};
+    return params.row;
   };
 
   const columns = [
@@ -81,10 +105,22 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
       headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        // For sales, try data_emissao first, then fallback to outras_info.data_de_emissao_completa
+        if (type === 'sales') {
+          return row.data_emissao 
+            || row.data_compra
+            || (row._unmapped && row._unmapped.data_de_emissao_completa)
+            || (row.outras_info && row.outras_info.data_de_emissao_completa)
+            || '';
+        }
+        // For purchases, try data_compra first
+        return row.data_compra || row.data_emissao || '';
+      },
       valueFormatter: (params) => {
-        // Handle both data_compra and data_emissao
-        const dateValue = params.value || params.row?.data_emissao || params.row?.data_compra;
-        return formatDate(dateValue);
+        const value = safeValue(params);
+        return formatDate(value);
       }
     },
     {
@@ -93,46 +129,91 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       width: 200,
       flex: 1,
       valueGetter: (params) => {
-        // Handle both fornecedor and cliente
-        return params.row?.fornecedor || params.row?.cliente || '';
+        const row = safeRow(params);
+        if (type === 'sales') {
+          // For sales, try cliente, then fornecedor, then fallback to outras_info
+          return row.cliente 
+            || row.fornecedor
+            || (row._unmapped && row._unmapped.cliente_nome_fantasia)
+            || (row.outras_info && row.outras_info.cliente_nome_fantasia)
+            || '';
+        }
+        // For purchases, try fornecedor first
+        return row.fornecedor || row.cliente || '';
       }
     },
     {
       field: 'numero_nfe',
       headerName: 'Nº NFe',
-      width: 150
+      width: 150,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.numero_nfe || '';
+      }
     },
     {
       field: 'cfop',
       headerName: 'CFOP',
-      width: 100
+      width: 100,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.cfop || '';
+      }
     },
     {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
-      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.valor_total || 0;
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatCurrency(value);
+      },
       sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
-      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.icms || 0;
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatCurrency(value);
+      },
       sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
-      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.ipi || 0;
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatCurrency(value);
+      },
       sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     },
     {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
-      valueFormatter: (value) => formatCurrency(toNumberBR(value)),
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return row.cofins || 0;
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatCurrency(value);
+      },
       sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
     }
   ];
@@ -218,7 +299,21 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
           paginationModel={paginationModel}
           paginationMode="server"
           onPaginationModelChange={setPaginationModel}
-          getRowId={(row) => row._id || `${row.fornecedor || row.cliente}-${row.numero_nfe}-${row.data_compra || row.data_emissao}`}
+          getRowId={(row) => {
+            // Try to generate a stable, unique ID with multiple fallbacks
+            if (row._id) return row._id;
+            if (row.id) return row.id;
+            
+            // Generate deterministic ID from available fields
+            const entity = row.fornecedor || row.cliente || 'unknown';
+            const nfe = row.numero_nfe || 'no-nfe';
+            const cfop = row.cfop || 'no-cfop';
+            const date = row.data_compra || row.data_emissao || 'no-date';
+            const valor = row.valor_total || '0';
+            
+            // Create a composite key that should be unique for each transaction
+            return `${entity}-${nfe}-${cfop}-${date}-${valor}`.replace(/[^a-zA-Z0-9-]/g, '_');
+          }}
           disableRowSelectionOnClick
         />
       </Box>
