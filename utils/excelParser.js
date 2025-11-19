@@ -175,7 +175,8 @@ const HEADER_ALIASES_PURCHASES = {
 const HEADER_ALIASES_SALES = {
   cliente: [
     'cliente', 'customer', 'comprador', 'destinatario', 'razao_social',
-    'razao_social_cliente', 'nome_cliente', 'nome_fantasia'
+    'razao_social_cliente', 'nome_cliente', 'nome_fantasia',
+    'cliente_nome_fantasia' // Added for "Cliente (Nome Fantasia)"
   ],
   cfop: ['cfop', 'codigo_cfop', 'cfop_saida'],
   numero_nfe: [
@@ -185,7 +186,8 @@ const HEADER_ALIASES_SALES = {
   ],
   data_emissao: [
     'data_emissao', 'data', 'date', 'data_venda', 'emissao', 'data_da_emissao',
-    'data_saida', 'data_lancamento', 'dt_emissao', 'dt_saida'
+    'data_saida', 'data_lancamento', 'dt_emissao', 'dt_saida',
+    'data_de_emissao_completa' // Added for "Data de Emissão (completa)"
   ],
   valor_total: [
     'valor_total', 'total', 'valor', 'valor_nota', 'valor_da_nota',

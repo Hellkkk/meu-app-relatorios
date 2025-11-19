@@ -3,7 +3,7 @@ import { Paper, Typography, TextField, Box, CircularProgress } from '@mui/materi
 import { DataGrid } from '@mui/x-data-grid';
 import http from '../../api/http';
 
-const PurchasesTable = ({ refresh, records = null }) => {
+const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   const [loading, setLoading] = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [paginationModel, setPaginationModel] = useState({
@@ -78,18 +78,18 @@ const PurchasesTable = ({ refresh, records = null }) => {
 
   const columns = [
     {
-      field: 'data_compra',
-      headerName: 'Data',
+      field: type === 'purchases' ? 'data_compra' : 'data_emissao',
+      headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
       valueFormatter: (params) => {
         // Handle both data_compra and data_emissao
-        const dateValue = params.value || params.row?.data_emissao;
+        const dateValue = params.value || params.row?.data_emissao || params.row?.data_compra;
         return formatDate(dateValue);
       }
     },
     {
-      field: 'fornecedor',
-      headerName: 'Fornecedor/Cliente',
+      field: type === 'purchases' ? 'fornecedor' : 'cliente',
+      headerName: type === 'purchases' ? 'Fornecedor' : 'Cliente',
       width: 200,
       flex: 1,
       valueGetter: (params) => {
@@ -194,14 +194,14 @@ const PurchasesTable = ({ refresh, records = null }) => {
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Tabela de Compras
+        {type === 'purchases' ? 'Tabela de Compras' : 'Tabela de Vendas'}
       </Typography>
 
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
           label="Buscar"
-          placeholder="Pesquisar por fornecedor, CFOP ou número de NFe"
+          placeholder={type === 'purchases' ? 'Pesquisar por fornecedor, CFOP ou número de NFe' : 'Pesquisar por cliente, CFOP ou número de NFe'}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           disabled={loading}
@@ -218,7 +218,7 @@ const PurchasesTable = ({ refresh, records = null }) => {
           paginationModel={paginationModel}
           paginationMode="server"
           onPaginationModelChange={setPaginationModel}
-          getRowId={(row) => row._id || `${row.fornecedor}-${row.numero_nfe}-${row.data_compra}`}
+          getRowId={(row) => row._id || `${row.fornecedor || row.cliente}-${row.numero_nfe}-${row.data_compra || row.data_emissao}`}
           disableRowSelectionOnClick
         />
       </Box>
