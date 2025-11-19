@@ -646,4 +646,343 @@ function buildSummaryFromRecords(records, type) {
   };
 }
 
+// Rate limiting for sync endpoint - store last sync time per company+type
+const syncRateLimits = new Map();
+const SYNC_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+
+// @route   POST /api/reports/:companyId/sync
+// @desc    Manually trigger sync of Excel data to database
+// @access  Private (Admin/Manager only)
+router.post('/:companyId/sync', authenticate, async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { type } = req.query; // 'purchases' or 'sales'
+
+    // Validate type
+    if (!type || !['purchases', 'sales'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type. Use "purchases" or "sales".'
+      });
+    }
+
+    // Check if company exists
+    const company = await Company.findById(companyId);
+    if (!company || !company.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found or inactive'
+      });
+    }
+
+    // Check user access
+    if (!req.user.isAdmin() && !req.user.hasAccessToCompany(companyId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this company'
+      });
+    }
+
+    // Rate limiting check
+    const rateLimitKey = `${companyId}-${type}`;
+    const lastSync = syncRateLimits.get(rateLimitKey);
+    const now = Date.now();
+    
+    if (lastSync && (now - lastSync) < SYNC_COOLDOWN_MS) {
+      const remainingSeconds = Math.ceil((SYNC_COOLDOWN_MS - (now - lastSync)) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${remainingSeconds} seconds before syncing again`,
+        cooldownRemaining: remainingSeconds
+      });
+    }
+
+    // Perform sync
+    const { syncExcelToDb } = require('../services/syncService');
+    const result = await syncExcelToDb(companyId, type);
+
+    // Update rate limit timestamp
+    syncRateLimits.set(rateLimitKey, now);
+
+    res.json({
+      success: true,
+      message: `Successfully synced ${result.inserted} ${type} records`,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error syncing data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error syncing data',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/reports/:companyId/records
+// @desc    Get paginated records from database
+// @access  Private
+router.get('/:companyId/records', authenticate, async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { type, page = 0, pageSize = 10, search = '' } = req.query;
+
+    // Validate type
+    if (!type || !['purchases', 'sales'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type. Use "purchases" or "sales".'
+      });
+    }
+
+    // Check if company exists
+    const company = await Company.findById(companyId);
+    if (!company || !company.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found or inactive'
+      });
+    }
+
+    // Check user access
+    if (!req.user.isAdmin() && !req.user.hasAccessToCompany(companyId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this company'
+      });
+    }
+
+    // Get appropriate model
+    const PurchaseRecord = require('../models/PurchaseRecord');
+    const SalesRecord = require('../models/SalesRecord');
+    const Model = type === 'purchases' ? PurchaseRecord : SalesRecord;
+
+    // Check if collection is empty and trigger auto-sync if needed
+    const { isCollectionEmpty, syncExcelToDb } = require('../services/syncService');
+    const isEmpty = await isCollectionEmpty(companyId, type);
+    
+    if (isEmpty) {
+      console.log(`[RECORDS] Collection empty for ${companyId}/${type}, triggering auto-sync...`);
+      try {
+        await syncExcelToDb(companyId, type);
+      } catch (syncError) {
+        console.error('[RECORDS] Auto-sync failed:', syncError);
+        // Continue even if sync fails - will return empty results
+      }
+    }
+
+    // Build search filter
+    const filter = { companyId };
+    
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
+      
+      filter.$or = [
+        { [entityField]: searchRegex },
+        { numero_nfe: searchRegex },
+        { cfop: searchRegex }
+      ];
+    }
+
+    // Parse pagination parameters
+    const pageNum = parseInt(page, 10);
+    const pageSizeNum = parseInt(pageSize, 10);
+    const skip = pageNum * pageSizeNum;
+
+    // Get total count
+    const total = await Model.countDocuments(filter);
+
+    // Get paginated records
+    const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
+    const records = await Model.find(filter)
+      .sort({ [dateField]: -1 })
+      .skip(skip)
+      .limit(pageSizeNum)
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        records,
+        pagination: {
+          page: pageNum,
+          pageSize: pageSizeNum,
+          total,
+          totalPages: Math.ceil(total / pageSizeNum)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching records:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching records',
+      error: error.message
+    });
+  }
+});
+
+// @route   GET /api/reports/:companyId/summary (UPDATED)
+// @desc    Get summary using aggregations on persisted data
+// @access  Private
+// Note: This route must come after the more specific routes above
+router.get('/:companyId/summary-from-db', authenticate, async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { type } = req.query;
+
+    // Validate type
+    if (!type || !['purchases', 'sales'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid type. Use "purchases" or "sales".'
+      });
+    }
+
+    // Check if company exists
+    const company = await Company.findById(companyId);
+    if (!company || !company.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company not found or inactive'
+      });
+    }
+
+    // Check user access
+    if (!req.user.isAdmin() && !req.user.hasAccessToCompany(companyId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this company'
+      });
+    }
+
+    // Get appropriate model
+    const PurchaseRecord = require('../models/PurchaseRecord');
+    const SalesRecord = require('../models/SalesRecord');
+    const Model = type === 'purchases' ? PurchaseRecord : SalesRecord;
+
+    // Check if collection is empty and trigger auto-sync if needed
+    const { isCollectionEmpty, syncExcelToDb } = require('../services/syncService');
+    const isEmpty = await isCollectionEmpty(companyId, type);
+    
+    if (isEmpty) {
+      console.log(`[SUMMARY] Collection empty for ${companyId}/${type}, triggering auto-sync...`);
+      await syncExcelToDb(companyId, type);
+    }
+
+    // Aggregate summary data
+    const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
+    const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
+
+    // Get overall stats
+    const statsAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: null,
+          totalRecords: { $sum: 1 },
+          totalValue: { $sum: '$valor_total' },
+          totalICMS: { $sum: '$icms' },
+          totalIPI: { $sum: '$ipi' },
+          totalPIS: { $sum: '$pis' },
+          totalCOFINS: { $sum: '$cofins' },
+          averageValue: { $avg: '$valor_total' }
+        }
+      }
+    ]);
+
+    const stats = statsAgg[0] || {
+      totalRecords: 0,
+      totalValue: 0,
+      totalICMS: 0,
+      totalIPI: 0,
+      totalPIS: 0,
+      totalCOFINS: 0,
+      averageValue: 0
+    };
+
+    // Get top entities
+    const topEntitiesAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: `$${entityField}`,
+          total: { $sum: '$valor_total' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          total: 1,
+          count: 1
+        }
+      }
+    ]);
+
+    // Get monthly data
+    const monthlyAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: {
+            year: { $year: `$${dateField}` },
+            month: { $month: `$${dateField}` }
+          },
+          total: { $sum: '$valor_total' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+      {
+        $project: {
+          _id: 0,
+          month: {
+            $concat: [
+              { $toString: '$_id.year' },
+              '-',
+              {
+                $cond: [
+                  { $lt: ['$_id.month', 10] },
+                  { $concat: ['0', { $toString: '$_id.month' }] },
+                  { $toString: '$_id.month' }
+                ]
+              }
+            ]
+          },
+          total: 1,
+          count: 1
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        summary: stats,
+        byEntity: topEntitiesAgg,
+        byMonth: monthlyAgg,
+        taxesBreakdown: [
+          { name: 'ICMS', value: stats.totalICMS },
+          { name: 'IPI', value: stats.totalIPI },
+          { name: 'COFINS', value: stats.totalCOFINS },
+          { name: 'PIS', value: stats.totalPIS }
+        ],
+        type
+      }
+    });
+  } catch (error) {
+    console.error('Error generating summary from DB:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating summary',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
