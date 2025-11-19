@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Grid, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton, Button } from '@mui/material';
-import SyncIcon from '@mui/icons-material/Sync';
+import { Container, Box, Typography, Grid, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import UploadPanel from '../components/purchases/UploadPanel';
 import ReportSummaryCards from '../components/purchases/ReportSummaryCards';
 import PurchasesBySupplierChart from '../components/charts/PurchasesBySupplierChart';
@@ -25,9 +24,6 @@ const ReportsPage = () => {
   const [reportType, setReportType] = useState('purchases');
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [fileName, setFileName] = useState(''); // Track current file being displayed
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   
   // Verifica se o upload manual está habilitado via variável de ambiente
   const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
@@ -35,28 +31,14 @@ const ReportsPage = () => {
   // Load user's linked companies
   useEffect(() => {
     loadCompanies();
-    checkAdminStatus();
   }, []);
 
   // Load dashboard data when company or type changes
   useEffect(() => {
     if (selectedCompany) {
-      // Store in localStorage for PurchasesTable to use
-      localStorage.setItem('selectedCompanyId', selectedCompany);
       loadDashboardData();
     }
   }, [selectedCompany, reportType, refreshKey]);
-
-  const checkAdminStatus = async () => {
-    try {
-      const response = await http.get('/auth/me');
-      if (response.data.success && response.data.data?.role) {
-        setIsAdmin(response.data.data.role === 'admin');
-      }
-    } catch (err) {
-      console.error('Error checking admin status:', err);
-    }
-  };
 
   const loadCompanies = async () => {
     setLoadingCompanies(true);
@@ -134,31 +116,6 @@ const ReportsPage = () => {
     }
   };
 
-  const handleSyncData = async () => {
-    if (!selectedCompany) return;
-    
-    setSyncing(true);
-    setSyncMessage('');
-    
-    try {
-      const response = await http.post(`/reports/${selectedCompany}/sync?type=${reportType}`);
-      
-      if (response.data.success) {
-        setSyncMessage(`✓ Sincronização concluída: ${response.data.data.inserted} registros`);
-        // Refresh all data
-        setRefreshKey(prev => prev + 1);
-      }
-    } catch (err) {
-      console.error('Erro ao sincronizar:', err);
-      const errorMsg = err.response?.data?.message || 'Erro ao sincronizar dados';
-      setSyncMessage(`✗ ${errorMsg}`);
-    } finally {
-      setSyncing(false);
-      // Clear message after 5 seconds
-      setTimeout(() => setSyncMessage(''), 5000);
-    }
-  };
-
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -198,27 +155,6 @@ const ReportsPage = () => {
             Vendas
           </ToggleButton>
         </ToggleButtonGroup>
-
-        {isAdmin && selectedCompany && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<SyncIcon />}
-            onClick={handleSyncData}
-            disabled={syncing || loading}
-          >
-            {syncing ? 'Sincronizando...' : 'Sincronizar Dados'}
-          </Button>
-        )}
-
-        {syncMessage && (
-          <Alert 
-            severity={syncMessage.startsWith('✓') ? 'success' : 'error'} 
-            sx={{ flex: 1 }}
-          >
-            {syncMessage}
-          </Alert>
-        )}
       </Box>
 
       {!selectedCompany && !loadingCompanies ? (
@@ -292,7 +228,7 @@ const ReportsPage = () => {
 
             {/* Table */}
             <Box>
-              <PurchasesTable refresh={refreshKey} records={null} type={reportType} />
+              <PurchasesTable refresh={refreshKey} records={summary.records || []} type={reportType} />
             </Box>
           </Box>
         </ErrorBoundary>

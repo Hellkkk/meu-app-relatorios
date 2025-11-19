@@ -181,34 +181,20 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   const fetchPurchases = async () => {
     setLoading(true);
     try {
-      // Get selected company from localStorage or context
-      const selectedCompany = localStorage.getItem('selectedCompanyId');
-      
-      if (!selectedCompany) {
-        console.warn('No company selected');
-        setPurchases([]);
-        setRowCount(0);
-        return;
-      }
-
-      const response = await http.get(`/reports/${selectedCompany}/records`, {
+      const response = await http.get('/purchases', {
         params: {
-          type: type,
-          page: paginationModel.page,
-          pageSize: paginationModel.pageSize,
-          search: searchQuery
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          q: searchQuery
         }
       });
 
       if (response.data.success) {
-        setPurchases(response.data.data.records);
+        setPurchases(response.data.data.purchases);
         setRowCount(response.data.data.pagination.total);
       }
     } catch (error) {
       console.error('Erro ao carregar compras:', error);
-      // Set empty data on error
-      setPurchases([]);
-      setRowCount(0);
     } finally {
       setLoading(false);
     }
@@ -274,11 +260,11 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
           paginationMode="server"
           onPaginationModelChange={setPaginationModel}
           getRowId={(row) => {
-            // MongoDB _id is the primary identifier from the database
-            if (row._id) return row._id.toString();
+            // Try to generate a stable, unique ID with multiple fallbacks
+            if (row._id) return row._id;
             if (row.id) return row.id;
             
-            // Generate deterministic ID from available fields as fallback
+            // Generate deterministic ID from available fields
             const entity = row.fornecedor || row.cliente || 'unknown';
             const nfe = row.numero_nfe || 'no-nfe';
             const cfop = row.cfop || 'no-cfop';
