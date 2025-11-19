@@ -22,6 +22,7 @@ const ReportsPage = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [reportType, setReportType] = useState('purchases');
   const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [fileName, setFileName] = useState(''); // Track current file being displayed
   
   // Verifica se o upload manual está habilitado via variável de ambiente
   const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
@@ -71,6 +72,9 @@ const ReportsPage = () => {
 
       if (summaryRes.data.success) {
         const data = summaryRes.data.data;
+        
+        // Set fileName from response
+        setFileName(data.fileName || '');
         
         // Set summary cards data
         setSummary({
@@ -159,6 +163,7 @@ const ReportsPage = () => {
       ) : selectedCompany && !uploadEnabled ? (
         <Alert severity="info" sx={{ mb: 3 }}>
           Dados carregados automaticamente do arquivo configurado para esta empresa.
+          {fileName && <Box component="span" sx={{ fontWeight: 'bold', ml: 1 }}>Arquivo: {fileName}</Box>}
         </Alert>
       ) : uploadEnabled ? (
         <UploadPanel onImported={handleImported} />
@@ -222,7 +227,7 @@ const ReportsPage = () => {
 
             {/* Table */}
             <Box>
-              <PurchasesTable refresh={refreshKey} records={summary.records || []} />
+              <PurchasesTable refresh={refreshKey} records={summary.records || []} type={reportType} />
             </Box>
           </Box>
         </>

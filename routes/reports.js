@@ -505,6 +505,11 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
       ? company.purchasesReportPath 
       : company.salesReportPath;
     
+    // Debug logging (only in debug mode)
+    if (process.env.LOG_LEVEL === 'debug') {
+      console.log(`[SUMMARY] companyId=${companyId} type=${type} purchasesPath=${company.purchasesReportPath} salesPath=${company.salesReportPath} selected=${reportPath}`);
+    }
+    
     if (!reportPath) {
       return res.status(404).json({
         success: false,
@@ -515,6 +520,10 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
     // Obter caminho absoluto e verificar se o arquivo existe
     const { getExcelFilePath } = require('../utils/excelFileDiscovery');
     const filePath = getExcelFilePath(reportPath);
+    
+    if (process.env.LOG_LEVEL === 'debug') {
+      console.log(`[SUMMARY] resolved=${filePath}`);
+    }
     
     if (!filePath) {
       return res.status(404).json({
@@ -529,6 +538,10 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
     
     // Construir resumo/dashboard a partir dos dados
     const summary = buildSummaryFromRecords(records, type);
+    
+    // Add fileName and type to response for debugging
+    summary.fileName = reportPath;
+    summary.type = type;
     
     res.json({
       success: true,
