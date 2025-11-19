@@ -468,7 +468,7 @@ router.delete('/:id', authenticate, logActivity('DELETE_REPORT'), async (req, re
 });
 
 // @route   GET /api/reports/:companyId/summary
-// @desc    Obter resumo de relatórios para uma empresa (Compras ou Vendas)
+// @desc    Obter resumo de relatórios para uma empresa (Compras ou Vendas) - usando dados persistidos
 // @access  Private
 router.get('/:companyId/summary', authenticate, async (req, res) => {
   try {
@@ -499,53 +499,146 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
         message: 'Acesso negado a esta empresa'
       });
     }
+
+    // Get appropriate model
+    const PurchaseRecord = require('../models/PurchaseRecord');
+    const SalesRecord = require('../models/SalesRecord');
+    const Model = type === 'purchases' ? PurchaseRecord : SalesRecord;
+
+    // Check if collection is empty and trigger auto-sync if needed
+    const { isCollectionEmpty, syncExcelToDb } = require('../services/syncService');
+    const isEmpty = await isCollectionEmpty(companyId, type);
     
-    // Obter o caminho do arquivo configurado
+    if (isEmpty) {
+      console.log(`[SUMMARY] Collection empty for ${companyId}/${type}, triggering auto-sync...`);
+      try {
+        await syncExcelToDb(companyId, type);
+      } catch (syncError) {
+        console.error('[SUMMARY] Auto-sync failed:', syncError);
+        // If sync fails, return error
+        return res.status(500).json({
+          success: false,
+          message: 'Não foi possível sincronizar os dados. Verifique se o arquivo Excel está configurado corretamente.',
+          error: syncError.message
+        });
+      }
+    }
+
+    // Aggregate summary data
+    const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
+    const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
+
+    // Get overall stats
+    const statsAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: null,
+          totalRecords: { $sum: 1 },
+          totalValue: { $sum: '$valor_total' },
+          totalICMS: { $sum: '$icms' },
+          totalIPI: { $sum: '$ipi' },
+          totalPIS: { $sum: '$pis' },
+          totalCOFINS: { $sum: '$cofins' },
+          averageValue: { $avg: '$valor_total' }
+        }
+      }
+    ]);
+
+    const stats = statsAgg[0] || {
+      totalRecords: 0,
+      totalValue: 0,
+      totalICMS: 0,
+      totalIPI: 0,
+      totalPIS: 0,
+      totalCOFINS: 0,
+      averageValue: 0
+    };
+
+    // Get top entities
+    const topEntitiesAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: `$${entityField}`,
+          total: { $sum: '$valor_total' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          total: 1,
+          count: 1
+        }
+      }
+    ]);
+
+    // Get monthly data
+    const monthlyAgg = await Model.aggregate([
+      { $match: { companyId } },
+      {
+        $group: {
+          _id: {
+            year: { $year: `$${dateField}` },
+            month: { $month: `$${dateField}` }
+          },
+          total: { $sum: '$valor_total' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+      {
+        $project: {
+          _id: 0,
+          month: {
+            $concat: [
+              { $toString: '$_id.year' },
+              '-',
+              {
+                $cond: [
+                  { $lt: ['$_id.month', 10] },
+                  { $concat: ['0', { $toString: '$_id.month' }] },
+                  { $toString: '$_id.month' }
+                ]
+              }
+            ]
+          },
+          total: 1,
+          count: 1
+        }
+      }
+    ]);
+
+    // Get sample records for table (first 100)
+    const sampleRecords = await Model.find({ companyId })
+      .sort({ [dateField]: -1 })
+      .limit(100)
+      .lean();
+
     const reportPath = type === 'purchases' 
       ? company.purchasesReportPath 
       : company.salesReportPath;
-    
-    // Debug logging (only in debug mode)
-    if (process.env.LOG_LEVEL === 'debug') {
-      console.log(`[SUMMARY] companyId=${companyId} type=${type} purchasesPath=${company.purchasesReportPath} salesPath=${company.salesReportPath} selected=${reportPath}`);
-    }
-    
-    if (!reportPath) {
-      return res.status(404).json({
-        success: false,
-        message: `Nenhum arquivo de relatório de ${type === 'purchases' ? 'Compras' : 'Vendas'} configurado para esta empresa`
-      });
-    }
-    
-    // Obter caminho absoluto e verificar se o arquivo existe
-    const { getExcelFilePath } = require('../utils/excelFileDiscovery');
-    const filePath = getExcelFilePath(reportPath);
-    
-    if (process.env.LOG_LEVEL === 'debug') {
-      console.log(`[SUMMARY] resolved=${filePath}`);
-    }
-    
-    if (!filePath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Arquivo de relatório não encontrado'
-      });
-    }
-    
-    // Parsear o arquivo Excel
-    const { parseExcelFile } = require('../utils/excelParser');
-    const records = parseExcelFile(filePath, type);
-    
-    // Construir resumo/dashboard a partir dos dados
-    const summary = buildSummaryFromRecords(records, type);
-    
-    // Add fileName and type to response for debugging
-    summary.fileName = reportPath;
-    summary.type = type;
-    
+
     res.json({
       success: true,
-      data: summary
+      data: {
+        summary: stats,
+        byEntity: topEntitiesAgg,
+        byMonth: monthlyAgg,
+        taxesBreakdown: [
+          { name: 'ICMS', value: stats.totalICMS },
+          { name: 'IPI', value: stats.totalIPI },
+          { name: 'COFINS', value: stats.totalCOFINS },
+          { name: 'PIS', value: stats.totalPIS }
+        ],
+        records: sampleRecords,
+        fileName: reportPath,
+        type
+      }
     });
   } catch (error) {
     console.error('Erro ao gerar resumo de relatório:', error);
@@ -556,95 +649,6 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
     });
   }
 });
-
-/**
- * Constrói um resumo/dashboard a partir dos registros parseados
- */
-function buildSummaryFromRecords(records, type) {
-  const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
-  const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
-  
-  // Calcular totais usando campos canônicos
-  let totalValue = 0;
-  let totalICMS = 0;
-  let totalIPI = 0;
-  let totalCOFINS = 0;
-  let totalPIS = 0;
-  
-  records.forEach(record => {
-    totalValue += record.valor_total || 0;
-    totalICMS += record.icms || 0;
-    totalIPI += record.ipi || 0;
-    totalCOFINS += record.cofins || 0;
-    totalPIS += record.pis || 0; // Use canonical pis field
-  });
-  
-  // Agrupar por entidade (fornecedor/cliente)
-  const byEntity = {};
-  records.forEach(record => {
-    const entity = record[entityField] || 'Não informado';
-    if (!byEntity[entity]) {
-      byEntity[entity] = {
-        name: entity,
-        total: 0,
-        count: 0
-      };
-    }
-    byEntity[entity].total += record.valor_total || 0;
-    byEntity[entity].count += 1;
-  });
-  
-  // Top 10 entidades
-  const topEntities = Object.values(byEntity)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 10);
-  
-  // Agrupar por mês usando campo canônico de data
-  const byMonth = {};
-  records.forEach(record => {
-    const dateStr = record[dateField];
-    if (!dateStr) return;
-    
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return;
-    
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
-    if (!byMonth[monthKey]) {
-      byMonth[monthKey] = {
-        month: monthKey,
-        total: 0,
-        count: 0
-      };
-    }
-    byMonth[monthKey].total += record.valor_total || 0;
-    byMonth[monthKey].count += 1;
-  });
-  
-  const monthlyData = Object.values(byMonth)
-    .sort((a, b) => a.month.localeCompare(b.month));
-  
-  return {
-    summary: {
-      totalRecords: records.length,
-      totalValue,
-      totalICMS,
-      totalIPI,
-      totalCOFINS,
-      totalPIS,
-      averageValue: records.length > 0 ? totalValue / records.length : 0
-    },
-    byEntity: topEntities,
-    byMonth: monthlyData,
-    taxesBreakdown: [
-      { name: 'ICMS', value: totalICMS },
-      { name: 'IPI', value: totalIPI },
-      { name: 'COFINS', value: totalCOFINS },
-      { name: 'PIS', value: totalPIS }
-    ],
-    records: records.slice(0, 100) // Retornar apenas os primeiros 100 registros para visualização
-  };
-}
 
 // Rate limiting for sync endpoint - store last sync time per company+type
 const syncRateLimits = new Map();
