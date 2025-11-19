@@ -302,6 +302,9 @@ function buildRowsFromHeader(rawData, headerRowIndex, aliases) {
       rowObj._unmapped = unmappedData;
     }
     
+    // Add source row index for debugging
+    rowObj.__sourceRow = i;
+    
     rows.push(rowObj);
   }
   
@@ -385,6 +388,7 @@ function parseExcelFile(filePath, type = 'purchases') {
       continue;
     }
     
+    // Canonize all fields - promote everything to root level
     const record = {
       numero_nfe: row.numero_nfe ? String(row.numero_nfe).trim() : '',
       cfop: row.cfop ? String(row.cfop).trim() : '',
@@ -392,23 +396,30 @@ function parseExcelFile(filePath, type = 'purchases') {
       icms: parseNumberBR(row.icms || 0),
       ipi: parseNumberBR(row.ipi || 0),
       cofins: parseNumberBR(row.cofins || 0),
+      pis: parseNumberBR(row.pis || 0),
       bruto: parseNumberBR(row.bruto || 0)
     };
     
     // Campos específicos por tipo
     if (type === 'purchases') {
       record.fornecedor = row.fornecedor ? String(row.fornecedor).trim() : '';
-      record.data_compra = parseDate(row.data_compra);
+      // Convert date to ISO string only
+      const dataCompra = parseDate(row.data_compra);
+      record.data_compra = dataCompra.toISOString();
     } else {
       record.cliente = row.cliente ? String(row.cliente).trim() : '';
-      record.data_emissao = parseDate(row.data_emissao);
+      // Convert date to ISO string only
+      const dataEmissao = parseDate(row.data_emissao);
+      record.data_emissao = dataEmissao.toISOString();
     }
     
+    // Add source row for debugging (optional)
+    if (row.__sourceRow !== undefined) {
+      record.__sourceRow = row.__sourceRow;
+    }
+    
+    // Keep unmapped data only if it exists and is not empty
     const otherInfo = row._unmapped || {};
-    if (row.pis && parseNumberBR(row.pis) > 0) {
-      otherInfo.pis = parseNumberBR(row.pis);
-    }
-    
     if (Object.keys(otherInfo).length > 0) {
       record.outras_info = otherInfo;
     }
