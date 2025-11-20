@@ -84,7 +84,8 @@ const ReportsPage = () => {
           totalICMS: data.summary.totalICMS,
           totalIPI: data.summary.totalIPI,
           totalCOFINS: data.summary.totalCOFINS,
-          averageValue: data.summary.averageValue
+          averageValue: data.summary.averageValue,
+          records: data.records || []
         });
         
         // Set chart data
