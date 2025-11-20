@@ -125,4 +125,48 @@ export const testSafeNumberBR = () => {
   return allPassed;
 };
 
+/**
+ * Detects if a value is truly missing (null/undefined) vs a legitimate zero
+ * Useful for distinguishing between absent data and actual zero values
+ * 
+ * @param {any} originalValue - The original value before parsing
+ * @param {number} parsedValue - The parsed numeric value
+ * @returns {boolean} True if the value was missing (null/undefined/empty) and parsed to 0
+ */
+export const detectMissing = (originalValue, parsedValue) => {
+  // If parsed value is not 0, it's not missing
+  if (parsedValue !== 0) {
+    return false;
+  }
+  
+  // Check if original value was null, undefined, or empty string
+  if (originalValue === null || originalValue === undefined || originalValue === '') {
+    return true;
+  }
+  
+  // If it's a string, check if it's just whitespace
+  if (typeof originalValue === 'string' && originalValue.trim() === '') {
+    return true;
+  }
+  
+  // Otherwise, it's a legitimate zero
+  return false;
+};
+
+/**
+ * Safely parses a value and returns both the number and missing status
+ * 
+ * @param {string|number} value - The value to parse
+ * @returns {Object} Object with { value: number, isMissing: boolean }
+ */
+export const safeNumberBRWithMeta = (value) => {
+  const parsed = safeNumberBR(value);
+  const isMissing = detectMissing(value, parsed);
+  
+  return {
+    value: parsed,
+    isMissing
+  };
+};
+
 export default safeNumberBR;
