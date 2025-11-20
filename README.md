@@ -29,6 +29,31 @@ Sistema de gerenciamento de relatórios com autenticação JWT, MongoDB e funcio
   - Ordenação por data
   - Exibição de todos os campos importados
 
+### Colunas da Tabela de Compras/Vendas
+
+A tabela de compras e vendas exibe as seguintes colunas com resolução inteligente de campos:
+
+#### Compras
+- **Data Compra**: Data da compra/entrada (aliases: data_compra, data_emissao, outras_info.data_compra)
+- **Fornecedor**: Nome do fornecedor (aliases: fornecedor, razao_social, nome_fantasia, outras_info.fornecedor, outras_info.fornecedorcliente_nome_fantasia)
+- **Nº NFe**: Número da nota fiscal (aliases: numero_nfe, nfe, nota, outras_info.numero_nfe)
+- **CFOP**: Código Fiscal de Operação (aliases: cfop, outras_info.cfop)
+- **Valor Total**: Valor total da nota fiscal (aliases: valor_total, total_de_mercadoria, valor_da_mercadoria, outras_info.valor_total)
+- **ICMS**: Imposto sobre Circulação de Mercadorias e Serviços (aliases: icms, valor_do_icms, outras_info.icms, outras_info.valor_do_icms)
+- **IPI**: Imposto sobre Produtos Industrializados (aliases: ipi, valor_do_ipi, outras_info.ipi, outras_info.valor_do_ipi)
+- **PIS**: Programa de Integração Social (aliases: pis, valor_do_pis, pis_total, outras_info.pis, outras_info.valor_do_pis, outras_info.pis_total)
+- **COFINS**: Contribuição para Financiamento da Seguridade Social (aliases: cofins, valor_do_cofins, cofins_total, outras_info.cofins, outras_info.valor_do_cofins)
+- **Bruto**: Valor bruto da mercadoria (aliases: bruto, valor_bruto, vl_bruto, outras_info.bruto, outras_info.valor_bruto)
+- **Fonte**: Arquivo de origem dos dados (aliases: source_filename, origem, fonte, outras_info.source_filename)
+- **Data Importação**: Data em que os dados foram importados (aliases: imported_at, data_importacao, outras_info.imported_at)
+
+#### Vendas
+Mesma estrutura das colunas de Compras, mas com:
+- **Data Emissão** ao invés de Data Compra (aliases: data_emissao, data_venda, data_saida)
+- **Cliente** ao invés de Fornecedor (aliases: cliente, razao_social, nome_fantasia, outras_info.cliente, outras_info.cliente_nome_fantasia)
+
+**Nota sobre Valores Ausentes**: Campos monetários que aparecem como R$ 0,00 em cinza itálico com tooltip "Valor ausente (fallback)" indicam que o valor não estava presente nos dados originais, diferenciando-os de valores legítimos de zero.
+
 ## Tecnologias
 
 ### Backend
