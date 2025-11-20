@@ -100,11 +100,39 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
     return params.row;
   };
 
+  // Helper to safely extract values with fallback field mappings
+  const getValueWithFallbacks = (row, ...fieldPaths) => {
+    for (const fieldPath of fieldPaths) {
+      const parts = fieldPath.split('.');
+      let value = row;
+      
+      for (const part of parts) {
+        if (value && value[part] !== undefined && value[part] !== null && value[part] !== '') {
+          value = value[part];
+        } else {
+          value = null;
+          break;
+        }
+      }
+      
+      if (value !== null && value !== undefined && value !== '') {
+        return value;
+      }
+    }
+    return null;
+  };
+
   const columns = [
     {
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
       headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return type === 'purchases' 
+          ? getValueWithFallbacks(row, 'data_compra', 'outras_info.data_compra')
+          : getValueWithFallbacks(row, 'data_emissao', 'outras_info.data_emissao');
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatDate(value);
@@ -114,22 +142,47 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: type === 'purchases' ? 'fornecedor' : 'cliente',
       headerName: type === 'purchases' ? 'Fornecedor' : 'Cliente',
       width: 200,
-      flex: 1
+      flex: 1,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return type === 'purchases'
+          ? getValueWithFallbacks(row, 'fornecedor', 'outras_info.fornecedor', 'outras_info.fornecedorcliente_nome_fantasia')
+          : getValueWithFallbacks(row, 'cliente', 'outras_info.cliente', 'outras_info.cliente_nome_fantasia');
+      }
     },
     {
       field: 'numero_nfe',
       headerName: 'Nº NFe',
-      width: 150
+      width: 150,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'numero_nfe', 'outras_info.numero_nfe');
+      }
     },
     {
       field: 'cfop',
       headerName: 'CFOP',
-      width: 100
+      width: 100,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'cfop', 'outras_info.cfop');
+      }
     },
     {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(
+          row,
+          'valor_total',
+          'total_de_mercadoria',
+          'valor_da_mercadoria',
+          'outras_info.valor_total',
+          'outras_info.total_de_mercadoria'
+        );
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -140,6 +193,10 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.valor_do_icms');
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -150,6 +207,10 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.valor_do_ipi');
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -160,6 +221,10 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'pis',
       headerName: 'PIS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'outras_info.pis', 'outras_info.valor_do_pis');
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -170,6 +235,10 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'outras_info.valor_do_cofins');
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
@@ -202,35 +271,43 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
 
   useEffect(() => {
     if (useDirectRecords) {
-      // Use provided records
-      setPurchases(records);
-      setRowCount(records.length);
-    } else {
-      // Fetch from server
-      fetchPurchases();
-    }
-  }, [paginationModel, refresh, records]);
-
-  useEffect(() => {
-    // Debounce da busca
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-    const timeout = setTimeout(() => {
-      if (paginationModel.page === 0) {
-        fetchPurchases();
-      } else {
-        setPaginationModel({ ...paginationModel, page: 0 });
+      // Use provided records with client-side filtering
+      let filteredRecords = records;
+      
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filteredRecords = records.filter(record => {
+          const entity = type === 'purchases' 
+            ? (record.fornecedor || record.outras_info?.fornecedor || '')
+            : (record.cliente || record.outras_info?.cliente || '');
+          const nfe = record.numero_nfe || record.outras_info?.numero_nfe || '';
+          const cfop = record.cfop || record.outras_info?.cfop || '';
+          
+          return entity.toLowerCase().includes(query) ||
+                 nfe.toLowerCase().includes(query) ||
+                 cfop.toLowerCase().includes(query);
+        });
       }
-    }, 500);
+      
+      setPurchases(filteredRecords);
+      setRowCount(filteredRecords.length);
+    } else {
+      // Fetch from server with debounce handled here
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
 
-    setSearchTimeout(timeout);
+      const timeout = setTimeout(() => {
+        fetchPurchases();
+      }, 500);
 
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [searchQuery]);
+      setSearchTimeout(timeout);
+
+      return () => {
+        if (timeout) clearTimeout(timeout);
+      };
+    }
+  }, [paginationModel, refresh, records, searchQuery]);
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -257,7 +334,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
           loading={loading}
           pageSizeOptions={[5, 10, 25, 50]}
           paginationModel={paginationModel}
-          paginationMode="server"
+          paginationMode={useDirectRecords ? 'client' : 'server'}
           onPaginationModelChange={setPaginationModel}
           getRowId={(row) => {
             // Try to generate a stable, unique ID with multiple fallbacks
@@ -265,11 +342,11 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
             if (row.id) return row.id;
             
             // Generate deterministic ID from available fields
-            const entity = row.fornecedor || row.cliente || 'unknown';
-            const nfe = row.numero_nfe || 'no-nfe';
-            const cfop = row.cfop || 'no-cfop';
-            const date = row.data_compra || row.data_emissao || 'no-date';
-            const valor = row.valor_total || '0';
+            const entity = row.fornecedor || row.cliente || row.outras_info?.fornecedor || row.outras_info?.cliente || 'unknown';
+            const nfe = row.numero_nfe || row.outras_info?.numero_nfe || 'no-nfe';
+            const cfop = row.cfop || row.outras_info?.cfop || 'no-cfop';
+            const date = row.data_compra || row.data_emissao || row.outras_info?.data_compra || row.outras_info?.data_emissao || 'no-date';
+            const valor = row.valor_total || row.total_de_mercadoria || row.outras_info?.valor_total || '0';
             
             // Create a composite key that should be unique for each transaction
             return `${entity}-${nfe}-${cfop}-${date}-${valor}`.replace(/[^a-zA-Z0-9-]/g, '_');
