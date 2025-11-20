@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Grid, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton } from '@mui/material';
+import { Container, Box, Typography, Grid, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, ToggleButtonGroup, ToggleButton, Button } from '@mui/material';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 import UploadPanel from '../components/purchases/UploadPanel';
 import ReportSummaryCards from '../components/purchases/ReportSummaryCards';
 import PurchasesBySupplierChart from '../components/charts/PurchasesBySupplierChart';
@@ -24,6 +25,7 @@ const ReportsPage = () => {
   const [reportType, setReportType] = useState('purchases');
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [fileName, setFileName] = useState(''); // Track current file being displayed
+  const [showAnomaly, setShowAnomaly] = useState(false); // Track anomaly state
   
   // Verifica se o upload manual está habilitado via variável de ambiente
   const uploadEnabled = import.meta.env.VITE_ENABLE_UPLOAD === 'true';
@@ -87,6 +89,17 @@ const ReportsPage = () => {
           averageValue: data.summary.averageValue,
           records: data.records || []
         });
+        
+        // Check for anomaly: summary says there are records but records array is empty
+        const hasAnomaly = data.summary.totalRecords > 0 && (!data.records || data.records.length === 0);
+        setShowAnomaly(hasAnomaly);
+        
+        if (hasAnomaly && import.meta.env.DEV) {
+          console.error('[Anomaly] Summary reports records but records array is empty:', {
+            totalRecords: data.summary.totalRecords,
+            recordsArrayLength: data.records?.length || 0
+          });
+        }
         
         // Set chart data
         setSupplierData(data.byEntity || []);
@@ -171,6 +184,27 @@ const ReportsPage = () => {
         <UploadPanel onImported={handleImported} />
       ) : null}
 
+      {/* Anomaly detection alert */}
+      {showAnomaly && selectedCompany && (
+        <Alert 
+          severity="warning" 
+          sx={{ mb: 3 }}
+          action={
+            <Button 
+              color="inherit" 
+              size="small" 
+              startIcon={<RefreshIcon />}
+              onClick={() => loadDashboardData()}
+              disabled={loading}
+            >
+              Re-sincronizar
+            </Button>
+          }
+        >
+          Anomalia detectada: O resumo indica {summary?.totalRecords || 0} registros, mas a tabela está vazia. Tente re-sincronizar os dados.
+        </Alert>
+      )}
+
       {loading || loadingCompanies ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
           <CircularProgress />
@@ -229,7 +263,12 @@ const ReportsPage = () => {
 
             {/* Table */}
             <Box>
-              <PurchasesTable refresh={refreshKey} records={summary.records || []} type={reportType} />
+              <PurchasesTable 
+                refresh={refreshKey} 
+                records={summary?.records || []} 
+                type={reportType}
+                debugEnabled={import.meta.env.DEV}
+              />
             </Box>
           </Box>
         </ErrorBoundary>
