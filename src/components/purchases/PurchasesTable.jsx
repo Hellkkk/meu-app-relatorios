@@ -307,7 +307,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
         if (timeout) clearTimeout(timeout);
       };
     }
-  }, [paginationModel, refresh, records, searchQuery]);
+  }, [paginationModel, refresh, records, searchQuery, type, useDirectRecords]);
 
   return (
     <Paper sx={{ p: 3 }}>
