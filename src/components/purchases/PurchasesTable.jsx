@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Paper, Typography, TextField, Box, CircularProgress } from '@mui/material';
+import { Paper, Typography, TextField, Box, CircularProgress, Chip } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import http from '../../api/http';
+import TableDebugWrapper from '../common/TableDebugWrapper';
+import { safeNumberBR, formatCurrencyBR } from '../../utils/safeNumberBR';
 
-const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
+const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnabled = false }) => {
   const [loading, setLoading] = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [paginationModel, setPaginationModel] = useState({
@@ -15,61 +17,13 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   const [searchTimeout, setSearchTimeout] = useState(null);
 
   // If records are provided directly, use them instead of fetching
-  const useDirectRecords = records !== null;
+  // Force useDirectRecords based on Array check to avoid any legacy fetch
+  const useDirectRecords = Array.isArray(records) && records !== null;
 
-  // Função para converter valores PT-BR em números
-  const toNumberBR = (value) => {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
-    
-    const str = String(value).trim();
-    if (str === '') return 0;
-    
-    // Remove prefixos comuns (R$, $), parênteses e espaços
-    let cleaned = str
-      .replace(/R\$/gi, '')
-      .replace(/\$/g, '')
-      .replace(/[()]/g, '')
-      .replace(/\s+/g, '')
-      .trim();
-    
-    // Detectar o formato baseado na estrutura:
-    if (cleaned.includes('.') && cleaned.includes(',')) {
-      const lastComma = cleaned.lastIndexOf(',');
-      const lastDot = cleaned.lastIndexOf('.');
-      
-      if (lastComma > lastDot) {
-        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-      } else {
-        cleaned = cleaned.replace(/,/g, '');
-      }
-    } else if (cleaned.includes(',') && !cleaned.includes('.')) {
-      const parts = cleaned.split(',');
-      if (parts.length === 2 && parts[1].length <= 2) {
-        cleaned = cleaned.replace(',', '.');
-      } else {
-        cleaned = cleaned.replace(/,/g, '');
-      }
-    } else if (cleaned.includes('.') && !cleaned.includes(',')) {
-      const parts = cleaned.split('.');
-      if (parts.length === 2 && parts[1].length === 2) {
-        // Mantém como está (formato US decimal)
-      } else if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
-        cleaned = cleaned.replace(/\./g, '');
-      }
-    }
-    
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
-  };
-
+  // Function to format currency using the new safeNumberBR utility
   const formatCurrency = (value) => {
     try {
-      const numValue = toNumberBR(value);
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(numValue);
+      return formatCurrencyBR(value);
     } catch (error) {
       console.warn('Error formatting currency:', value, error);
       return 'R$ 0,00';
@@ -172,6 +126,24 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
+      renderCell: (params) => {
+        const row = params.row || {};
+        const value = getValueWithFallbacks(
+          row,
+          'valor_total',
+          'total_de_mercadoria',
+          'valor_da_mercadoria',
+          'outras_info.valor_total',
+          'outras_info.total_de_mercadoria'
+        );
+        
+        // Debug logging for first row in dev mode
+        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+          console.log('[CellRender] valor_total:', { value, raw: row.valor_total, formatted: formatCurrency(value) });
+        }
+        
+        return formatCurrency(value);
+      },
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(
@@ -183,67 +155,87 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
           'outras_info.total_de_mercadoria'
         );
       },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatCurrency(value);
-      },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
     {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
+      renderCell: (params) => {
+        const row = params.row || {};
+        const value = getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.valor_do_icms');
+        
+        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+          console.log('[CellRender] icms:', { value, raw: row.icms, formatted: formatCurrency(value) });
+        }
+        
+        return formatCurrency(value);
+      },
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.valor_do_icms');
       },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatCurrency(value);
-      },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
     {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
+      renderCell: (params) => {
+        const row = params.row || {};
+        const value = getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.valor_do_ipi');
+        
+        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+          console.log('[CellRender] ipi:', { value, raw: row.ipi, formatted: formatCurrency(value) });
+        }
+        
+        return formatCurrency(value);
+      },
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.valor_do_ipi');
       },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatCurrency(value);
-      },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
     {
       field: 'pis',
       headerName: 'PIS',
       width: 120,
+      renderCell: (params) => {
+        const row = params.row || {};
+        const value = getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'outras_info.pis', 'outras_info.valor_do_pis');
+        
+        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+          console.log('[CellRender] pis:', { value, raw: row.pis, formatted: formatCurrency(value) });
+        }
+        
+        return formatCurrency(value);
+      },
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'outras_info.pis', 'outras_info.valor_do_pis');
       },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatCurrency(value);
-      },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
     {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
+      renderCell: (params) => {
+        const row = params.row || {};
+        const value = getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'outras_info.valor_do_cofins');
+        
+        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+          console.log('[CellRender] cofins:', { value, raw: row.cofins, formatted: formatCurrency(value) });
+        }
+        
+        return formatCurrency(value);
+      },
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'outras_info.valor_do_cofins');
       },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatCurrency(value);
-      },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     }
   ];
 
@@ -272,6 +264,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   useEffect(() => {
     if (useDirectRecords) {
       // Use provided records with client-side filtering
+      // DO NOT fetch from /purchases endpoint when records are provided
       let filteredRecords = records;
       
       if (searchQuery.trim()) {
@@ -291,8 +284,17 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       
       setPurchases(filteredRecords);
       setRowCount(filteredRecords.length);
+      
+      if (debugEnabled) {
+        console.log('[PurchasesTable] Using direct records:', {
+          totalRecords: records.length,
+          filteredRecords: filteredRecords.length,
+          searchQuery,
+          firstRecord: filteredRecords[0]
+        });
+      }
     } else {
-      // Fetch from server with debounce handled here
+      // Legacy mode: Fetch from server with debounce
       if (searchTimeout) {
         clearTimeout(searchTimeout);
       }
@@ -310,51 +312,63 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   }, [paginationModel, refresh, records, searchQuery, type, useDirectRecords]);
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        {type === 'purchases' ? 'Tabela de Compras' : 'Tabela de Vendas'}
-      </Typography>
+    <TableDebugWrapper records={purchases} title={type === 'purchases' ? 'Compras' : 'Vendas'} debugEnabled={debugEnabled}>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Typography variant="h6">
+            {type === 'purchases' ? 'Tabela de Compras' : 'Tabela de Vendas'}
+          </Typography>
+          {useDirectRecords && (
+            <Chip 
+              label="patched" 
+              color="success" 
+              size="small" 
+              sx={{ fontWeight: 'bold' }}
+            />
+          )}
+        </Box>
 
-      <Box sx={{ mb: 2 }}>
-        <TextField
-          fullWidth
-          label="Buscar"
-          placeholder={type === 'purchases' ? 'Pesquisar por fornecedor, CFOP ou número de NFe' : 'Pesquisar por cliente, CFOP ou número de NFe'}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          disabled={loading}
-        />
-      </Box>
+        <Box sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            label="Buscar"
+            placeholder={type === 'purchases' ? 'Pesquisar por fornecedor, CFOP ou número de NFe' : 'Pesquisar por cliente, CFOP ou número de NFe'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            disabled={loading}
+          />
+        </Box>
 
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={purchases}
-          columns={columns}
-          rowCount={rowCount}
-          loading={loading}
-          pageSizeOptions={[5, 10, 25, 50]}
-          paginationModel={paginationModel}
-          paginationMode={useDirectRecords ? 'client' : 'server'}
-          onPaginationModelChange={setPaginationModel}
-          getRowId={(row) => {
-            // Try to generate a stable, unique ID with multiple fallbacks
-            if (row._id) return row._id;
-            if (row.id) return row.id;
-            
-            // Generate deterministic ID from available fields
-            const entity = row.fornecedor || row.cliente || row.outras_info?.fornecedor || row.outras_info?.cliente || 'unknown';
-            const nfe = row.numero_nfe || row.outras_info?.numero_nfe || 'no-nfe';
-            const cfop = row.cfop || row.outras_info?.cfop || 'no-cfop';
-            const date = row.data_compra || row.data_emissao || row.outras_info?.data_compra || row.outras_info?.data_emissao || 'no-date';
-            const valor = row.valor_total || row.total_de_mercadoria || row.outras_info?.valor_total || '0';
-            
-            // Create a composite key that should be unique for each transaction
-            return `${entity}-${nfe}-${cfop}-${date}-${valor}`.replace(/[^a-zA-Z0-9-]/g, '_');
-          }}
-          disableRowSelectionOnClick
-        />
-      </Box>
-    </Paper>
+        <Box sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={purchases}
+            columns={columns}
+            rowCount={rowCount}
+            loading={loading}
+            pageSizeOptions={[5, 10, 25, 50]}
+            paginationModel={paginationModel}
+            paginationMode={useDirectRecords ? 'client' : 'server'}
+            onPaginationModelChange={setPaginationModel}
+            getRowId={(row) => {
+              // Try to generate a stable, unique ID with multiple fallbacks
+              if (row._id) return row._id;
+              if (row.id) return row.id;
+              
+              // Generate deterministic ID from available fields
+              const entity = row.fornecedor || row.cliente || row.outras_info?.fornecedor || row.outras_info?.cliente || 'unknown';
+              const nfe = row.numero_nfe || row.outras_info?.numero_nfe || 'no-nfe';
+              const cfop = row.cfop || row.outras_info?.cfop || 'no-cfop';
+              const date = row.data_compra || row.data_emissao || row.outras_info?.data_compra || row.outras_info?.data_emissao || 'no-date';
+              const valor = row.valor_total || row.total_de_mercadoria || row.outras_info?.valor_total || '0';
+              
+              // Create a composite key that should be unique for each transaction
+              return `${entity}-${nfe}-${cfop}-${date}-${valor}`.replace(/[^a-zA-Z0-9-]/g, '_');
+            }}
+            disableRowSelectionOnClick
+          />
+        </Box>
+      </Paper>
+    </TableDebugWrapper>
   );
 };
 

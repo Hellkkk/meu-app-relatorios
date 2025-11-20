@@ -308,6 +308,100 @@ npm run dev
 npm run client
 ```
 
+## Debug Tabela de Relatórios
+
+### Validação de Dados Monetários
+
+A tabela de compras/vendas foi aprimorada com logs de diagnóstico para facilitar a validação de dados:
+
+#### Como Verificar em Desenvolvimento
+
+1. **Inicie o frontend em modo desenvolvimento:**
+   ```bash
+   npm run client
+   ```
+
+2. **Abra as Ferramentas de Desenvolvedor do navegador** (F12 ou Ctrl+Shift+I)
+
+3. **Navegue até a página de Relatórios**
+
+4. **Procure no Console pelos seguintes logs:**
+
+   - `[TableMount]` - Mostra quantos registros foram carregados na tabela:
+     ```
+     [TableMount] Compras: { recordsCount: 150, hasRecords: true, timestamp: "..." }
+     ```
+
+   - `[RowSample]` - Exibe uma amostra do primeiro registro com todos os campos monetários:
+     ```
+     [RowSample] Compras - First Record: {
+       monetaryFields: {
+         valor_total: 49116.38,
+         icms: 5893.97,
+         ipi: 0,
+         pis: 1014.84,
+         cofins: 4680.08
+       }
+     }
+     ```
+
+   - `[CellRender]` - Mostra os valores calculados para cada célula monetária da primeira linha:
+     ```
+     [CellRender] valor_total: { value: 49116.38, formatted: "R$ 49.116,38" }
+     [CellRender] icms: { value: 5893.97, formatted: "R$ 5.893,97" }
+     ```
+
+   - `[PurchasesTable]` - Confirma que registros diretos estão sendo usados:
+     ```
+     [PurchasesTable] Using direct records: {
+       totalRecords: 150,
+       filteredRecords: 150,
+       firstRecord: {...}
+     }
+     ```
+
+5. **Verificação Visual:**
+   - A tabela deve mostrar um badge verde **"patched"** ao lado do título
+   - Os valores monetários devem ser exibidos corretamente (não "R$ 0,00")
+   - Compare os valores da primeira linha com o log `[RowSample]` no console
+
+#### Detecção de Anomalias
+
+Se houver uma inconsistência entre o resumo e os dados da tabela (ex: resumo diz 150 registros mas tabela está vazia), você verá:
+
+- **Alerta de Anomalia** na página com botão "Re-sincronizar"
+- **Log de erro no console:**
+  ```
+  [Anomaly] Summary reports records but records array is empty: {
+    totalRecords: 150,
+    recordsArrayLength: 0
+  }
+  ```
+
+Use o botão **Re-sincronizar** para tentar recarregar os dados.
+
+#### Logs Apenas em Desenvolvimento
+
+⚠️ **Importante:** Todos os logs de debug são habilitados apenas em modo desenvolvimento (`import.meta.env.DEV`). Em produção, nenhum log será exibido no console para não impactar a performance.
+
+### Validação Pós-Deploy
+
+Após fazer deploy em produção:
+
+1. **Limpe o cache do navegador:** Ctrl+F5 ou Ctrl+Shift+R
+2. **Verifique o badge "patched"** no título da tabela
+3. **Confirme que os valores monetários estão corretos** (compare com resposta da API `/reports/:companyId/summary`)
+4. **Alterne entre Compras e Vendas** para confirmar que ambos os tipos funcionam
+
+### Teste da Utilidade safeNumberBR
+
+A função `safeNumberBR` pode ser testada manualmente no console do navegador:
+
+```javascript
+import { testSafeNumberBR } from './src/utils/safeNumberBR';
+testSafeNumberBR(); // Retorna true se todos os testes passarem
+```
+
 ## Licença
 
 ISC
