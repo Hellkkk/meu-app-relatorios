@@ -3,7 +3,7 @@ import { Paper, Typography, TextField, Box, CircularProgress, Chip } from '@mui/
 import { DataGrid } from '@mui/x-data-grid';
 import http from '../../api/http';
 import TableDebugWrapper from '../common/TableDebugWrapper';
-import { safeNumberBR, formatCurrencyBR } from '../../utils/safeNumberBR';
+import { safeNumberBR, formatCurrencyBR, detectMissing } from '../../utils/safeNumberBR';
 
 const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnabled = false }) => {
   const [loading, setLoading] = useState(false);
@@ -76,6 +76,38 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
     return null;
   };
 
+  // Helper to render monetary cells with missing value tooltip
+  const renderMonetaryCell = (params, ...fieldPaths) => {
+    const row = params.row || {};
+    const value = getValueWithFallbacks(row, ...fieldPaths);
+    const formatted = formatCurrency(value);
+    
+    // Check if this is a missing value (null/undefined that became 0)
+    const isMissing = detectMissing(value, safeNumberBR(value));
+    
+    // Debug logging for first row in dev mode
+    if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
+      const fieldName = fieldPaths[0].split('.').pop();
+      console.log(`[CellRender] ${fieldName}:`, { 
+        value, 
+        raw: row[fieldPaths[0].split('.')[0]], 
+        formatted,
+        isMissing 
+      });
+    }
+    
+    // Return with tooltip if missing
+    if (isMissing) {
+      return (
+        <span title="Valor ausente (fallback)" style={{ color: '#999', fontStyle: 'italic' }}>
+          {formatted}
+        </span>
+      );
+    }
+    
+    return formatted;
+  };
+
   const columns = [
     {
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
@@ -126,24 +158,15 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
-      renderCell: (params) => {
-        const row = params.row || {};
-        const value = getValueWithFallbacks(
-          row,
-          'valor_total',
-          'total_de_mercadoria',
-          'valor_da_mercadoria',
-          'outras_info.valor_total',
-          'outras_info.total_de_mercadoria'
-        );
-        
-        // Debug logging for first row in dev mode
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log('[CellRender] valor_total:', { value, raw: row.valor_total, formatted: formatCurrency(value) });
-        }
-        
-        return formatCurrency(value);
-      },
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'valor_total',
+        'total_de_mercadoria',
+        'valor_da_mercadoria',
+        'outras_info.valor_total',
+        'outras_info.total_de_mercadoria',
+        'outras_info.valor_da_mercadoria'
+      ),
       valueGetter: (params) => {
         const row = safeRow(params);
         return getValueWithFallbacks(
@@ -161,19 +184,16 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
-      renderCell: (params) => {
-        const row = params.row || {};
-        const value = getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.valor_do_icms');
-        
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log('[CellRender] icms:', { value, raw: row.icms, formatted: formatCurrency(value) });
-        }
-        
-        return formatCurrency(value);
-      },
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'icms',
+        'valor_do_icms',
+        'outras_info.icms',
+        'outras_info.valor_do_icms'
+      ),
       valueGetter: (params) => {
         const row = safeRow(params);
-        return getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.valor_do_icms');
+        return getValueWithFallbacks(row, 'icms', 'valor_do_icms', 'outras_info.icms', 'outras_info.valor_do_icms');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
@@ -181,19 +201,16 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
-      renderCell: (params) => {
-        const row = params.row || {};
-        const value = getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.valor_do_ipi');
-        
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log('[CellRender] ipi:', { value, raw: row.ipi, formatted: formatCurrency(value) });
-        }
-        
-        return formatCurrency(value);
-      },
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'ipi',
+        'valor_do_ipi',
+        'outras_info.ipi',
+        'outras_info.valor_do_ipi'
+      ),
       valueGetter: (params) => {
         const row = safeRow(params);
-        return getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.valor_do_ipi');
+        return getValueWithFallbacks(row, 'ipi', 'valor_do_ipi', 'outras_info.ipi', 'outras_info.valor_do_ipi');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
@@ -201,19 +218,18 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'pis',
       headerName: 'PIS',
       width: 120,
-      renderCell: (params) => {
-        const row = params.row || {};
-        const value = getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'outras_info.pis', 'outras_info.valor_do_pis');
-        
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log('[CellRender] pis:', { value, raw: row.pis, formatted: formatCurrency(value) });
-        }
-        
-        return formatCurrency(value);
-      },
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'pis',
+        'valor_do_pis',
+        'pis_total',
+        'outras_info.pis',
+        'outras_info.valor_do_pis',
+        'outras_info.pis_total'
+      ),
       valueGetter: (params) => {
         const row = safeRow(params);
-        return getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'outras_info.pis', 'outras_info.valor_do_pis');
+        return getValueWithFallbacks(row, 'pis', 'valor_do_pis', 'pis_total', 'outras_info.pis', 'outras_info.valor_do_pis', 'outras_info.pis_total');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     },
@@ -221,21 +237,61 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
-      renderCell: (params) => {
-        const row = params.row || {};
-        const value = getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'outras_info.valor_do_cofins');
-        
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log('[CellRender] cofins:', { value, raw: row.cofins, formatted: formatCurrency(value) });
-        }
-        
-        return formatCurrency(value);
-      },
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'cofins',
+        'valor_do_cofins',
+        'cofins_total',
+        'outras_info.cofins',
+        'outras_info.valor_do_cofins',
+        'outras_info.cofins_total'
+      ),
       valueGetter: (params) => {
         const row = safeRow(params);
-        return getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'outras_info.valor_do_cofins');
+        return getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'cofins_total', 'outras_info.cofins', 'outras_info.valor_do_cofins', 'outras_info.cofins_total');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
+    },
+    {
+      field: 'bruto',
+      headerName: 'Bruto',
+      width: 120,
+      renderCell: (params) => renderMonetaryCell(
+        params,
+        'bruto',
+        'valor_bruto',
+        'vl_bruto',
+        'outras_info.bruto',
+        'outras_info.valor_bruto',
+        'outras_info.vl_bruto'
+      ),
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'bruto', 'valor_bruto', 'vl_bruto', 'outras_info.bruto', 'outras_info.valor_bruto');
+      },
+      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
+    },
+    {
+      field: 'fonte',
+      headerName: 'Fonte',
+      width: 150,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'source_filename', 'origem', 'fonte', 'outras_info.source_filename', 'outras_info.origem');
+      }
+    },
+    {
+      field: 'imported_at',
+      headerName: 'Data Importação',
+      width: 140,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'imported_at', 'data_importacao', 'outras_info.imported_at');
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatDate(value);
+      }
     }
   ];
 
