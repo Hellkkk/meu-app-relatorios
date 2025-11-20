@@ -17,55 +17,76 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
   // If records are provided directly, use them instead of fetching
   const useDirectRecords = records !== null;
 
-  // Função para converter valores PT-BR em números
-  const toNumberBR = (value) => {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
-    
-    const str = String(value).trim();
-    if (str === '') return 0;
-    
-    // Remove prefixos comuns (R$, $), parênteses e espaços
-    let cleaned = str
-      .replace(/R\$/gi, '')
-      .replace(/\$/g, '')
-      .replace(/[()]/g, '')
-      .replace(/\s+/g, '')
-      .trim();
-    
-    // Detectar o formato baseado na estrutura:
-    if (cleaned.includes('.') && cleaned.includes(',')) {
-      const lastComma = cleaned.lastIndexOf(',');
-      const lastDot = cleaned.lastIndexOf('.');
-      
-      if (lastComma > lastDot) {
-        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-      } else {
-        cleaned = cleaned.replace(/,/g, '');
-      }
-    } else if (cleaned.includes(',') && !cleaned.includes('.')) {
-      const parts = cleaned.split(',');
-      if (parts.length === 2 && parts[1].length <= 2) {
-        cleaned = cleaned.replace(',', '.');
-      } else {
-        cleaned = cleaned.replace(/,/g, '');
-      }
-    } else if (cleaned.includes('.') && !cleaned.includes(',')) {
-      const parts = cleaned.split('.');
-      if (parts.length === 2 && parts[1].length === 2) {
-        // Mantém como está (formato US decimal)
-      } else if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
-        cleaned = cleaned.replace(/\./g, '');
-      }
+  // Safe number conversion: handles numbers, strings with BR formatting, and null/undefined
+  const safeNumber = (value) => {
+    // If already a finite number, return as-is
+    if (typeof value === 'number' && isFinite(value)) {
+      return value;
     }
     
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    // If null or undefined, return 0
+    if (value == null) {
+      return 0;
+    }
+    
+    // If string, normalize BR → US format
+    if (typeof value === 'string') {
+      const str = value.trim();
+      if (str === '') return 0;
+      
+      // Remove "R$", spaces, and normalize BR format to US
+      // BR format: "R$ 46.716,33" or "46.716,33" → US format: "46716.33"
+      let cleaned = str
+        .replace(/R\$/gi, '')  // Remove currency symbol
+        .replace(/\s+/g, '')    // Remove all spaces
+        .trim();
+      
+      // Detect format based on structure
+      if (cleaned.includes('.') && cleaned.includes(',')) {
+        // Has both separators - determine which is decimal
+        const lastComma = cleaned.lastIndexOf(',');
+        const lastDot = cleaned.lastIndexOf('.');
+        
+        if (lastComma > lastDot) {
+          // BR format: 1.234,56 → remove dots (thousands), replace comma with dot
+          cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+        } else {
+          // US format: 1,234.56 → remove commas (thousands)
+          cleaned = cleaned.replace(/,/g, '');
+        }
+      } else if (cleaned.includes(',') && !cleaned.includes('.')) {
+        // Only comma - likely BR decimal separator
+        const parts = cleaned.split(',');
+        if (parts.length === 2 && parts[1].length <= 2) {
+          // Looks like decimal: 1234,56 → 1234.56
+          cleaned = cleaned.replace(',', '.');
+        } else {
+          // Looks like thousands separator: 1,234 → 1234
+          cleaned = cleaned.replace(/,/g, '');
+        }
+      } else if (cleaned.includes('.') && !cleaned.includes(',')) {
+        // Only dot - could be thousands or decimal
+        const parts = cleaned.split('.');
+        if (parts.length === 2 && parts[1].length === 2) {
+          // Likely decimal already: 1234.56
+          // Keep as-is
+        } else if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3)) {
+          // Likely thousands separator: 1.234.567 → 1234567
+          cleaned = cleaned.replace(/\./g, '');
+        }
+      }
+      
+      const num = Number(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+    
+    // Fallback for other types
+    return 0;
   };
 
   const formatCurrency = (value) => {
     try {
-      const numValue = toNumberBR(value);
+      const numValue = safeNumber(value);
       return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
@@ -130,51 +151,73 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       field: 'valor_total',
       headerName: 'Valor Total',
       width: 130,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return safeNumber(row.valor_total);
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
       },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumber(v1) - safeNumber(v2)
     },
     {
       field: 'icms',
       headerName: 'ICMS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return safeNumber(row.icms);
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
       },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumber(v1) - safeNumber(v2)
     },
     {
       field: 'ipi',
       headerName: 'IPI',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return safeNumber(row.ipi);
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
       },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumber(v1) - safeNumber(v2)
     },
     {
       field: 'pis',
       headerName: 'PIS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        // Handle PIS fallback logic
+        const pisValue = row.pis || row.outras_info?.pis || row.outras_info?.valor_do_pis;
+        return safeNumber(pisValue);
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
       },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumber(v1) - safeNumber(v2)
     },
     {
       field: 'cofins',
       headerName: 'COFINS',
       width: 120,
+      valueGetter: (params) => {
+        const row = safeRow(params);
+        return safeNumber(row.cofins);
+      },
       valueFormatter: (params) => {
         const value = safeValue(params);
         return formatCurrency(value);
       },
-      sortComparator: (v1, v2) => toNumberBR(v1) - toNumberBR(v2)
+      sortComparator: (v1, v2) => safeNumber(v1) - safeNumber(v2)
     }
   ];
 
@@ -205,6 +248,12 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases' }) => {
       // Use provided records
       setPurchases(records);
       setRowCount(records.length);
+      
+      // Development-only logging to inspect data types
+      if (import.meta.env.DEV && records.length > 0) {
+        console.debug('[TableSample]', type, 'First record:', records[0]);
+        console.debug('[TableSample]', type, 'valor_total type:', typeof records[0].valor_total, 'value:', records[0].valor_total);
+      }
     } else {
       // Fetch from server
       fetchPurchases();
