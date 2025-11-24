@@ -142,32 +142,39 @@ const HEADER_ALIASES_PURCHASES = {
   fornecedor: [
     'fornecedor', 'supplier', 'vendedor', 'emitente', 'razao_social', 
     'razao_social_fornecedor', 'nome_fornecedor', 'fornecedorcliente_nome_fantasia',
-    'nome_fantasia', 'fornecedor_cliente'
+    'nome_fantasia', 'fornecedor_cliente', 'fornecedor_nome_fantasia',
+    'razao_social_emitente', 'nome_fantasia_fornecedor', 'fornecedor_razao_social'
   ],
-  cfop: ['cfop', 'cfop_de_entrada', 'codigo_cfop'],
+  cfop: [
+    'cfop', 'cfop_de_entrada', 'codigo_cfop', 'cfop_entrada', 
+    'cfop_compra', 'cod_cfop', 'codigo_fiscal'
+  ],
   numero_nfe: [
     'numero_nfe', 'nfe', 'nota', 'numero', 'numero_nf', 'n_nf', 'n_nfe', 
     'no_nf', 'no_nfe', 'num_nf', 'numero_da_nfe', 'nº_nf_e', 'nº_nfe', 
-    'nº_nf', 'nota_fiscal', 'num_nota', 'numero_nota'
+    'nº_nf', 'nota_fiscal', 'num_nota', 'numero_nota', 'nr_nfe', 'nr_nota',
+    'num_nfe', 'nf', 'nfe_numero'
   ],
   data_compra: [
     'data_compra', 'data', 'date', 'data_emissao', 'emissao', 'data_da_emissao',
     'data_entrada', 'data_lancamento', 'dt_emissao', 'dt_entrada',
-    'data_de_registro_completa', 'data_registro'
+    'data_de_registro_completa', 'data_registro', 'dt_compra',
+    'data_nfe', 'data_nf', 'data_nota', 'dt_nota'
   ],
   valor_total: [
     'valor_total', 'total', 'valor', 'valor_nota', 'valor_da_nota',
     'valor_total_nf', 'valor_total_da_nf', 'valor_total_nfe', 'vl_total',
     'valor_documento', 'valor_total_da_nota', 'total_de_mercadoria',
-    'valor_mercadoria', 'total_mercadoria'
+    'valor_mercadoria', 'total_mercadoria', 'vlr_total', 'valor_nfe'
   ],
-  icms: ['icms', 'vl_icms', 'valor_icms', 'valor_do_icms'],
-  ipi: ['ipi', 'vl_ipi', 'valor_ipi', 'valor_do_ipi'],
-  cofins: ['cofins', 'vl_cofins', 'valor_cofins', 'valor_do_cofins'],
-  pis: ['pis', 'vl_pis', 'valor_pis', 'valor_do_pis'],
+  icms: ['icms', 'vl_icms', 'valor_icms', 'valor_do_icms', 'vlr_icms', 'icms_valor'],
+  ipi: ['ipi', 'vl_ipi', 'valor_ipi', 'valor_do_ipi', 'vlr_ipi', 'ipi_valor'],
+  cofins: ['cofins', 'vl_cofins', 'valor_cofins', 'valor_do_cofins', 'vlr_cofins', 'cofins_valor'],
+  pis: ['pis', 'vl_pis', 'valor_pis', 'valor_do_pis', 'vlr_pis', 'pis_valor'],
   bruto: [
     'bruto', 'valor_bruto', 'vl_bruto', 'valor_produtos', 
-    'valor_mercadorias', 'valor_bruto_mercadorias'
+    'valor_mercadorias', 'valor_bruto_mercadorias', 'vlr_bruto',
+    'bruto_mercadoria', 'valor_bruto_produtos'
   ]
 };
 
@@ -176,32 +183,39 @@ const HEADER_ALIASES_SALES = {
   cliente: [
     'cliente', 'customer', 'comprador', 'destinatario', 'razao_social',
     'razao_social_cliente', 'nome_cliente', 'nome_fantasia',
-    'cliente_nome_fantasia' // Added for "Cliente (Nome Fantasia)"
+    'cliente_nome_fantasia', 'razao_social_destinatario',
+    'nome_fantasia_cliente', 'cliente_razao_social'
   ],
-  cfop: ['cfop', 'codigo_cfop', 'cfop_saida'],
+  cfop: [
+    'cfop', 'codigo_cfop', 'cfop_saida', 'cfop_de_saida', 
+    'cfop_venda', 'cod_cfop', 'codigo_fiscal'
+  ],
   numero_nfe: [
     'numero_nfe', 'nfe', 'nota', 'numero', 'numero_nf', 'n_nf', 'n_nfe', 
     'no_nf', 'no_nfe', 'num_nf', 'numero_da_nfe', 'nº_nf_e', 'nº_nfe', 
-    'nº_nf', 'nota_fiscal', 'num_nota', 'numero_nota'
+    'nº_nf', 'nota_fiscal', 'num_nota', 'numero_nota', 'nr_nfe', 'nr_nota',
+    'num_nfe', 'nf', 'nfe_numero'
   ],
   data_emissao: [
     'data_emissao', 'data', 'date', 'data_venda', 'emissao', 'data_da_emissao',
     'data_saida', 'data_lancamento', 'dt_emissao', 'dt_saida',
-    'data_de_emissao_completa' // Added for "Data de Emissão (completa)"
+    'data_de_emissao_completa', 'dt_venda',
+    'data_nfe', 'data_nf', 'data_nota', 'dt_nota'
   ],
   valor_total: [
     'valor_total', 'total', 'valor', 'valor_nota', 'valor_da_nota',
     'valor_total_nf', 'valor_total_da_nf', 'valor_total_nfe', 'vl_total',
     'valor_documento', 'valor_total_da_nota', 'total_de_mercadoria',
-    'valor_mercadoria', 'total_mercadoria'
+    'valor_mercadoria', 'total_mercadoria', 'vlr_total', 'valor_nfe'
   ],
-  icms: ['icms', 'vl_icms', 'valor_icms', 'valor_do_icms'],
-  ipi: ['ipi', 'vl_ipi', 'valor_ipi', 'valor_do_ipi'],
-  cofins: ['cofins', 'vl_cofins', 'valor_cofins', 'valor_do_cofins'],
-  pis: ['pis', 'vl_pis', 'valor_pis', 'valor_do_pis'],
+  icms: ['icms', 'vl_icms', 'valor_icms', 'valor_do_icms', 'vlr_icms', 'icms_valor'],
+  ipi: ['ipi', 'vl_ipi', 'valor_ipi', 'valor_do_ipi', 'vlr_ipi', 'ipi_valor'],
+  cofins: ['cofins', 'vl_cofins', 'valor_cofins', 'valor_do_cofins', 'vlr_cofins', 'cofins_valor'],
+  pis: ['pis', 'vl_pis', 'valor_pis', 'valor_do_pis', 'vlr_pis', 'pis_valor'],
   bruto: [
     'bruto', 'valor_bruto', 'vl_bruto', 'valor_produtos', 
-    'valor_mercadorias', 'valor_bruto_mercadorias'
+    'valor_mercadorias', 'valor_bruto_mercadorias', 'vlr_bruto',
+    'bruto_mercadoria', 'valor_bruto_produtos'
   ]
 };
 
@@ -340,16 +354,19 @@ function isValidRow(rowObj, type) {
  * Parse Excel file for purchases or sales
  * @param {string} filePath - Caminho absoluto do arquivo Excel
  * @param {string} type - 'purchases' ou 'sales'
+ * @param {boolean} debug - Enable debug logging (default: false)
  * @returns {Array} Array de objetos processados
  */
-function parseExcelFile(filePath, type = 'purchases') {
+function parseExcelFile(filePath, type = 'purchases', debug = false) {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Arquivo não encontrado: ${filePath}`);
   }
   
   const aliases = type === 'purchases' ? HEADER_ALIASES_PURCHASES : HEADER_ALIASES_SALES;
   
-  console.log(`Carregando planilha de ${type}: ${filePath}`);
+  const isDebugMode = debug || process.env.LOG_LEVEL === 'debug';
+  const logPrefix = isDebugMode ? '[ExcelParser] ' : '';
+  console.log(`${logPrefix}Carregando planilha de ${type}: ${filePath}`);
   
   // Ler o arquivo Excel
   const workbook = xlsx.readFile(filePath, { cellDates: true });
@@ -373,6 +390,12 @@ function parseExcelFile(filePath, type = 'purchases') {
   const headerRowIndex = detectHeaderRow(rawData, aliases);
   console.log(`Linha de cabeçalho detectada: ${headerRowIndex}`);
   
+  if (isDebugMode) {
+    const headers = rawData[headerRowIndex];
+    console.log(`[ExcelParser] Headers encontrados:`, headers);
+    console.log(`[ExcelParser] Headers normalizados:`, headers.map(h => normalizeHeader(h)));
+  }
+  
   // Construir objetos de dados a partir do header detectado
   const parsedRows = buildRowsFromHeader(rawData, headerRowIndex, aliases);
   
@@ -382,6 +405,8 @@ function parseExcelFile(filePath, type = 'purchases') {
   
   // Processar e validar cada linha
   const records = [];
+  const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
+  const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
   
   for (const row of parsedRows) {
     if (!isValidRow(row, type)) {
@@ -432,6 +457,35 @@ function parseExcelFile(filePath, type = 'purchases') {
   }
   
   console.log(`${records.length} registros processados da planilha de ${type}`);
+  
+  // Debug logging for identification fields statistics
+  if (isDebugMode && records.length > 0) {
+    let countWithEntity = 0;
+    let countWithDate = 0;
+    let countWithNfe = 0;
+    let countWithCfop = 0;
+    
+    records.forEach(record => {
+      if (record[entityField] && record[entityField].trim() !== '') countWithEntity++;
+      if (record[dateField] && record[dateField].trim() !== '') countWithDate++;
+      if (record.numero_nfe && record.numero_nfe.trim() !== '') countWithNfe++;
+      if (record.cfop && record.cfop.trim() !== '') countWithCfop++;
+    });
+    
+    console.log(`[ExcelParser] Estatísticas de identificação:`);
+    console.log(`  ${entityField}: ${countWithEntity}/${records.length} (${(countWithEntity/records.length*100).toFixed(1)}%)`);
+    console.log(`  ${dateField}: ${countWithDate}/${records.length} (${(countWithDate/records.length*100).toFixed(1)}%)`);
+    console.log(`  numero_nfe: ${countWithNfe}/${records.length} (${(countWithNfe/records.length*100).toFixed(1)}%)`);
+    console.log(`  cfop: ${countWithCfop}/${records.length} (${(countWithCfop/records.length*100).toFixed(1)}%)`);
+    
+    console.log(`[ExcelParser] Primeiro registro:`, {
+      [entityField]: records[0][entityField],
+      [dateField]: records[0][dateField],
+      numero_nfe: records[0].numero_nfe,
+      cfop: records[0].cfop,
+      valor_total: records[0].valor_total
+    });
+  }
   
   return records;
 }
