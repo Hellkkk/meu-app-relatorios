@@ -430,41 +430,13 @@ Se as colunas de identificação (Data, Fornecedor/Cliente, Nº NFe, CFOP) estiv
    curl http://localhost:3000/api/reports/{companyId}/summary?type=sales&limit=5
    ```
 4. **Fallbacks utilizados** - O sistema tenta múltiplos aliases para cada campo:
-   - **Data**: `data_compra`, `data_emissao`, `data`, `data_entrada`, `data_lancamento`, `dt_emissao`, `data_nfe`, etc.
-   - **Fornecedor**: `fornecedor`, `supplier`, `razao_social`, `nome_fornecedor`, `nome_fantasia`, `fornecedor_nome_fantasia`, `razao_social_emitente`, etc.
-   - **Cliente**: `cliente`, `customer`, `razao_social`, `nome_cliente`, `cliente_nome_fantasia`, `nome_fantasia`, `razao_social_destinatario`, etc.
-   - **Nº NFe**: `numero_nfe`, `nfe`, `nota`, `numero_nf`, `n_nfe`, `nota_fiscal`, `nr_nfe`, `num_nfe`, etc.
-   - **CFOP**: `cfop`, `codigo_cfop`, `cfop_de_entrada`, `cfop_saida`, `cfop_entrada`, `cfop_venda`, `cfop_compra`, etc.
+   - **Data**: `data_compra`, `data_emissao`, `data`, `data_entrada`, etc.
+   - **Fornecedor**: `fornecedor`, `supplier`, `razao_social`, `nome_fornecedor`, `nome_fantasia`, etc.
+   - **Cliente**: `cliente`, `customer`, `razao_social`, `nome_cliente`, `cliente_nome_fantasia`, etc.
+   - **Nº NFe**: `numero_nfe`, `nfe`, `nota`, `numero_nf`, `n_nfe`, `nota_fiscal`, etc.
+   - **CFOP**: `cfop`, `codigo_cfop`, `cfop_de_entrada`, `cfop_saida`, etc.
 
 5. **Caractere placeholder** - Campos verdadeiramente ausentes exibem `—` em cinza e itálico
-
-6. **Debug do Parser Backend** - Para debugar o processamento de Excel no backend:
-   ```bash
-   # Habilitar logs detalhados do parser
-   export LOG_LEVEL=debug
-   npm start
-   ```
-   
-   Você verá logs como:
-   ```
-   [ExcelParser] Carregando planilha de purchases: /path/to/Compras_AVM.xlsx
-   [ExcelParser] Headers encontrados: [ 'Data', 'Fornecedor', 'CFOP', 'Nº NFe', ... ]
-   [ExcelParser] Headers normalizados: [ 'data', 'fornecedor', 'cfop', 'nº_nfe', ... ]
-   [ExcelParser] Estatísticas de identificação:
-     fornecedor: 404/404 (100.0%)
-     data_compra: 404/404 (100.0%)
-     numero_nfe: 404/404 (100.0%)
-     cfop: 404/404 (100.0%)
-   [ExcelParser] Primeiro registro: { fornecedor: 'COMERCIAL PICA-PAU LTDA', ... }
-   ```
-
-7. **Teste do Parser Isolado**:
-   ```bash
-   # Testar o parser com arquivo específico
-   node -e "const {parseExcelFile} = require('./utils/excelParser'); console.log(JSON.stringify(parseExcelFile('./Compras_AVM.xlsx', 'purchases', true), null, 2))" | head -100
-   ```
-
-8. **Lista Completa de Aliases** - Veja `utils/excelParser.js` linhas 140-210 para lista completa de aliases suportados
 
 ### Validação Pós-Deploy
 
