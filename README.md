@@ -409,6 +409,35 @@ Use o botão **Re-sincronizar** para tentar recarregar os dados.
 
 ⚠️ **Importante:** Todos os logs de debug são habilitados apenas em modo desenvolvimento (`import.meta.env.DEV`). Em produção, nenhum log será exibido no console para não impactar a performance.
 
+### Debug de Colunas de Identificação
+
+Se as colunas de identificação (Data, Fornecedor/Cliente, Nº NFe, CFOP) estiverem vazias:
+
+1. **Abra o Console do Navegador** (F12) em modo desenvolvimento
+2. **Procure por logs [IDDebug]** - estes mostram os valores brutos das colunas de identificação para o primeiro registro visível:
+   ```
+   [IDDebug] Date: { value: "2025-10-17T00:00:00.000Z", formatted: "17/10/2025", raw: {...} }
+   [IDDebug] fornecedor: { value: "COMERCIAL PICA-PAU LTDA", raw: {...}, fieldName: "fornecedor" }
+   [IDDebug] numero_nfe: { value: "000000504", raw: {...}, fieldName: "numero_nfe" }
+   [IDDebug] cfop: { value: "2.101", raw: {...}, fieldName: "cfop" }
+   ```
+3. **Verifique os dados retornados pela API**:
+   ```bash
+   # Para compras
+   curl http://localhost:3000/api/reports/{companyId}/summary?type=purchases&limit=5
+   
+   # Para vendas
+   curl http://localhost:3000/api/reports/{companyId}/summary?type=sales&limit=5
+   ```
+4. **Fallbacks utilizados** - O sistema tenta múltiplos aliases para cada campo:
+   - **Data**: `data_compra`, `data_emissao`, `data`, `data_entrada`, etc.
+   - **Fornecedor**: `fornecedor`, `supplier`, `razao_social`, `nome_fornecedor`, `nome_fantasia`, etc.
+   - **Cliente**: `cliente`, `customer`, `razao_social`, `nome_cliente`, `cliente_nome_fantasia`, etc.
+   - **Nº NFe**: `numero_nfe`, `nfe`, `nota`, `numero_nf`, `n_nfe`, `nota_fiscal`, etc.
+   - **CFOP**: `cfop`, `codigo_cfop`, `cfop_de_entrada`, `cfop_saida`, etc.
+
+5. **Caractere placeholder** - Campos verdadeiramente ausentes exibem `—` em cinza e itálico
+
 ### Validação Pós-Deploy
 
 Após fazer deploy em produção:
