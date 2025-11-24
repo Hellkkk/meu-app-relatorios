@@ -12,25 +12,27 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const endpoints = ['/api/reports/stats/overview'];
-        
+        // Fetch admin-only stats (companies, users)
+        const adminRequests = [];
         if (isAdmin()) {
-          endpoints.push('/api/companies/stats/overview', '/api/admin/stats/users');
+          adminRequests.push(
+            axios.get('/api/companies/stats/overview').catch(err => ({ data: { success: false, error: err.message } })),
+            axios.get('/api/admin/stats/users').catch(err => ({ data: { success: false, error: err.message } }))
+          );
         }
 
-        const requests = endpoints.map(endpoint => 
-          axios.get(endpoint).catch(err => ({ data: { success: false, error: err.message } }))
-        );
-
-        const responses = await Promise.all(requests);
+        const adminResponses = await Promise.all(adminRequests);
+        
+        // Fetch reports stats from Excel summaries
+        const reportsStats = await fetchReportsSummaryStats();
         
         const statsData = {
-          reports: responses[0].data.success ? responses[0].data.data : null
+          reports: reportsStats
         };
 
-        if (isAdmin() && responses.length > 1) {
-          statsData.companies = responses[1].data.success ? responses[1].data.data : null;
-          statsData.users = responses[2].data.success ? responses[2].data.data : null;
+        if (isAdmin() && adminResponses.length > 0) {
+          statsData.companies = adminResponses[0].data.success ? adminResponses[0].data.data : null;
+          statsData.users = adminResponses[1].data.success ? adminResponses[1].data.data : null;
         }
 
         setStats(statsData);
@@ -44,6 +46,121 @@ const Dashboard = () => {
 
     fetchStats();
   }, [isAdmin]);
+
+  const fetchReportsSummaryStats = async () => {
+    try {
+      // Determine which companies to query
+      let companyIds = [];
+      
+      // Get companies from user context
+      if (user.companies && user.companies.length > 0) {
+        // Normalize company IDs (handle both ObjectId strings and populated objects)
+        companyIds = user.companies.map(company => 
+          typeof company === 'string' ? company : company._id
+        );
+      } else if (isAdmin()) {
+        // For admin with no companies in context, fetch all companies
+        try {
+          const companiesRes = await axios.get('/api/companies?limit=200');
+          if (companiesRes.data.success && companiesRes.data.data?.companies) {
+            companyIds = companiesRes.data.data.companies.map(c => c._id);
+          }
+        } catch (err) {
+          console.error('Error fetching companies for admin:', err);
+        }
+      }
+
+      if (companyIds.length === 0) {
+        // No companies to query
+        return {
+          overview: {
+            total: 0,
+            byType: []
+          }
+        };
+      }
+
+      // Fetch summaries for all companies in parallel
+      const summaryPromises = [];
+      companyIds.forEach(companyId => {
+        // Track request type with the promise for explicit identification
+        summaryPromises.push(
+          axios.get(`/api/reports/${companyId}/summary?type=purchases`)
+            .then(response => ({ ...response, reportType: 'purchases' }))
+            .catch(err => {
+              // Ignore 404 (no file configured) and 403 (no access)
+              if (err.response?.status === 404 || err.response?.status === 403) {
+                return null;
+              }
+              throw err;
+            })
+        );
+        summaryPromises.push(
+          axios.get(`/api/reports/${companyId}/summary?type=sales`)
+            .then(response => ({ ...response, reportType: 'sales' }))
+            .catch(err => {
+              // Ignore 404 (no file configured) and 403 (no access)
+              if (err.response?.status === 404 || err.response?.status === 403) {
+                return null;
+              }
+              throw err;
+            })
+        );
+      });
+
+      const summaryResponses = await Promise.all(summaryPromises);
+
+      // Aggregate totalRecords from all summaries
+      let totalPurchases = 0;
+      let totalSales = 0;
+      let successfulCalls = 0;
+
+      summaryResponses.forEach((response) => {
+        if (response && response.data?.success) {
+          const totalRecords = response.data.data?.summary?.totalRecords || 0;
+          successfulCalls++;
+          
+          // Use explicit reportType from the response
+          if (response.reportType === 'purchases') {
+            totalPurchases += totalRecords;
+          } else if (response.reportType === 'sales') {
+            totalSales += totalRecords;
+          }
+        }
+      });
+
+      // Log statistics in development mode
+      if (import.meta.env.DEV) {
+        console.log('[Dashboard] Reports stats:', {
+          companiesConsidered: companyIds.length,
+          successfulCalls,
+          totalPurchases,
+          totalSales,
+          total: totalPurchases + totalSales
+        });
+      }
+
+      // Format response to match expected structure
+      return {
+        overview: {
+          total: totalPurchases + totalSales,
+          byType: [
+            { _id: 'purchases', count: totalPurchases },
+            { _id: 'sales', count: totalSales }
+          ]
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching reports summary stats:', error);
+      // Return empty stats on error
+      return {
+        overview: {
+          total: 0,
+          byType: []
+        }
+      };
+    }
+  };
 
   const getRoleDisplayName = (role) => {
     const roles = {
