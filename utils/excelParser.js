@@ -364,11 +364,9 @@ function parseExcelFile(filePath, type = 'purchases', debug = false) {
   
   const aliases = type === 'purchases' ? HEADER_ALIASES_PURCHASES : HEADER_ALIASES_SALES;
   
-  if (debug || process.env.LOG_LEVEL === 'debug') {
-    console.log(`[ExcelParser] Carregando planilha de ${type}: ${filePath}`);
-  } else {
-    console.log(`Carregando planilha de ${type}: ${filePath}`);
-  }
+  const isDebugMode = debug || process.env.LOG_LEVEL === 'debug';
+  const logPrefix = isDebugMode ? '[ExcelParser] ' : '';
+  console.log(`${logPrefix}Carregando planilha de ${type}: ${filePath}`);
   
   // Ler o arquivo Excel
   const workbook = xlsx.readFile(filePath, { cellDates: true });
@@ -392,7 +390,7 @@ function parseExcelFile(filePath, type = 'purchases', debug = false) {
   const headerRowIndex = detectHeaderRow(rawData, aliases);
   console.log(`Linha de cabeçalho detectada: ${headerRowIndex}`);
   
-  if (debug || process.env.LOG_LEVEL === 'debug') {
+  if (isDebugMode) {
     const headers = rawData[headerRowIndex];
     console.log(`[ExcelParser] Headers encontrados:`, headers);
     console.log(`[ExcelParser] Headers normalizados:`, headers.map(h => normalizeHeader(h)));
@@ -461,7 +459,7 @@ function parseExcelFile(filePath, type = 'purchases', debug = false) {
   console.log(`${records.length} registros processados da planilha de ${type}`);
   
   // Debug logging for identification fields statistics
-  if (debug || process.env.LOG_LEVEL === 'debug') {
+  if (isDebugMode && records.length > 0) {
     let countWithEntity = 0;
     let countWithDate = 0;
     let countWithNfe = 0;
@@ -480,15 +478,13 @@ function parseExcelFile(filePath, type = 'purchases', debug = false) {
     console.log(`  numero_nfe: ${countWithNfe}/${records.length} (${(countWithNfe/records.length*100).toFixed(1)}%)`);
     console.log(`  cfop: ${countWithCfop}/${records.length} (${(countWithCfop/records.length*100).toFixed(1)}%)`);
     
-    if (records.length > 0) {
-      console.log(`[ExcelParser] Primeiro registro:`, {
-        [entityField]: records[0][entityField],
-        [dateField]: records[0][dateField],
-        numero_nfe: records[0].numero_nfe,
-        cfop: records[0].cfop,
-        valor_total: records[0].valor_total
-      });
-    }
+    console.log(`[ExcelParser] Primeiro registro:`, {
+      [entityField]: records[0][entityField],
+      [dateField]: records[0][dateField],
+      numero_nfe: records[0].numero_nfe,
+      cfop: records[0].cfop,
+      valor_total: records[0].valor_total
+    });
   }
   
   return records;
