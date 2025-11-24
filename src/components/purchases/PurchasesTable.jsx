@@ -115,9 +115,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       width: 120,
       renderCell: (params) => {
         const row = params.row || {};
-        const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
-        const dateValue = row[dateField];
-        return formatDate(dateValue);
+        return formatDate(row[type === 'purchases' ? 'data_compra' : 'data_emissao']);
       }
     },
     {
@@ -127,9 +125,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       flex: 1,
       renderCell: (params) => {
         const row = params.row || {};
-        const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
-        const entityValue = row[entityField] || '';
-        return entityValue;
+        return row[type === 'purchases' ? 'fornecedor' : 'cliente'] || '';
       }
     },
     {
