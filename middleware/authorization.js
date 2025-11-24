@@ -81,7 +81,7 @@ const requireCompanyAccess = (req, res, next) => {
     });
   }
 
-  const companyId = req.params.companyId || req.body.companyId || req.query.companyId;
+  const companyId = req.params.companyId || req.params.id || req.body.companyId || req.query.companyId;
   
   if (!companyId) {
     return res.status(400).json({
