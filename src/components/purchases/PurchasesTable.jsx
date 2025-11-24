@@ -62,7 +62,9 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
     return params.row;
   };
 
-  // Helper to safely extract values with fallback field mappings
+  // Helper to safely extract values with fallback field mappings for MONETARY fields
+  // This version treats empty strings as missing (returns null)
+  // Note: For identification fields, use the utilities from identificationFallbacks.js
   const getValueWithFallbacks = (row, ...fieldPaths) => {
     for (const fieldPath of fieldPaths) {
       const parts = fieldPath.split('.');

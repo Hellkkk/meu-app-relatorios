@@ -483,8 +483,9 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
       });
     }
     
-    // Parse limit with default of 500, max 1000
-    const recordLimit = Math.min(parseInt(limit) || 500, 1000);
+    // Parse limit with validation: default 500, min 1, max 1000
+    const parsedLimit = parseInt(limit) || 500;
+    const recordLimit = Math.min(Math.max(parsedLimit, 1), 1000);
     
     // Verificar se a empresa existe
     const company = await Company.findById(companyId);

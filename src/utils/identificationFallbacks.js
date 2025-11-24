@@ -183,9 +183,10 @@ export const getCfopValue = (row, type = 'purchases') => {
     'outras_info.codigo_cfop'
   );
   
-  // Extract just the numeric code if it's in format "5.101 - Description"
+  // Extract just the numeric code if it's in format "5.101 - Description" or "5101"
   if (cfopValue && typeof cfopValue === 'string') {
-    const match = cfopValue.match(/^(\d[\.\d]+)/);
+    // Match formats like "5.101" or "5101" at the start of the string
+    const match = cfopValue.match(/^(\d+\.?\d*)/);
     if (match) {
       return match[1];
     }
