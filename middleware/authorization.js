@@ -81,7 +81,7 @@ const requireCompanyAccess = (req, res, next) => {
     });
   }
 
-  const companyId = req.params.companyId || req.body.companyId || req.query.companyId;
+  const companyId = req.params.companyId || req.params.id || req.body.companyId || req.query.companyId;
   
   if (!companyId) {
     return res.status(400).json({
@@ -96,6 +96,52 @@ const requireCompanyAccess = (req, res, next) => {
   }
 
   // Verificar se o usuário tem acesso à empresa
+  if (!req.user.hasAccessToCompany(companyId)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. You do not have permission to access this company.'
+    });
+  }
+
+  next();
+};
+
+// Middleware para verificar acesso de Admin ou Manager a uma empresa específica
+// Admin: acesso total (bypass)
+// Manager: acesso apenas às empresas vinculadas
+// User: bloqueado (403)
+const requireAdminOrManagerCompanyAccess = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required.'
+    });
+  }
+
+  // Verificar se é admin ou manager
+  if (!req.user.isAdmin() && !req.user.isManager()) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin or Manager privileges required.'
+    });
+  }
+
+  // Admin tem acesso irrestrito
+  if (req.user.isAdmin()) {
+    return next();
+  }
+
+  // Manager precisa ter acesso à empresa específica
+  const companyId = req.params.companyId || req.params.id || req.body.companyId || req.query.companyId;
+  
+  if (!companyId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Company ID is required.'
+    });
+  }
+
+  // Verificar se o manager tem acesso à empresa
   if (!req.user.hasAccessToCompany(companyId)) {
     return res.status(403).json({
       success: false,
@@ -150,6 +196,7 @@ module.exports = {
   authenticate,
   requireAdmin,
   requireAdminOrManager,
+  requireAdminOrManagerCompanyAccess,
   requireCompanyAccess,
   filterCompaniesByUser,
   logActivity

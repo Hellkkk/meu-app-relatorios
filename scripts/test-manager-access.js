@@ -173,8 +173,34 @@ async function testManagerAccess(email, password, companyId) {
       }
     }
 
-    // Test 5: Acesso a estatísticas de relatórios
-    log('\n=== Teste 5: Acesso a Estatísticas de Relatórios ===', 'blue');
+    // Test 5: Acesso a configuração de arquivos de relatório da empresa
+    log('\n=== Teste 5: Acesso a Arquivos de Relatório da Empresa ===', 'blue');
+    testResults.total++;
+    
+    if (companyId) {
+      try {
+        const reportFilesResponse = await axios.get(`${API_BASE_URL}/companies/${companyId}/report-files`);
+
+        if (reportFilesResponse.status === 200 && reportFilesResponse.data.success) {
+          testResults.passed++;
+          logTest('Acesso a arquivos de relatório da empresa', true, 
+            `Purchases: ${reportFilesResponse.data.data?.purchasesReportPath || 'não configurado'}, Sales: ${reportFilesResponse.data.data?.salesReportPath || 'não configurado'}`);
+        } else {
+          testResults.failed++;
+          logTest('Acesso a arquivos de relatório da empresa', false, 'Resposta sem sucesso');
+        }
+      } catch (error) {
+        testResults.failed++;
+        logTest('Acesso a arquivos de relatório da empresa', false, 
+          error.response?.data?.message || error.message);
+      }
+    } else {
+      log('  ⚠ Sem empresa para testar. Pulando teste de arquivos de relatório.', 'yellow');
+      testResults.total--;
+    }
+
+    // Test 6: Acesso a estatísticas de relatórios
+    log('\n=== Teste 6: Acesso a Estatísticas de Relatórios ===', 'blue');
     testResults.total++;
     try {
       const statsResponse = await axios.get(`${API_BASE_URL}/reports/stats/overview`);
@@ -191,6 +217,35 @@ async function testManagerAccess(email, password, companyId) {
       testResults.failed++;
       logTest('Acesso a estatísticas de relatórios', false, 
         error.response?.data?.message || error.message);
+    }
+
+    // Test 7: Bloqueio de alteração de arquivos de relatório (admin-only)
+    log('\n=== Teste 7: Bloqueio de Alteração de Arquivos de Relatório ===', 'blue');
+    testResults.total++;
+    
+    if (companyId) {
+      try {
+        await axios.put(`${API_BASE_URL}/companies/${companyId}/report-files`, {
+          purchasesReportPath: 'test.xlsx'
+        });
+        // Se chegou aqui, não deveria ter acesso
+        testResults.failed++;
+        logTest('Bloqueio de alteração de arquivos', false, 
+          'Manager conseguiu alterar arquivos de relatório (ERRO DE SEGURANÇA)');
+      } catch (error) {
+        if (error.response?.status === 403 || error.response?.status === 401) {
+          testResults.passed++;
+          logTest('Bloqueio de alteração de arquivos', true, 
+            'Acesso corretamente negado (403/401)');
+        } else {
+          testResults.failed++;
+          logTest('Bloqueio de alteração de arquivos', false, 
+            `Erro inesperado: ${error.message}`);
+        }
+      }
+    } else {
+      log('  ⚠ Sem empresa para testar. Pulando teste de alteração de arquivos.', 'yellow');
+      testResults.total--;
     }
 
   } catch (error) {
