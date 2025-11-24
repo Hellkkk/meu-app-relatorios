@@ -4,14 +4,6 @@ import { DataGrid } from '@mui/x-data-grid';
 import http from '../../api/http';
 import TableDebugWrapper from '../common/TableDebugWrapper';
 import { safeNumberBR, formatCurrencyBR, detectMissing } from '../../utils/safeNumberBR';
-import { 
-  getDateValue, 
-  getEntityValue, 
-  getNfeValue, 
-  getCfopValue,
-  getSourceFilename,
-  getImportDate
-} from '../../utils/identificationFallbacks';
 
 const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnabled = false }) => {
   const [loading, setLoading] = useState(false);
@@ -62,9 +54,7 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
     return params.row;
   };
 
-  // Helper to safely extract values with fallback field mappings for MONETARY fields
-  // This version treats empty strings as missing (returns null)
-  // Note: For identification fields, use the utilities from identificationFallbacks.js
+  // Helper to safely extract values with fallback field mappings
   const getValueWithFallbacks = (row, ...fieldPaths) => {
     for (const fieldPath of fieldPaths) {
       const parts = fieldPath.split('.');
@@ -118,57 +108,20 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
     return formatted;
   };
 
-  // Helper to render identification cells with missing value indicator
-  const renderIdentificationCell = (params, getValue, fieldName) => {
-    const row = params.row || {};
-    const value = getValue(row);
-    
-    // Debug logging for first row in dev mode
-    if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-      console.log(`[IDDebug] ${fieldName}:`, { 
-        value,
-        raw: row,
-        fieldName
-      });
-    }
-    
-    // Return with placeholder if missing
-    if (!value || value === '') {
-      return (
-        <span style={{ color: '#999', fontStyle: 'italic' }}>
-          —
-        </span>
-      );
-    }
-    
-    return value;
-  };
-
   const columns = [
     {
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
       headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
-      renderCell: (params) => {
-        const value = getDateValue(params.row, type);
-        
-        // Debug logging for first row in dev mode
-        if (debugEnabled && params.api.getRowIndexRelativeToVisibleRows(params.id) === 0) {
-          console.log(`[IDDebug] Date:`, { 
-            value,
-            formatted: value ? formatDate(value) : null,
-            raw: params.row
-          });
-        }
-        
-        if (!value) {
-          return <span style={{ color: '#999', fontStyle: 'italic' }}>—</span>;
-        }
-        
-        return formatDate(value);
-      },
       valueGetter: (params) => {
-        return getDateValue(params.row, type);
+        const row = safeRow(params);
+        return type === 'purchases' 
+          ? getValueWithFallbacks(row, 'data_compra', 'outras_info.data_compra')
+          : getValueWithFallbacks(row, 'data_emissao', 'outras_info.data_emissao');
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatDate(value);
       }
     },
     {
@@ -176,39 +129,29 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       headerName: type === 'purchases' ? 'Fornecedor' : 'Cliente',
       width: 200,
       flex: 1,
-      renderCell: (params) => renderIdentificationCell(
-        params, 
-        (row) => getEntityValue(row, type),
-        type === 'purchases' ? 'fornecedor' : 'cliente'
-      ),
       valueGetter: (params) => {
-        return getEntityValue(params.row, type);
+        const row = safeRow(params);
+        return type === 'purchases'
+          ? getValueWithFallbacks(row, 'fornecedor', 'outras_info.fornecedor', 'outras_info.fornecedorcliente_nome_fantasia')
+          : getValueWithFallbacks(row, 'cliente', 'outras_info.cliente', 'outras_info.cliente_nome_fantasia');
       }
     },
     {
       field: 'numero_nfe',
       headerName: 'Nº NFe',
       width: 150,
-      renderCell: (params) => renderIdentificationCell(
-        params,
-        getNfeValue,
-        'numero_nfe'
-      ),
       valueGetter: (params) => {
-        return getNfeValue(params.row);
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'numero_nfe', 'outras_info.numero_nfe');
       }
     },
     {
       field: 'cfop',
       headerName: 'CFOP',
       width: 100,
-      renderCell: (params) => renderIdentificationCell(
-        params,
-        (row) => getCfopValue(row, type),
-        'cfop'
-      ),
       valueGetter: (params) => {
-        return getCfopValue(params.row, type);
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'cfop', 'outras_info.cfop');
       }
     },
     {
@@ -332,30 +275,22 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: 'fonte',
       headerName: 'Fonte',
       width: 150,
-      renderCell: (params) => renderIdentificationCell(
-        params,
-        getSourceFilename,
-        'fonte'
-      ),
       valueGetter: (params) => {
-        return getSourceFilename(params.row);
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'source_filename', 'origem', 'fonte', 'outras_info.source_filename', 'outras_info.origem');
       }
     },
     {
       field: 'imported_at',
       headerName: 'Data Importação',
       width: 140,
-      renderCell: (params) => {
-        const value = getImportDate(params.row);
-        
-        if (!value) {
-          return <span style={{ color: '#999', fontStyle: 'italic' }}>—</span>;
-        }
-        
-        return formatDate(value);
-      },
       valueGetter: (params) => {
-        return getImportDate(params.row);
+        const row = safeRow(params);
+        return getValueWithFallbacks(row, 'imported_at', 'data_importacao', 'outras_info.imported_at');
+      },
+      valueFormatter: (params) => {
+        const value = safeValue(params);
+        return formatDate(value);
       }
     }
   ];
@@ -391,9 +326,11 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         filteredRecords = records.filter(record => {
-          const entity = getEntityValue(record, type) || '';
-          const nfe = getNfeValue(record) || '';
-          const cfop = getCfopValue(record, type) || '';
+          const entity = type === 'purchases' 
+            ? (record.fornecedor || record.outras_info?.fornecedor || '')
+            : (record.cliente || record.outras_info?.cliente || '');
+          const nfe = record.numero_nfe || record.outras_info?.numero_nfe || '';
+          const cfop = record.cfop || record.outras_info?.cfop || '';
           
           return entity.toLowerCase().includes(query) ||
                  nfe.toLowerCase().includes(query) ||
@@ -409,20 +346,8 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
           totalRecords: records.length,
           filteredRecords: filteredRecords.length,
           searchQuery,
-          firstRecord: filteredRecords[0],
-          firstRecordKeys: filteredRecords[0] ? Object.keys(filteredRecords[0]) : []
+          firstRecord: filteredRecords[0]
         });
-        
-        // Log identification fields of first record for debugging
-        if (filteredRecords.length > 0) {
-          const first = filteredRecords[0];
-          console.log('[IDDebug] First record identification fields:', {
-            date: getDateValue(first, type),
-            entity: getEntityValue(first, type),
-            nfe: getNfeValue(first),
-            cfop: getCfopValue(first, type)
-          });
-        }
       }
     } else {
       // Legacy mode: Fetch from server with debounce
@@ -485,11 +410,11 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
               if (row._id) return row._id;
               if (row.id) return row.id;
               
-              // Generate deterministic ID from available fields using utility functions
-              const entity = getEntityValue(row, type) || 'unknown';
-              const nfe = getNfeValue(row) || 'no-nfe';
-              const cfop = getCfopValue(row, type) || 'no-cfop';
-              const date = getDateValue(row, type) || 'no-date';
+              // Generate deterministic ID from available fields
+              const entity = row.fornecedor || row.cliente || row.outras_info?.fornecedor || row.outras_info?.cliente || 'unknown';
+              const nfe = row.numero_nfe || row.outras_info?.numero_nfe || 'no-nfe';
+              const cfop = row.cfop || row.outras_info?.cfop || 'no-cfop';
+              const date = row.data_compra || row.data_emissao || row.outras_info?.data_compra || row.outras_info?.data_emissao || 'no-date';
               const valor = row.valor_total || row.total_de_mercadoria || row.outras_info?.valor_total || '0';
               
               // Create a composite key that should be unique for each transaction
