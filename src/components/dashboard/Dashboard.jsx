@@ -84,7 +84,7 @@ const Dashboard = () => {
       const reportFilePromises = companyIds.map(companyId =>
         axios.get(`/api/companies/${companyId}/report-files`)
           .catch(err => {
-            // Ignore 404 (no file configured) and 403 (no access)
+            // Ignore 404 (company not found or no access) and 403 (no access)
             if (err.response?.status === 404 || err.response?.status === 403) {
               return null;
             }
@@ -102,13 +102,13 @@ const Dashboard = () => {
         if (response && response.data?.success) {
           const data = response.data.data;
           
-          // Increment count if purchasesReportPath is defined
-          if (data.purchasesReportPath) {
+          // Increment count if purchasesReportPath is defined and non-empty
+          if (data.purchasesReportPath && data.purchasesReportPath.trim()) {
             comprasConfigured++;
           }
           
-          // Increment count if salesReportPath is defined
-          if (data.salesReportPath) {
+          // Increment count if salesReportPath is defined and non-empty
+          if (data.salesReportPath && data.salesReportPath.trim()) {
             vendasConfigured++;
           }
         }
