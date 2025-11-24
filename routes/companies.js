@@ -495,7 +495,7 @@ router.delete('/:companyId/responsible', authenticate, requireAdmin, logActivity
 
 // @route   GET /api/companies/:id/report-files
 // @desc    Obter arquivos de relatório configurados para uma empresa
-// @access  Private (usuário deve ter acesso à empresa)
+// @access  Private (Admin, Manager, or users with access to the company - read-only for viewing report configurations)
 router.get('/:id/report-files', authenticate, async (req, res) => {
   try {
     const company = await Company.findById(req.params.id);
@@ -533,7 +533,7 @@ router.get('/:id/report-files', authenticate, async (req, res) => {
 
 // @route   PUT /api/companies/:id/report-files
 // @desc    Atualizar arquivos de relatório de uma empresa (apenas admin)
-// @access  Private/Admin
+// @access  Private/Admin (configuration of report files should remain admin-only)
 router.put('/:id/report-files', authenticate, requireAdmin, logActivity('UPDATE_COMPANY_REPORTS'), async (req, res) => {
   try {
     const company = await Company.findById(req.params.id);
