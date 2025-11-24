@@ -113,15 +113,11 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       field: type === 'purchases' ? 'data_compra' : 'data_emissao',
       headerName: type === 'purchases' ? 'Data Compra' : 'Data Emissão',
       width: 120,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return type === 'purchases' 
-          ? getValueWithFallbacks(row, 'data_compra', 'outras_info.data_compra')
-          : getValueWithFallbacks(row, 'data_emissao', 'outras_info.data_emissao');
-      },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatDate(value);
+      renderCell: (params) => {
+        const row = params.row || {};
+        const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
+        const dateValue = row[dateField];
+        return formatDate(dateValue);
       }
     },
     {
@@ -129,29 +125,29 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
       headerName: type === 'purchases' ? 'Fornecedor' : 'Cliente',
       width: 200,
       flex: 1,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return type === 'purchases'
-          ? getValueWithFallbacks(row, 'fornecedor', 'outras_info.fornecedor', 'outras_info.fornecedorcliente_nome_fantasia')
-          : getValueWithFallbacks(row, 'cliente', 'outras_info.cliente', 'outras_info.cliente_nome_fantasia');
+      renderCell: (params) => {
+        const row = params.row || {};
+        const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
+        const entityValue = row[entityField] || '';
+        return entityValue;
       }
     },
     {
       field: 'numero_nfe',
       headerName: 'Nº NFe',
       width: 150,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return getValueWithFallbacks(row, 'numero_nfe', 'outras_info.numero_nfe');
+      renderCell: (params) => {
+        const row = params.row || {};
+        return row.numero_nfe || '';
       }
     },
     {
       field: 'cfop',
       headerName: 'CFOP',
       width: 100,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return getValueWithFallbacks(row, 'cfop', 'outras_info.cfop');
+      renderCell: (params) => {
+        const row = params.row || {};
+        return row.cfop || '';
       }
     },
     {
