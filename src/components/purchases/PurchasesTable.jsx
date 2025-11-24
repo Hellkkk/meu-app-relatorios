@@ -262,28 +262,6 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
         return getValueWithFallbacks(row, 'bruto', 'valor_bruto', 'vl_bruto', 'outras_info.bruto', 'outras_info.valor_bruto');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
-    },
-    {
-      field: 'fonte',
-      headerName: 'Fonte',
-      width: 150,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return getValueWithFallbacks(row, 'source_filename', 'origem', 'fonte', 'outras_info.source_filename', 'outras_info.origem');
-      }
-    },
-    {
-      field: 'imported_at',
-      headerName: 'Data Importação',
-      width: 140,
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return getValueWithFallbacks(row, 'imported_at', 'data_importacao', 'outras_info.imported_at');
-      },
-      valueFormatter: (params) => {
-        const value = safeValue(params);
-        return formatDate(value);
-      }
     }
   ];
 
