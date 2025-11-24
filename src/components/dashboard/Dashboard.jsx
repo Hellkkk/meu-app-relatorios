@@ -23,8 +23,8 @@ const Dashboard = () => {
 
         const adminResponses = await Promise.all(adminRequests);
         
-        // Fetch reports stats from Excel summaries
-        const reportsStats = await fetchReportsSummaryStats();
+        // Fetch reports stats from configured report files
+        const reportsStats = await loadConfiguredReports();
         
         const statsData = {
           reports: reportsStats
@@ -47,7 +47,7 @@ const Dashboard = () => {
     fetchStats();
   }, [isAdmin]);
 
-  const fetchReportsSummaryStats = async () => {
+  const loadConfiguredReports = async () => {
     try {
       // Determine which companies to query
       let companyIds = [];
@@ -80,78 +80,64 @@ const Dashboard = () => {
         };
       }
 
-      // Fetch summaries for all companies in parallel
-      const summaryPromises = [];
-      companyIds.forEach(companyId => {
-        // Track request type with the promise for explicit identification
-        summaryPromises.push(
-          axios.get(`/api/reports/${companyId}/summary?type=purchases`)
-            .then(response => ({ ...response, reportType: 'purchases' }))
-            .catch(err => {
-              // Ignore 404 (no file configured) and 403 (no access)
-              if (err.response?.status === 404 || err.response?.status === 403) {
-                return null;
-              }
-              throw err;
-            })
-        );
-        summaryPromises.push(
-          axios.get(`/api/reports/${companyId}/summary?type=sales`)
-            .then(response => ({ ...response, reportType: 'sales' }))
-            .catch(err => {
-              // Ignore 404 (no file configured) and 403 (no access)
-              if (err.response?.status === 404 || err.response?.status === 403) {
-                return null;
-              }
-              throw err;
-            })
-        );
-      });
+      // Fetch report files for all companies in parallel
+      const reportFilePromises = companyIds.map(companyId =>
+        axios.get(`/api/companies/${companyId}/report-files`)
+          .catch(err => {
+            // Ignore 404 (company not found or no access) and 403 (no access)
+            if (err.response?.status === 404 || err.response?.status === 403) {
+              return null;
+            }
+            throw err;
+          })
+      );
 
-      const summaryResponses = await Promise.all(summaryPromises);
+      const reportFileResponses = await Promise.all(reportFilePromises);
 
-      // Aggregate totalRecords from all summaries
-      let totalPurchases = 0;
-      let totalSales = 0;
-      let successfulCalls = 0;
+      // Count configured report files by type
+      let comprasConfigured = 0;
+      let vendasConfigured = 0;
 
-      summaryResponses.forEach((response) => {
+      reportFileResponses.forEach((response) => {
         if (response && response.data?.success) {
-          const totalRecords = response.data.data?.summary?.totalRecords || 0;
-          successfulCalls++;
+          const data = response.data.data;
           
-          // Use explicit reportType from the response
-          if (response.reportType === 'purchases') {
-            totalPurchases += totalRecords;
-          } else if (response.reportType === 'sales') {
-            totalSales += totalRecords;
+          // Increment count if purchasesReportPath is defined and non-empty
+          if (data.purchasesReportPath && data.purchasesReportPath.trim()) {
+            comprasConfigured++;
+          }
+          
+          // Increment count if salesReportPath is defined and non-empty
+          if (data.salesReportPath && data.salesReportPath.trim()) {
+            vendasConfigured++;
           }
         }
       });
 
+      const total = comprasConfigured + vendasConfigured;
+
       // Log statistics in development mode
       if (import.meta.env.DEV) {
-        console.log('[Dashboard] Reports stats:', {
+        console.debug('[Dashboard] Configured reports:', {
           companiesConsidered: companyIds.length,
-          successfulCalls,
-          totalPurchases,
-          totalSales,
-          total: totalPurchases + totalSales
+          comprasConfigured,
+          vendasConfigured,
+          total
         });
       }
 
-      // Format response to match expected structure
+      // Format response with Portuguese labels
       return {
         overview: {
-          total: totalPurchases + totalSales,
+          total,
           byType: [
-            { _id: 'purchases', count: totalPurchases },
-            { _id: 'sales', count: totalSales }
+            { _id: 'Compras', count: comprasConfigured },
+            { _id: 'Vendas', count: vendasConfigured }
           ]
         }
       };
     } catch (error) {
-      console.error('Error fetching reports summary stats:', error);
+      console.error('Error loading configured reports:', error);
       // Return empty stats on error
       return {
         overview: {
@@ -381,7 +367,7 @@ const Dashboard = () => {
                 fontWeight: '600',
                 border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
-                {stats?.reports?.overview?.total || 0} relatório{(stats?.reports?.overview?.total || 0) !== 1 ? 's' : ''}
+                {stats?.reports?.overview?.total || 0} relatório{(stats?.reports?.overview?.total || 0) !== 1 ? 's' : ''} configurado{(stats?.reports?.overview?.total || 0) !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
@@ -420,7 +406,7 @@ const Dashboard = () => {
               fontWeight: '500',
               opacity: 0.9
             }}>
-              📈 Nenhum relatório encontrado
+              📈 Nenhum relatório configurado
             </div>
           )}
         </div>
