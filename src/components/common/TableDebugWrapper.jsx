@@ -43,7 +43,6 @@ const TableDebugWrapper = ({ records = [], title = 'Table', debugEnabled = false
             ipi: firstRecord.ipi,
             pis: firstRecord.pis,
             cofins: firstRecord.cofins,
-            bruto: firstRecord.bruto,
           },
           alternatives: {
             total_de_mercadoria: firstRecord.total_de_mercadoria,
@@ -51,7 +50,6 @@ const TableDebugWrapper = ({ records = [], title = 'Table', debugEnabled = false
             valor_do_ipi: firstRecord.valor_do_ipi,
             valor_do_pis: firstRecord.valor_do_pis,
             valor_do_cofins: firstRecord.valor_do_cofins,
-            valor_bruto: firstRecord.valor_bruto,
           },
           outras_info: firstRecord.outras_info || {}
         };

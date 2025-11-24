@@ -243,25 +243,6 @@ const PurchasesTable = ({ refresh, records = null, type = 'purchases', debugEnab
         return getValueWithFallbacks(row, 'cofins', 'valor_do_cofins', 'cofins_total', 'outras_info.cofins', 'outras_info.valor_do_cofins', 'outras_info.cofins_total');
       },
       sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
-    },
-    {
-      field: 'bruto',
-      headerName: 'Bruto',
-      width: 120,
-      renderCell: (params) => renderMonetaryCell(
-        params,
-        'bruto',
-        'valor_bruto',
-        'vl_bruto',
-        'outras_info.bruto',
-        'outras_info.valor_bruto',
-        'outras_info.vl_bruto'
-      ),
-      valueGetter: (params) => {
-        const row = safeRow(params);
-        return getValueWithFallbacks(row, 'bruto', 'valor_bruto', 'vl_bruto', 'outras_info.bruto', 'outras_info.valor_bruto');
-      },
-      sortComparator: (v1, v2) => safeNumberBR(v1) - safeNumberBR(v2)
     }
   ];
 
