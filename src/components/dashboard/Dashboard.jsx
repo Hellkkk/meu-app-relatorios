@@ -83,8 +83,10 @@ const Dashboard = () => {
       // Fetch summaries for all companies in parallel
       const summaryPromises = [];
       companyIds.forEach(companyId => {
+        // Track request type with the promise for explicit identification
         summaryPromises.push(
           axios.get(`/api/reports/${companyId}/summary?type=purchases`)
+            .then(response => ({ ...response, reportType: 'purchases' }))
             .catch(err => {
               // Ignore 404 (no file configured) and 403 (no access)
               if (err.response?.status === 404 || err.response?.status === 403) {
@@ -95,6 +97,7 @@ const Dashboard = () => {
         );
         summaryPromises.push(
           axios.get(`/api/reports/${companyId}/summary?type=sales`)
+            .then(response => ({ ...response, reportType: 'sales' }))
             .catch(err => {
               // Ignore 404 (no file configured) and 403 (no access)
               if (err.response?.status === 404 || err.response?.status === 403) {
@@ -110,19 +113,17 @@ const Dashboard = () => {
       // Aggregate totalRecords from all summaries
       let totalPurchases = 0;
       let totalSales = 0;
-      let companiesWithData = 0;
       let successfulCalls = 0;
 
-      summaryResponses.forEach((response, index) => {
+      summaryResponses.forEach((response) => {
         if (response && response.data?.success) {
           const totalRecords = response.data.data?.summary?.totalRecords || 0;
           successfulCalls++;
           
-          // Determine if this is purchases or sales based on index (even = purchases, odd = sales)
-          if (index % 2 === 0) {
+          // Use explicit reportType from the response
+          if (response.reportType === 'purchases') {
             totalPurchases += totalRecords;
-            if (totalRecords > 0) companiesWithData++;
-          } else {
+          } else if (response.reportType === 'sales') {
             totalSales += totalRecords;
           }
         }
