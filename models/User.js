@@ -96,7 +96,11 @@ userSchema.methods.isAdminOrManager = function() {
 // Método para verificar se o usuário tem acesso a uma empresa
 userSchema.methods.hasAccessToCompany = function(companyId) {
   if (this.role === 'admin') return true;
-  return this.companies.some(company => company.toString() === companyId.toString());
+  // Suportar tanto ObjectIds simples quanto documentos populados
+  return this.companies.some(c => {
+    const id = c?._id ? c._id.toString() : c.toString();
+    return id === companyId.toString();
+  });
 };
 
 module.exports = mongoose.model('User', userSchema);
