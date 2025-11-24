@@ -473,7 +473,7 @@ router.delete('/:id', authenticate, logActivity('DELETE_REPORT'), async (req, re
 router.get('/:companyId/summary', authenticate, async (req, res) => {
   try {
     const { companyId } = req.params;
-    const { type, limit } = req.query; // 'purchases' ou 'sales', limit (optional)
+    const { type } = req.query; // 'purchases' ou 'sales'
     
     // Validar type
     if (!type || !['purchases', 'sales'].includes(type)) {
@@ -482,10 +482,6 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
         message: 'Tipo de relatório inválido. Use "purchases" ou "sales".'
       });
     }
-    
-    // Parse limit with validation: default 500, min 1, max 1000
-    const parsedLimit = parseInt(limit) || 500;
-    const recordLimit = Math.min(Math.max(parsedLimit, 1), 1000);
     
     // Verificar se a empresa existe
     const company = await Company.findById(companyId);
@@ -541,7 +537,7 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
     const records = parseExcelFile(filePath, type);
     
     // Construir resumo/dashboard a partir dos dados
-    const summary = buildSummaryFromRecords(records, type, recordLimit);
+    const summary = buildSummaryFromRecords(records, type);
     
     // Add fileName and type to response for debugging
     summary.fileName = reportPath;
@@ -563,11 +559,8 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
 
 /**
  * Constrói um resumo/dashboard a partir dos registros parseados
- * @param {Array} records - Array de registros parseados
- * @param {string} type - 'purchases' ou 'sales'
- * @param {number} recordLimit - Número máximo de registros a retornar (default: 500)
  */
-function buildSummaryFromRecords(records, type, recordLimit = 500) {
+function buildSummaryFromRecords(records, type) {
   const entityField = type === 'purchases' ? 'fornecedor' : 'cliente';
   const dateField = type === 'purchases' ? 'data_compra' : 'data_emissao';
   
@@ -631,13 +624,6 @@ function buildSummaryFromRecords(records, type, recordLimit = 500) {
   const monthlyData = Object.values(byMonth)
     .sort((a, b) => a.month.localeCompare(b.month));
   
-  // Sort records by date descending for better UX (most recent first)
-  const sortedRecords = [...records].sort((a, b) => {
-    const dateA = new Date(a[dateField] || 0);
-    const dateB = new Date(b[dateField] || 0);
-    return dateB - dateA;
-  });
-  
   return {
     summary: {
       totalRecords: records.length,
@@ -656,7 +642,7 @@ function buildSummaryFromRecords(records, type, recordLimit = 500) {
       { name: 'COFINS', value: totalCOFINS },
       { name: 'PIS', value: totalPIS }
     ],
-    records: sortedRecords.slice(0, recordLimit) // Retornar registros limitados, ordenados por data
+    records: records.slice(0, 100) // Retornar apenas os primeiros 100 registros para visualização
   };
 }
 
