@@ -2,6 +2,15 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
+/**
+ * ManagerRoute - Protected route component for Admin and Manager roles
+ * 
+ * This route allows access to both admins and managers, ensuring that
+ * managers can access company and report management features while
+ * maintaining separation from admin-only functionality.
+ * 
+ * Usage: Wrap any route that should be accessible to managers and admins
+ */
 const ManagerRoute = ({ children }) => {
   const { isAuthenticated, isAdminOrManager, loading } = useAuth();
 

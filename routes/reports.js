@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../models/Report');
 const Company = require('../models/Company');
-const { authenticate, requireAdmin, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
+const { authenticate, requireAdmin, requireAdminOrManager, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
 
 // @route   GET /api/reports
 // @desc    Listar relatórios (filtrado por empresas do usuário)
-// @access  Private
+// @access  Private (all authenticated users - filtered by company access via filterCompaniesByUser middleware)
 router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -96,7 +96,7 @@ router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
 
 // @route   GET /api/reports/stats/overview
 // @desc    Obter estatísticas dos relatórios por empresa
-// @access  Private
+// @access  Private (all authenticated users - filtered by company access via filterCompaniesByUser middleware)
 router.get('/stats/overview', authenticate, filterCompaniesByUser, async (req, res) => {
   try {
     let matchFilter = {};
@@ -241,8 +241,8 @@ router.get('/templates', authenticate, (req, res) => {
 
 // @route   GET /api/reports/xlsx-files
 // @desc    Listar todos os arquivos .xlsx disponíveis no diretório configurado
-// @access  Private/Admin
-router.get('/xlsx-files', authenticate, requireAdmin, async (req, res) => {
+// @access  Private/Admin or Manager (managers need this to view/configure report files for their companies)
+router.get('/xlsx-files', authenticate, requireAdminOrManager, async (req, res) => {
   try {
     const { discoverExcelFiles } = require('../utils/excelFileDiscovery');
     const files = discoverExcelFiles();
@@ -469,7 +469,7 @@ router.delete('/:id', authenticate, logActivity('DELETE_REPORT'), async (req, re
 
 // @route   GET /api/reports/:companyId/summary
 // @desc    Obter resumo de relatórios para uma empresa (Compras ou Vendas)
-// @access  Private
+// @access  Private (all authenticated users with access to the specified company)
 router.get('/:companyId/summary', authenticate, async (req, res) => {
   try {
     const { companyId } = req.params;

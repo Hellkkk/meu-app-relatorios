@@ -173,7 +173,7 @@ const ReportsPage = () => {
 
       {!selectedCompany && !loadingCompanies ? (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Nenhuma empresa vinculada. Entre em contato com o administrador para ter acesso.
+          Nenhuma empresa vinculada. Solicite ao administrador vincular empresas para visualizar relatórios.
         </Alert>
       ) : selectedCompany && !uploadEnabled ? (
         <Alert severity="info" sx={{ mb: 3 }}>
