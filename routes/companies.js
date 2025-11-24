@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Company = require('../models/Company');
 const User = require('../models/User');
-const { authenticate, requireAdmin, requireAdminOrManager, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
+const { authenticate, requireAdmin, requireAdminOrManager, requireAdminOrManagerCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
 
 // @route   GET /api/companies
 // @desc    Listar empresas (admin vê todas, gerente vê apenas suas, usuário vê apenas suas)
-// @access  Private
+// @access  Private (all authenticated users - filtered by company access)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = linked companies only
 router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -64,7 +65,8 @@ router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
 
 // @route   GET /api/companies/:id
 // @desc    Obter detalhes de uma empresa específica
-// @access  Private (usuário deve ter acesso à empresa)
+// @access  Private (Admin, Manager, or User with access to the company)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = linked companies only
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const company = await Company.findById(req.params.id)
@@ -495,8 +497,9 @@ router.delete('/:companyId/responsible', authenticate, requireAdmin, logActivity
 
 // @route   GET /api/companies/:id/report-files
 // @desc    Obter arquivos de relatório configurados para uma empresa
-// @access  Private (Admin, Manager, or users with access to the company - read-only for viewing report configurations)
-router.get('/:id/report-files', authenticate, async (req, res) => {
+// @access  Private/Admin or Manager with company access (read-only for viewing report file configurations)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = blocked
+router.get('/:id/report-files', authenticate, requireAdminOrManagerCompanyAccess, async (req, res) => {
   try {
     const company = await Company.findById(req.params.id);
     
@@ -507,13 +510,7 @@ router.get('/:id/report-files', authenticate, async (req, res) => {
       });
     }
     
-    // Verificar se o usuário tem acesso à empresa
-    if (!req.user.isAdmin() && !req.user.isManager() && !req.user.hasAccessToCompany(company._id)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Acesso negado a esta empresa'
-      });
-    }
+    // Access already validated by requireAdminOrManagerCompanyAccess middleware
     
     res.json({
       success: true,
@@ -533,7 +530,8 @@ router.get('/:id/report-files', authenticate, async (req, res) => {
 
 // @route   PUT /api/companies/:id/report-files
 // @desc    Atualizar arquivos de relatório de uma empresa (apenas admin)
-// @access  Private/Admin (configuration of report files should remain admin-only)
+// @access  Private/Admin (configuration of report files is admin-only)
+// Access Policy: Admin = exclusive write access, Manager = blocked, User = blocked
 router.put('/:id/report-files', authenticate, requireAdmin, logActivity('UPDATE_COMPANY_REPORTS'), async (req, res) => {
   try {
     const company = await Company.findById(req.params.id);

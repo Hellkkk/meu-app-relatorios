@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Report = require('../models/Report');
 const Company = require('../models/Company');
-const { authenticate, requireAdmin, requireAdminOrManager, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
+const { authenticate, requireAdmin, requireAdminOrManager, requireAdminOrManagerCompanyAccess, requireCompanyAccess, filterCompaniesByUser, logActivity } = require('../middleware/authorization');
 
 // @route   GET /api/reports
 // @desc    Listar relatórios (filtrado por empresas do usuário)
 // @access  Private (all authenticated users - filtered by company access via filterCompaniesByUser middleware)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = linked companies only
 router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -97,6 +98,7 @@ router.get('/', authenticate, filterCompaniesByUser, async (req, res) => {
 // @route   GET /api/reports/stats/overview
 // @desc    Obter estatísticas dos relatórios por empresa
 // @access  Private (all authenticated users - filtered by company access via filterCompaniesByUser middleware)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = linked companies only
 router.get('/stats/overview', authenticate, filterCompaniesByUser, async (req, res) => {
   try {
     let matchFilter = {};
@@ -241,7 +243,8 @@ router.get('/templates', authenticate, (req, res) => {
 
 // @route   GET /api/reports/xlsx-files
 // @desc    Listar todos os arquivos .xlsx disponíveis no diretório configurado
-// @access  Private/Admin or Manager (managers need this to view/configure report files for their companies)
+// @access  Private/Admin or Manager (read-only access for viewing available report files)
+// Access Policy: Admin = full access, Manager = read-only, User = blocked
 router.get('/xlsx-files', authenticate, requireAdminOrManager, async (req, res) => {
   try {
     const { discoverExcelFiles } = require('../utils/excelFileDiscovery');
@@ -469,8 +472,9 @@ router.delete('/:id', authenticate, logActivity('DELETE_REPORT'), async (req, re
 
 // @route   GET /api/reports/:companyId/summary
 // @desc    Obter resumo de relatórios para uma empresa (Compras ou Vendas)
-// @access  Private (all authenticated users with access to the specified company)
-router.get('/:companyId/summary', authenticate, async (req, res) => {
+// @access  Private/Admin or Manager with company access (read-only report summary)
+// Access Policy: Admin = all companies, Manager = linked companies only, User = blocked
+router.get('/:companyId/summary', authenticate, requireAdminOrManagerCompanyAccess, async (req, res) => {
   try {
     const { companyId } = req.params;
     const { type } = req.query; // 'purchases' ou 'sales'
@@ -492,13 +496,7 @@ router.get('/:companyId/summary', authenticate, async (req, res) => {
       });
     }
     
-    // Verificar se o usuário tem acesso à empresa
-    if (!req.user.isAdmin() && !req.user.hasAccessToCompany(companyId)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Acesso negado a esta empresa'
-      });
-    }
+    // Access already validated by requireAdminOrManagerCompanyAccess middleware
     
     // Obter o caminho do arquivo configurado
     const reportPath = type === 'purchases' 
