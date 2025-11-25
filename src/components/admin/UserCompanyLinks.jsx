@@ -14,6 +14,7 @@ const UserCompanyLinks = () => {
   const [linkOperation, setLinkOperation] = useState('add'); // 'add' ou 'remove'
   const [managementData, setManagementData] = useState([]);
   const [stats, setStats] = useState(null);
+  const [actionLoading, setActionLoading] = useState({}); // Track loading state for individual actions
 
   // Buscar todos os dados
   const fetchData = async () => {
@@ -126,6 +127,112 @@ const UserCompanyLinks = () => {
       setError(error.response?.data?.message || 'Erro ao corrigir inconsistência');
       setTimeout(() => setError(''), 3000);
     }
+  };
+
+  // Helper to get action key for loading state
+  const getActionKey = (action, userId, companyId) => `${action}-${userId}-${companyId}`;
+
+  // Handle specific API error messages
+  const handleApiError = (error, defaultMessage) => {
+    const message = error.response?.data?.message;
+    const status = error.response?.status;
+    
+    if (status === 400) {
+      if (message?.includes('já é funcionário')) {
+        return 'Usuário já é funcionário desta empresa';
+      }
+      if (message?.includes('gerentes ou administradores')) {
+        return 'Apenas gerentes ou administradores podem ser responsáveis por empresas';
+      }
+      return message || defaultMessage;
+    }
+    if (status === 403) {
+      return 'Ação permitida apenas para administradores';
+    }
+    return message || defaultMessage;
+  };
+
+  // Add employee to company
+  const setEmployee = async (companyId, userId) => {
+    const actionKey = getActionKey('setEmployee', userId, companyId);
+    setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+    try {
+      const response = await axios.post(`/api/companies/${companyId}/employees/${userId}`);
+      if (response.data.success) {
+        setSuccess('Funcionário adicionado com sucesso');
+        fetchData();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(handleApiError(error, 'Erro ao adicionar funcionário'));
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
+  // Remove employee from company
+  const removeEmployee = async (companyId, userId) => {
+    const actionKey = getActionKey('removeEmployee', userId, companyId);
+    setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+    try {
+      const response = await axios.delete(`/api/companies/${companyId}/employees/${userId}`);
+      if (response.data.success) {
+        setSuccess('Funcionário removido com sucesso');
+        fetchData();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(handleApiError(error, 'Erro ao remover funcionário'));
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
+  // Set user as responsible for company
+  const setResponsible = async (companyId, userId) => {
+    const actionKey = getActionKey('setResponsible', userId, companyId);
+    setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+    try {
+      const response = await axios.put(`/api/companies/${companyId}/responsible/${userId}`);
+      if (response.data.success) {
+        setSuccess('Responsável definido com sucesso');
+        fetchData();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(handleApiError(error, 'Erro ao definir responsável'));
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
+  // Remove responsible from company
+  const removeResponsible = async (companyId) => {
+    const actionKey = getActionKey('removeResponsible', '', companyId);
+    setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+    try {
+      const response = await axios.delete(`/api/companies/${companyId}/responsible`);
+      if (response.data.success) {
+        setSuccess('Responsável removido com sucesso');
+        fetchData();
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      setError(handleApiError(error, 'Erro ao remover responsável'));
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+    }
+  };
+
+  // Check if any action is loading for a specific item
+  const isItemLoading = (userId, companyId) => {
+    return Object.keys(actionLoading).some(key => 
+      key.includes(`${userId}-${companyId}`) && actionLoading[key]
+    );
   };
 
   // Filtrar dados
@@ -341,6 +448,14 @@ const UserCompanyLinks = () => {
           </div>
         </div>
 
+        {/* Legenda de badges */}
+        <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '6px', fontSize: '12px' }}>
+          <strong>Legenda:</strong>{' '}
+          <span title="Usuário é responsável/gerente pela empresa">⭐ Responsável</span> |{' '}
+          <span title="Usuário é funcionário da empresa">👤 Funcionário</span> |{' '}
+          <span title="Usuário tem vínculo genérico com a empresa">🔗 Vinculado</span>
+        </div>
+
         {loading ? (
           <div className="loading">Carregando vínculos...</div>
         ) : (
@@ -351,106 +466,242 @@ const UserCompanyLinks = () => {
                   <th>Usuário</th>
                   <th>Empresa</th>
                   <th>Status</th>
-                  <th>Detalhes</th>
+                  <th>Funções</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((item, index) => (
-                  <tr key={`${item.user._id}-${item.company._id}`} style={{
-                    backgroundColor: item.hasInconsistency ? '#fff5f5' : item.isLinked ? '#f0f9ff' : 'white'
-                  }}>
-                    <td>
-                      <div>
-                        <strong>{item.user.username}</strong>
-                        <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                          {item.user.email} ({item.user.role})
+                {filteredData.map((item) => {
+                  const itemLoading = isItemLoading(item.user._id, item.company._id);
+                  const isCompanyActive = item.company.isActive !== false;
+                  const canBeResponsible = item.user.role === 'manager' || item.user.role === 'admin';
+                  
+                  return (
+                    <tr key={`${item.user._id}-${item.company._id}`} style={{
+                      backgroundColor: item.hasInconsistency ? '#fff5f5' : item.isLinked ? '#f0f9ff' : 'white',
+                      opacity: itemLoading ? 0.7 : 1
+                    }}>
+                      <td>
+                        <div>
+                          <strong>{item.user.username}</strong>
+                          <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                            {item.user.email}
+                          </div>
+                          <span style={{
+                            fontSize: '10px',
+                            padding: '1px 4px',
+                            borderRadius: '3px',
+                            backgroundColor: item.user.role === 'admin' ? '#dc3545' : item.user.role === 'manager' ? '#0d6efd' : '#6c757d',
+                            color: 'white'
+                          }}>
+                            {item.user.role}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <strong>{item.company.name}</strong>
-                        <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                          {item.company.cnpj}
+                      </td>
+                      <td>
+                        <div>
+                          <strong>{item.company.name}</strong>
+                          <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                            {item.company.cnpj}
+                          </div>
+                          {!isCompanyActive && (
+                            <span style={{ fontSize: '10px', color: '#dc3545' }}>⚠ Inativa</span>
+                          )}
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{
-                          fontSize: '12px',
-                          padding: '2px 6px',
-                          borderRadius: '3px',
-                          color: 'white',
-                          backgroundColor: item.hasInconsistency ? '#dc3545' : item.isLinked ? '#28a745' : '#6c757d'
-                        }}>
-                          {item.hasInconsistency ? 'INCONSISTENTE' : item.isLinked ? 'VINCULADO' : 'NÃO VINCULADO'}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '11px' }}>
-                        {item.isResponsible && <div style={{ color: '#7c3aed' }}>👑 Responsável</div>}
-                        {item.isEmployee && <div style={{ color: '#059669' }}>👤 Funcionário</div>}
-                        {item.isLinked && <div style={{ color: '#0369a1' }}>🔗 Vinculado</div>}
-                        {!item.isLinked && !item.isEmployee && !item.isResponsible && 
-                          <div style={{ color: '#6b7280' }}>○ Sem vínculo</div>
-                        }
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                        {item.hasInconsistency && (
-                          <button
-                            onClick={() => fixInconsistency(item)}
-                            className="btn btn-warning"
-                            style={{ padding: '3px 6px', fontSize: '11px' }}
-                          >
-                            Corrigir
-                          </button>
-                        )}
-                        {item.isLinked ? (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await axios.delete(`/api/admin/users/${item.user._id}/companies/${item.company._id}`);
-                                setSuccess('Vínculo removido');
-                                fetchData();
-                                setTimeout(() => setSuccess(''), 3000);
-                              } catch (error) {
-                                setError(error.response?.data?.message || 'Erro ao remover vínculo');
-                                setTimeout(() => setError(''), 3000);
-                              }
-                            }}
-                            className="btn btn-secondary"
-                            style={{ padding: '3px 6px', fontSize: '11px' }}
-                          >
-                            Remover
-                          </button>
-                        ) : (
-                          <button
-                            onClick={async () => {
-                              try {
-                                await axios.post(`/api/admin/users/${item.user._id}/companies/${item.company._id}`);
-                                setSuccess('Vínculo adicionado');
-                                fetchData();
-                                setTimeout(() => setSuccess(''), 3000);
-                              } catch (error) {
-                                setError(error.response?.data?.message || 'Erro ao adicionar vínculo');
-                                setTimeout(() => setError(''), 3000);
-                              }
-                            }}
-                            className="btn btn-primary"
-                            style={{ padding: '3px 6px', fontSize: '11px' }}
-                          >
-                            Adicionar
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{
+                            fontSize: '12px',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            color: 'white',
+                            backgroundColor: item.hasInconsistency ? '#dc3545' : item.isLinked ? '#28a745' : '#6c757d'
+                          }}>
+                            {item.hasInconsistency ? 'INCONSISTENTE' : item.isLinked ? 'VINCULADO' : 'NÃO VINCULADO'}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {item.isResponsible && (
+                            <span 
+                              title="Responsável: gerente da empresa com permissões de gestão"
+                              style={{ 
+                                fontSize: '11px', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px',
+                                backgroundColor: '#fef3c7',
+                                color: '#92400e',
+                                border: '1px solid #fcd34d',
+                                cursor: 'help'
+                              }}
+                            >
+                              ⭐ Responsável
+                            </span>
+                          )}
+                          {item.isEmployee && (
+                            <span 
+                              title="Funcionário: membro da equipe da empresa"
+                              style={{ 
+                                fontSize: '11px', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px',
+                                backgroundColor: '#d1fae5',
+                                color: '#065f46',
+                                border: '1px solid #6ee7b7',
+                                cursor: 'help'
+                              }}
+                            >
+                              👤 Funcionário
+                            </span>
+                          )}
+                          {item.isLinked && !item.isEmployee && !item.isResponsible && (
+                            <span 
+                              title="Vinculado: tem acesso à empresa mas sem função específica"
+                              style={{ 
+                                fontSize: '11px', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px',
+                                backgroundColor: '#dbeafe',
+                                color: '#1e40af',
+                                border: '1px solid #93c5fd',
+                                cursor: 'help'
+                              }}
+                            >
+                              🔗 Vinculado
+                            </span>
+                          )}
+                          {!item.isLinked && !item.isEmployee && !item.isResponsible && (
+                            <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                              ○ Sem vínculo
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          {/* Inconsistency fix button */}
+                          {item.hasInconsistency && (
+                            <button
+                              onClick={() => fixInconsistency(item)}
+                              className="btn btn-warning"
+                              style={{ padding: '3px 6px', fontSize: '10px' }}
+                              disabled={itemLoading}
+                              title="Corrigir inconsistência entre vínculo e função"
+                            >
+                              🔧 Corrigir
+                            </button>
+                          )}
+                          
+                          {/* Employee actions */}
+                          {!item.isEmployee && isCompanyActive && (
+                            <button
+                              onClick={() => setEmployee(item.company._id, item.user._id)}
+                              className="btn btn-success"
+                              style={{ padding: '3px 6px', fontSize: '10px' }}
+                              disabled={itemLoading || !isCompanyActive}
+                              title="Adicionar usuário como funcionário da empresa"
+                            >
+                              👤+ Funcionário
+                            </button>
+                          )}
+                          {item.isEmployee && !item.isResponsible && (
+                            <button
+                              onClick={() => removeEmployee(item.company._id, item.user._id)}
+                              className="btn btn-outline-danger"
+                              style={{ padding: '3px 6px', fontSize: '10px', backgroundColor: 'white', borderColor: '#dc3545', color: '#dc3545' }}
+                              disabled={itemLoading}
+                              title="Remover usuário da lista de funcionários"
+                            >
+                              👤- Funcionário
+                            </button>
+                          )}
+                          
+                          {/* Responsible actions - only for managers/admins */}
+                          {!item.isResponsible && canBeResponsible && isCompanyActive && (
+                            <button
+                              onClick={() => setResponsible(item.company._id, item.user._id)}
+                              className="btn btn-warning"
+                              style={{ padding: '3px 6px', fontSize: '10px', backgroundColor: '#ffc107', borderColor: '#ffc107', color: '#212529' }}
+                              disabled={itemLoading || !isCompanyActive}
+                              title="Definir usuário como responsável pela empresa (apenas gerentes/admins)"
+                            >
+                              ⭐+ Responsável
+                            </button>
+                          )}
+                          {item.isResponsible && (
+                            <button
+                              onClick={() => removeResponsible(item.company._id)}
+                              className="btn btn-outline-warning"
+                              style={{ padding: '3px 6px', fontSize: '10px', backgroundColor: 'white', borderColor: '#ffc107', color: '#856404' }}
+                              disabled={itemLoading}
+                              title="Remover responsabilidade do usuário sobre a empresa"
+                            >
+                              ⭐- Responsável
+                            </button>
+                          )}
+                          
+                          {/* Generic link actions */}
+                          {item.isLinked ? (
+                            <button
+                              onClick={async () => {
+                                const actionKey = getActionKey('removeLink', item.user._id, item.company._id);
+                                setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+                                try {
+                                  await axios.delete(`/api/admin/users/${item.user._id}/companies/${item.company._id}`);
+                                  setSuccess('Vínculo removido');
+                                  fetchData();
+                                  setTimeout(() => setSuccess(''), 3000);
+                                } catch (error) {
+                                  setError(handleApiError(error, 'Erro ao remover vínculo'));
+                                  setTimeout(() => setError(''), 3000);
+                                } finally {
+                                  setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+                                }
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '3px 6px', fontSize: '10px' }}
+                              disabled={itemLoading}
+                              title="Remover vínculo genérico"
+                            >
+                              🔗- Vínculo
+                            </button>
+                          ) : (
+                            <button
+                              onClick={async () => {
+                                const actionKey = getActionKey('addLink', item.user._id, item.company._id);
+                                setActionLoading(prev => ({ ...prev, [actionKey]: true }));
+                                try {
+                                  await axios.post(`/api/admin/users/${item.user._id}/companies/${item.company._id}`);
+                                  setSuccess('Vínculo adicionado');
+                                  fetchData();
+                                  setTimeout(() => setSuccess(''), 3000);
+                                } catch (error) {
+                                  setError(handleApiError(error, 'Erro ao adicionar vínculo'));
+                                  setTimeout(() => setError(''), 3000);
+                                } finally {
+                                  setActionLoading(prev => ({ ...prev, [actionKey]: false }));
+                                }
+                              }}
+                              className="btn btn-primary"
+                              style={{ padding: '3px 6px', fontSize: '10px' }}
+                              disabled={itemLoading || !isCompanyActive}
+                              title="Adicionar vínculo genérico"
+                            >
+                              🔗+ Vínculo
+                            </button>
+                          )}
+                          
+                          {/* Loading indicator */}
+                          {itemLoading && (
+                            <span style={{ fontSize: '10px', color: '#6c757d' }}>⏳</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -458,12 +709,32 @@ const UserCompanyLinks = () => {
       </div>
 
       <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '14px' }}>
-        <h4>Informações sobre Vínculos:</h4>
-        <ul style={{ margin: '10px 0' }}>
-          <li><strong>Vinculado:</strong> Usuário está associado à empresa (pode visualizar relatórios)</li>
-          <li><strong>Funcionário:</strong> Usuário está na lista de funcionários da empresa</li>
-          <li><strong>Responsável:</strong> Usuário é o responsável/gerente da empresa</li>
-          <li><strong>Inconsistência:</strong> Há desalinhamento entre vínculo e função (precisa correção)</li>
+        <h4>Informações sobre Vínculos e Funções:</h4>
+        <ul style={{ margin: '10px 0', listStyleType: 'none', paddingLeft: 0 }}>
+          <li style={{ marginBottom: '8px' }}>
+            <span style={{ backgroundColor: '#dbeafe', padding: '2px 6px', borderRadius: '4px', marginRight: '8px' }}>🔗 Vinculado</span>
+            Usuário está associado à empresa e pode visualizar relatórios.
+          </li>
+          <li style={{ marginBottom: '8px' }}>
+            <span style={{ backgroundColor: '#d1fae5', padding: '2px 6px', borderRadius: '4px', marginRight: '8px' }}>👤 Funcionário</span>
+            Usuário está na lista de funcionários da empresa. Automaticamente vinculado.
+          </li>
+          <li style={{ marginBottom: '8px' }}>
+            <span style={{ backgroundColor: '#fef3c7', padding: '2px 6px', borderRadius: '4px', marginRight: '8px' }}>⭐ Responsável</span>
+            Usuário é o gerente responsável pela empresa. Apenas gerentes ou administradores podem ter esta função. Automaticamente adicionado como funcionário.
+          </li>
+          <li style={{ marginBottom: '8px' }}>
+            <span style={{ backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px', marginRight: '8px' }}>⚠ Inconsistência</span>
+            Há desalinhamento entre vínculo e função (precisa correção). Use o botão "Corrigir" para resolver.
+          </li>
+        </ul>
+        <h5 style={{ marginTop: '15px' }}>Regras de Negócio:</h5>
+        <ul style={{ margin: '10px 0', fontSize: '13px', color: '#4b5563' }}>
+          <li>Apenas <strong>gerentes</strong> ou <strong>administradores</strong> podem ser definidos como responsáveis por uma empresa.</li>
+          <li>Ao definir um responsável, ele é automaticamente adicionado como funcionário da empresa.</li>
+          <li>Não é possível remover um funcionário que seja o responsável atual - primeiro remova a responsabilidade.</li>
+          <li>Empresas inativas não permitem adicionar novos funcionários ou responsáveis.</li>
+          <li>Administradores têm acesso automático a todas as empresas e não precisam de vínculos específicos.</li>
         </ul>
       </div>
     </div>
