@@ -595,6 +595,9 @@ const UserCompanyLinks = () => {
                           )}
                           
                           {/* Employee actions */}
+                          {/* Note: "Remove Funcionário" is hidden when user is responsible because 
+                              responsibles are automatically employees. To remove them as employee, 
+                              first remove their responsibility. */}
                           {!item.isEmployee && isCompanyActive && (
                             <button
                               onClick={() => setEmployee(item.company._id, item.user._id)}
@@ -612,7 +615,7 @@ const UserCompanyLinks = () => {
                               className="btn btn-outline-danger"
                               style={{ padding: '3px 6px', fontSize: '10px', backgroundColor: 'white', borderColor: '#dc3545', color: '#dc3545' }}
                               disabled={itemLoading}
-                              title="Remover usuário da lista de funcionários"
+                              title="Remover usuário da lista de funcionários (não disponível para responsáveis - primeiro remova a responsabilidade)"
                             >
                               👤- Funcionário
                             </button>
