@@ -640,7 +640,8 @@ function buildSummaryFromRecords(records, type) {
       { name: 'COFINS', value: totalCOFINS },
       { name: 'PIS', value: totalPIS }
     ],
-    records: records.slice(0, 100) // Retornar apenas os primeiros 100 registros para visualização
+    // Nota: Retorna todos os registros. Considere implementar paginação se o volume de dados crescer significativamente.
+    records
   };
 }
 
