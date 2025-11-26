@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const LoginAudit = require('../models/LoginAudit');
 
 // @route   POST /register
 // @desc    Register a new user
@@ -75,6 +76,17 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Extract IP (use first IP from x-forwarded-for chain if present)
+    let ip = req.ip || null;
+    const forwardedFor = req.headers['x-forwarded-for'];
+    if (forwardedFor) {
+      ip = forwardedFor.split(',')[0].trim();
+    } else if (req.connection?.remoteAddress) {
+      ip = req.connection.remoteAddress;
+    }
+    const userAgent = req.headers['user-agent'] || null;
+    const timestamp = new Date();
+
     // Validate input
     if (!email || !password) {
       return res.status(400).json({
@@ -86,6 +98,17 @@ router.post('/login', async (req, res) => {
     // Check if user exists and is active
     const user = await User.findOne({ email }).populate('companies', 'name cnpj');
     if (!user || !user.isActive) {
+      // Audit: User not found or inactive
+      await LoginAudit.create({
+        user: null,
+        email,
+        success: false,
+        reason: 'User not found or inactive',
+        ip,
+        userAgent,
+        timestamp
+      });
+
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials or inactive account'
@@ -95,6 +118,17 @@ router.post('/login', async (req, res) => {
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      // Audit: Invalid password
+      await LoginAudit.create({
+        user: user._id,
+        email,
+        success: false,
+        reason: 'Invalid password',
+        ip,
+        userAgent,
+        timestamp
+      });
+
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
@@ -112,6 +146,17 @@ router.post('/login', async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
+    // Audit: Successful login
+    await LoginAudit.create({
+      user: user._id,
+      email,
+      success: true,
+      reason: null,
+      ip,
+      userAgent,
+      timestamp
+    });
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -122,8 +167,7 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during login',
-      error: error.message
+      message: 'Server error during login'
     });
   }
 });

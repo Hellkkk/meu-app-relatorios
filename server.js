@@ -27,6 +27,7 @@ const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth');
 const companyRoutes = require('./routes/companies');
 const adminRoutes = require('./routes/admin');
+const adminAuditRoutes = require('./routes/adminAudit');
 const reportRoutes = require('./routes/reports');
 const purchaseRoutes = require('./routes/purchaseRoutes');
 const purchaseReportRoutes = require('./routes/reportRoutes');
@@ -98,6 +99,7 @@ connectDB().then(async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminAuditRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/purchase-reports', purchaseReportRoutes);
