@@ -63,6 +63,9 @@ const Navbar = () => {
               <Link to="/admin/user-company-links" className="nav-link">
                 Vínculos
               </Link>
+              <Link to="/admin/audit" className="nav-link">
+                Auditoria
+              </Link>
             </>
           )}
         </div>

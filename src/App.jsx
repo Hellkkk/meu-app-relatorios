@@ -8,6 +8,7 @@ import CompaniesFixed from './components/companies/CompaniesFixed';
 import ReportsPage from './pages/ReportsPage';
 import AdminUsersPortal from './components/admin/AdminUsersPortal';
 import UserCompanyLinks from './components/admin/UserCompanyLinks';
+import AdminAudit from './components/admin/AdminAudit';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 import ManagerRoute from './components/auth/ManagerRoute';
@@ -51,6 +52,12 @@ function App() {
               <Route path="/admin/user-company-links" element={
                 <AdminRoute>
                   <UserCompanyLinks />
+                </AdminRoute>
+              } />
+              
+              <Route path="/admin/audit" element={
+                <AdminRoute>
+                  <AdminAudit />
                 </AdminRoute>
               } />
               
