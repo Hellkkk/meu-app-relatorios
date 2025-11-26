@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 const AdminAudit = () => {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pagination, setPagination] = useState({
-    current: 1,
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState({
     pages: 1,
     total: 0,
     limit: 20
@@ -19,36 +19,40 @@ const AdminAudit = () => {
     since: ''
   });
 
-  useEffect(() => {
-    fetchAuditLogs();
-  }, [pagination.current]);
+  // Track applied filters separately to trigger fetches
+  const [appliedFilters, setAppliedFilters] = useState({
+    email: '',
+    success: '',
+    since: ''
+  });
 
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
 
       const params = new URLSearchParams();
-      params.append('page', pagination.current);
-      params.append('limit', pagination.limit);
+      params.append('page', currentPage);
+      params.append('limit', paginationInfo.limit);
 
-      if (filters.email.trim()) {
-        params.append('email', filters.email.trim());
+      if (appliedFilters.email.trim()) {
+        params.append('email', appliedFilters.email.trim());
       }
-      if (filters.success !== '') {
-        params.append('success', filters.success);
+      if (appliedFilters.success !== '') {
+        params.append('success', appliedFilters.success);
       }
-      if (filters.since) {
-        params.append('since', filters.since);
+      if (appliedFilters.since) {
+        params.append('since', appliedFilters.since);
       }
 
       const response = await axios.get(`/api/admin/audit?${params.toString()}`);
 
       if (response.data?.success) {
         setAuditLogs(response.data.items || []);
-        setPagination(prev => ({
+        setPaginationInfo(prev => ({
           ...prev,
-          ...response.data.pagination
+          pages: response.data.pagination?.pages || 1,
+          total: response.data.pagination?.total || 0
         }));
       } else {
         setAuditLogs([]);
@@ -60,7 +64,12 @@ const AdminAudit = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, appliedFilters, paginationInfo.limit]);
+
+  // Fetch when page or applied filters change
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }));
@@ -68,19 +77,20 @@ const AdminAudit = () => {
 
   const handleApplyFilters = (e) => {
     e.preventDefault();
-    setPagination(prev => ({ ...prev, current: 1 }));
-    fetchAuditLogs();
+    setCurrentPage(1);
+    setAppliedFilters({ ...filters });
   };
 
   const handleClearFilters = () => {
-    setFilters({ email: '', success: '', since: '' });
-    setPagination(prev => ({ ...prev, current: 1 }));
-    setTimeout(() => fetchAuditLogs(), 0);
+    const clearedFilters = { email: '', success: '', since: '' };
+    setFilters(clearedFilters);
+    setCurrentPage(1);
+    setAppliedFilters(clearedFilters);
   };
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.pages) {
-      setPagination(prev => ({ ...prev, current: newPage }));
+    if (newPage >= 1 && newPage <= paginationInfo.pages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -225,47 +235,47 @@ const AdminAudit = () => {
         </div>
 
         {/* Pagination */}
-        {pagination.pages > 1 && (
+        {paginationInfo.pages > 1 && (
           <div className="pagination" style={{ marginTop: '1.5rem' }}>
             <button
               className="page-btn"
               onClick={() => handlePageChange(1)}
-              disabled={pagination.current === 1}
+              disabled={currentPage === 1}
             >
               ««
             </button>
             <button
               className="page-btn"
-              onClick={() => handlePageChange(pagination.current - 1)}
-              disabled={pagination.current === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
             >
               «
             </button>
 
             <span style={{ padding: '0 1rem', color: 'var(--medium-gray)' }}>
-              Página {pagination.current} de {pagination.pages} ({pagination.total} registros)
+              Página {currentPage} de {paginationInfo.pages} ({paginationInfo.total} registros)
             </span>
 
             <button
               className="page-btn"
-              onClick={() => handlePageChange(pagination.current + 1)}
-              disabled={pagination.current === pagination.pages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === paginationInfo.pages}
             >
               »
             </button>
             <button
               className="page-btn"
-              onClick={() => handlePageChange(pagination.pages)}
-              disabled={pagination.current === pagination.pages}
+              onClick={() => handlePageChange(paginationInfo.pages)}
+              disabled={currentPage === paginationInfo.pages}
             >
               »»
             </button>
           </div>
         )}
 
-        {pagination.pages <= 1 && pagination.total > 0 && (
+        {paginationInfo.pages <= 1 && paginationInfo.total > 0 && (
           <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--medium-gray)', fontSize: '0.9rem' }}>
-            {pagination.total} registro(s) encontrado(s)
+            {paginationInfo.total} registro(s) encontrado(s)
           </div>
         )}
       </div>
