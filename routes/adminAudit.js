@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const LoginAudit = require('../models/LoginAudit');
 const { authenticate, requireAdmin } = require('../middleware/authorization');
+
+// Simple email validation regex
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return typeof email === 'string' && emailRegex.test(email);
+};
 
 /**
  * @route   GET /api/admin/audit
@@ -29,14 +36,27 @@ router.get('/audit', authenticate, requireAdmin, async (req, res) => {
     // Build filter object
     const filter = {};
 
-    // Filter by userId
+    // Filter by userId (validate ObjectId format)
     if (req.query.userId) {
+      if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid userId format'
+        });
+      }
       filter.user = req.query.userId;
     }
 
-    // Filter by email
+    // Filter by email (validate and sanitize)
     if (req.query.email) {
-      filter.email = req.query.email.toLowerCase();
+      const emailInput = req.query.email.toLowerCase().trim();
+      if (!isValidEmail(emailInput)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
+        });
+      }
+      filter.email = emailInput;
     }
 
     // Filter by success status

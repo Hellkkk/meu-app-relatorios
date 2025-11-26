@@ -76,8 +76,14 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Extract IP and user-agent for audit
-    const ip = req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || null;
+    // Extract IP (use first IP from x-forwarded-for chain if present)
+    let ip = req.ip || null;
+    const forwardedFor = req.headers['x-forwarded-for'];
+    if (forwardedFor) {
+      ip = forwardedFor.split(',')[0].trim();
+    } else if (req.connection?.remoteAddress) {
+      ip = req.connection.remoteAddress;
+    }
     const userAgent = req.headers['user-agent'] || null;
     const timestamp = new Date();
 
@@ -161,8 +167,7 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during login',
-      error: error.message
+      message: 'Server error during login'
     });
   }
 });
