@@ -31,6 +31,7 @@ const adminAuditRoutes = require('./routes/adminAudit');
 const reportRoutes = require('./routes/reports');
 const purchaseRoutes = require('./routes/purchaseRoutes');
 const purchaseReportRoutes = require('./routes/reportRoutes');
+const aiRoutes = require('./routes/ai');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -103,6 +104,7 @@ app.use('/api/admin', adminAuditRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/purchase-reports', purchaseReportRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Protected route example (can be used for testing)
 app.get('/api/protected', authenticate, (req, res) => {

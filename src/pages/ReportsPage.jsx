@@ -7,6 +7,7 @@ import PurchasesBySupplierChart from '../components/charts/PurchasesBySupplierCh
 import TaxesBreakdownChart from '../components/charts/TaxesBreakdownChart';
 import MonthlyPurchasesChart from '../components/charts/MonthlyPurchasesChart';
 import PurchasesTable from '../components/purchases/PurchasesTable';
+import AIAssistantPanel from '../components/reports/AIAssistantPanel';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import http from '../api/http';
 
@@ -183,6 +184,9 @@ const ReportsPage = () => {
       ) : uploadEnabled ? (
         <UploadPanel onImported={handleImported} />
       ) : null}
+
+      {/* AI Assistant Panel - below selectors */}
+      <AIAssistantPanel companyId={selectedCompany} reportType={reportType} />
 
       {/* Anomaly detection alert */}
       {showAnomaly && selectedCompany && (
