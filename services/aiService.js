@@ -64,7 +64,8 @@ function sampleRecords(records, maxSamples = AI_MAX_RECORDS_TO_SAMPLE) {
   }
   
   // Sample evenly distributed records
-  const step = Math.floor(records.length / maxSamples);
+  // Use Math.max(1, ...) to prevent infinite loop if step would be 0
+  const step = Math.max(1, Math.floor(records.length / maxSamples));
   const sampled = [];
   
   for (let i = 0; i < records.length && sampled.length < maxSamples; i += step) {
@@ -487,7 +488,9 @@ function getUserAccessibleCompanyIds(user) {
   if (!user) return [];
   
   // Admin has access to all companies (return empty array to bypass filter)
-  if (user.role === 'admin' || (user.isAdmin && typeof user.isAdmin === 'function' && user.isAdmin())) {
+  // Use isAdmin() method if available, otherwise check role directly
+  const isAdmin = typeof user.isAdmin === 'function' ? user.isAdmin() : user.role === 'admin';
+  if (isAdmin) {
     return [];
   }
   

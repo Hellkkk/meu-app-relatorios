@@ -138,8 +138,8 @@ const AIAssistantPanel = ({ companyId, reportType }) => {
     );
   }
 
-  // Show warning if AI is not available
-  if (!aiStatus?.available && !aiStatus?.gemini) {
+  // Show warning if Gemini AI is not available (required for all AI features)
+  if (!aiStatus?.gemini) {
     return (
       <Paper sx={{ p: 3, mb: 3 }}>
         <Alert severity="info" icon={<InfoIcon />}>
